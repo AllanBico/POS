@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../models'); // Adjust based on your database setup
-
+const User = require('../models/user'); // Adjust based on your database setup
+const bcrypt = require('bcrypt');
 // Get all users
 router.get('/', async (req, res) => {
     try {
-        const users = await db.User.findAll(); // Use Sequelize or your DB library
+        const users = await User.findAll(); // Use Sequelize or your DB library
         res.json(users);
     } catch (err) {
         console.error(err);
@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
 // Get a specific user by ID
 router.get('/:id', async (req, res) => {
     try {
-        const user = await db.User.findByPk(req.params.id); // Use Sequelize or your DB library
+        const user = await User.findByPk(req.params.id); // Use Sequelize or your DB library
         if (user) {
             res.json(user);
         } else {
@@ -31,22 +31,38 @@ router.get('/:id', async (req, res) => {
 // Create a new user
 router.post('/', async (req, res) => {
     try {
-        const newUser = await db.User.create(req.body); // Use Sequelize or your DB library
+        const { name, email, password } = req.body;
+
+        // Validate request
+        if (!name || !email || !password) {
+            return res.status(400).json({ message: 'All fields are required' });
+        }
+
+        // Hash the password
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        // Create a new user instance
+        const newUser = await User.create({
+            name,
+            email,
+            password_hash: passwordHash // Set the hashed password
+        });
+
         res.status(201).json(newUser);
     } catch (err) {
-        console.error(err);
-        res.status(400).send('Bad request');
+        console.error('Error creating user:', err);
+        res.status(400).json({ message: 'Bad request', error: err.message });
     }
 });
 
 // Update a user
 router.put('/:id', async (req, res) => {
     try {
-        const [updated] = await db.User.update(req.body, {
+        const [updated] = await User.update(req.body, {
             where: { id: req.params.id }
         });
         if (updated) {
-            const updatedUser = await db.User.findByPk(req.params.id);
+            const updatedUser = await User.findByPk(req.params.id);
             res.json(updatedUser);
         } else {
             res.status(404).send('User not found');
@@ -60,17 +76,17 @@ router.put('/:id', async (req, res) => {
 // Delete a user
 router.delete('/:id', async (req, res) => {
     try {
-        const deleted = await db.User.destroy({
-            where: { id: req.params.id }
-        });
-        if (deleted) {
-            res.status(204).send();
+        const { id } = req.params;
+        const deletedUser = await User.destroy({ where: { id } });
+
+        if (deletedUser) {
+            res.status(204).send(); // No content
         } else {
-            res.status(404).send('User not found');
+            res.status(404).json({ message: 'User not found' });
         }
     } catch (err) {
-        console.error(err);
-        res.status(500).send('Server error');
+        console.error('Error deleting user:', err);
+        res.status(400).json({ message: 'Bad request', error: err.message });
     }
 });
 

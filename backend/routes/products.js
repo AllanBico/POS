@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../models'); // Adjust based on your database setup
+const db = require('../models/user'); // Adjust based on your database setup
 
 // Get all products
 router.get('/', async (req, res) => {

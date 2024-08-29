@@ -1,11 +1,13 @@
+// models/user.js
 const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = new Sequelize('postgres://postgres:root@localhost:5432/test');
+const sequelize = require('../config/db'); // Adjust the path as necessary
+const bcrypt = require('bcrypt');
 
-// Define models
 const User = sequelize.define('User', {
     name: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
+        unique: true
     },
     email: {
         type: DataTypes.STRING,
@@ -27,17 +29,13 @@ const User = sequelize.define('User', {
         defaultValue: Sequelize.NOW
     }
 }, {
-    tableName: 'users', // Make sure this matches your actual table name
-    timestamps: true, // Sequelize handles timestamps automatically
+    tableName: 'users',
+    timestamps: true,
     createdAt: 'created_at',
     updatedAt: 'updated_at'
 });
 
-const Product = sequelize.define('Product', {
-    name: DataTypes.STRING,
-    price: DataTypes.FLOAT,
-}, {
-    tableName: 'products'  // Specify table name to match your database
-});
 
-module.exports = { sequelize, User, Product };
+
+
+module.exports = User;

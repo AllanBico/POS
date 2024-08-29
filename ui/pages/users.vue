@@ -13,6 +13,13 @@ const routes = [
     breadcrumbName: 'Third-level Menu',
   },
 ];
+import { useUserStore } from '~/stores/useUserStore.js';
+
+
+const userStore = useUserStore();
+
+// Fetch users when the component is mounted
+userStore.fetchUsers();
 </script>
 
 <template>
@@ -22,6 +29,7 @@ const routes = [
       :breadcrumb="{ routes }"
       sub-title="This is a subtitle"
   />
+  <users-table :users="userStore.users" />
 </template>
 
 <style scoped>

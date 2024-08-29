@@ -1,4 +1,5 @@
 <template>
+
   <div>
     <!-- Header with Search and Actions -->
     <div class="header">

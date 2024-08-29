@@ -11,8 +11,11 @@
   },
   "dependencies": {
     "@ant-design-vue/nuxt": "^1.4.2",
+    "@ant-design/icons-vue": "^7.0.1",
+    "@pinia/nuxt": "^0.5.4",
     "ant-design-vue": "^4.2.3",
     "nuxt": "^3.13.0",
+    "pinia": "^2.2.2",
     "vue": "latest"
   },
   "devDependencies": {

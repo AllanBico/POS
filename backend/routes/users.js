@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/user'); // Adjust based on your database setup
 const bcrypt = require('bcrypt');
+const authMiddleware = require('../middleware/auth');
 // Get all users
 router.get('/', async (req, res) => {
     try {
@@ -57,13 +58,36 @@ router.post('/', async (req, res) => {
 
 // Update a user
 router.put('/:id', async (req, res) => {
+    const { name, email, password } = req.body;
+    console.log("name, email, password",name, email, password)
     try {
-        const [updated] = await User.update(req.body, {
+        // Find the user by ID
+        const user = await User.findByPk(req.params.id);
+
+        if (!user) {
+            return res.status(404).send('User not found');
+        }
+
+        // Update user details
+        const updatedUser = {
+            name: name || user.name,
+            email: email || user.email,
+        };
+
+        if (password) {
+            // Hash the new password
+            const salt = await bcrypt.genSalt(10);
+            updatedUser.password_hash = await bcrypt.hash(password, salt);
+        }
+
+        const [updated] = await User.update(updatedUser, {
             where: { id: req.params.id }
         });
+
         if (updated) {
-            const updatedUser = await User.findByPk(req.params.id);
-            res.json(updatedUser);
+            // Retrieve and send the updated user
+            const user = await User.findByPk(req.params.id);
+            res.json(user);
         } else {
             res.status(404).send('User not found');
         }

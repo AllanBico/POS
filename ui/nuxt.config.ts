@@ -8,6 +8,6 @@ export default defineNuxtConfig({
     public: {
       baseURL: process.env.BASE_URL || 'http://localhost:4000',
     },
-  },
+  }
 
 })

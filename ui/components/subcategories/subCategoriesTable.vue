@@ -1,28 +1,31 @@
 <template>
   <div>
-    <div>
-
-    </div>
-    <a-modal v-model:open="open" title="Add User" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"  cancel-text="Cancel">
-      <user-add-modal @submit-success="handleSubmitSuccess"></user-add-modal>
+    <a-modal v-model:open="open" title="Add User" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
+             cancel-text="Cancel">
+      <sub-category-add-modal @submit-success="handleSubmitSuccess"></sub-category-add-modal>
       <template #footer>
       </template>
     </a-modal>
-    <a-modal v-model:open="edit_open" title="Edit User" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"  cancel-text="Cancel">
-      <UserEditModal :user_id="user_id" @submit-success="handleSubmitSuccess"></UserEditModal>
+    <a-modal v-model:open="edit_open" title="Edit User" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
+             cancel-text="Cancel">
+      <sub-category-edit-modal :sub_category_id="sub_category_id" @submit-success="handleSubmitSuccess"/>
       <template #footer>
       </template>
     </a-modal>
   </div>
-  <a-button class="editable-add-btn" style="margin-bottom: 8px" @click="handleAdd">Add</a-button>
-  <a-table bordered :data-source="users" :columns="columns" @change="onChange">
+  <div>
+  </div>
+  <a-button class="editable-add-btn" style="margin-bottom: 1px ;margin-top: 1px ;" @click="handleAdd">Add</a-button>
+  <a-table bordered :data-source="subCategoryStore.subcategories" :columns="columns">
+
     <template #bodyCell="{ column, text, record }">
+
       <template v-if="column.dataIndex === 'operation'">
         <a style="margin-right: 3px" @click="onEdit(record.id)">Edit</a>
         <a-popconfirm
-            v-if="users.length"
+            v-if="subCategoryStore.subcategories.length"
             title="Sure to delete?"
-            @confirm="onDelete(record.id)" >
+            @confirm="onDelete(record.id)">
           <a>Delete</a>
         </a-popconfirm>
 
@@ -31,40 +34,34 @@
   </a-table>
 </template>
 <script setup>
-import { computed, reactive, ref } from 'vue';
-import { cloneDeep } from 'lodash-es';
-import UserAddModal from "~/components/users/userAddModal.vue";
-import UserEditModal from "~/components/users/userEditModal.vue";
-import { useUserStore } from '~/stores/useUserStore.js';
-const userStore = useUserStore();
+import {computed, reactive, ref} from 'vue';
+import {cloneDeep} from 'lodash-es';
+import {useSubcategoryStore} from '~/stores/subcategory.js';
+import SubCategoryAddModal from "~/components/subcategories/subCategoryAddModal.vue";
+import SubCategoryEditModal from "~/components/subcategories/subCategoryEditModal.vue";
+
+const subCategoryStore = useSubcategoryStore();
 const open = ref(false);
 const edit_open = ref(false);
-let user_id = ref(null)
-defineProps({
-  // Prop for an object
-  users: {
-    type: Object,
-    required: true, // Adjust as needed
-  },
-});
-
+let sub_category_id = ref(null)
+subCategoryStore.fetchSubcategories()
+console.log("subCategoryStore.subcategories", subCategoryStore.subcategories)
 const columns = [
+
+  {
+    title: 'Category',
+    key: 'category',
+    customRender: ({record}) => record.Category ? record.Category.name : 'N/A',
+    width: '30%',
+  },
   {
     title: 'Name',
     dataIndex: 'name',
     width: '30%',
-    sorter: {
-      compare: (a, b) => a.name - b.name,
-      multiple: 3,
-    },
   },
   {
-    title: 'Email',
-    dataIndex: 'email',
-  },
-  {
-    title: 'Created',
-    dataIndex: 'created_at',
+    title: 'Description',
+    dataIndex: 'description',
   },
   {
     title: 'operation',
@@ -78,13 +75,12 @@ const edit = key => {
 const save = key => {
 };
 const onDelete = async key => {
-  await userStore.deleteUser(key)
-  console.log("deleted",key)
+  await subCategoryStore.deleteSubcategory(key)
+  console.log("deleted", key)
 };
 const onEdit = async key => {
-  console.log("edit",key)
-  user_id =parseInt(key)
-  console.log("user_id",user_id)
+  console.log("edit", key)
+  sub_category_id = parseInt(key)
   edit_open.value = true
   console.log("done")
 };
@@ -104,13 +100,11 @@ const handleSubmitSuccess = () => {
   open.value = false;
   edit_open.value = false;
 };
-function onChange(pagination, filters, sorter, extra) {
-  console.log('params', pagination, filters, sorter, extra);
-}
 </script>
 <style lang="less" scoped>
 .editable-cell {
   position: relative;
+
   .editable-cell-input-wrapper,
   .editable-cell-text-wrapper {
     padding-right: 24px;
@@ -146,6 +140,7 @@ function onChange(pagination, filters, sorter, extra) {
     margin-bottom: 8px;
   }
 }
+
 .editable-cell:hover .editable-cell-icon {
   display: inline-block;
 }

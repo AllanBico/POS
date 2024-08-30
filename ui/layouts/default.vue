@@ -28,16 +28,16 @@
         <!-- Inventory Section -->
         <a-menu-item-group key="inventory" title="Inventory">
           <a-menu-item key="4" >Products</a-menu-item>
-          <a-menu-item key="5" >Create Product</a-menu-item>
+          <a-menu-item key="5" ><nuxt-link to="/categories">Categories</nuxt-link></a-menu-item>
+          <a-menu-item key="88" ><nuxt-link to="/subcategories">Sub Categories</nuxt-link></a-menu-item>
           <a-menu-item key="6" >Expired Products</a-menu-item>
           <a-menu-item key="7" >Low Stocks</a-menu-item>
         </a-menu-item-group>
-
         <a-divider />
 
         <!-- Stock Section -->
-        <a-menu-item-group key="stock" title="Stock">
-          <a-menu-item key="16" >Manage Stock</a-menu-item>
+        <a-menu-item-group key="people" title="People">
+          <a-menu-item key="16" ><nuxt-link to="/users">Users</nuxt-link></a-menu-item>
           <a-menu-item key="17" >Stock Adjustment</a-menu-item>
         </a-menu-item-group>
       </a-menu>

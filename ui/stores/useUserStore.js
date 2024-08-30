@@ -1,22 +1,20 @@
 import { defineStore } from 'pinia';
-import {useRuntimeConfig} from '#app'
+import { useRuntimeConfig } from '#app';
+
 export const useUserStore = defineStore('user', {
-    // State: Holds reactive properties
     state: () => ({
         users: [],
         currentUser: null,
-        isLoading: false, // Loading state to manage the fetching process
-        error: null,      // Error state to handle errors
+        isLoading: false,
+        error: null,
     }),
 
-    // Getters: Computed properties for derived state
     getters: {
         userCount: (state) => state.users.length,
         isLoggedIn: (state) => state.currentUser !== null,
         userById: (state) => (id) => state.users.find(user => user.id === id) || null,
     },
 
-    // Actions: Methods to modify the state and perform operations
     actions: {
         async fetchUsers() {
             this.isLoading = true;
@@ -27,11 +25,12 @@ export const useUserStore = defineStore('user', {
                 const { data, error } = await useFetch(apiUrl, {
                     method: 'GET',
                 });
+
                 if (error.value) {
                     throw new Error(error.value);
                 }
 
-                this.users = data.value; // Update the users state with the fetched data
+                this.users = data.value;
             } catch (err) {
                 this.error = err.message;
             } finally {
@@ -52,13 +51,12 @@ export const useUserStore = defineStore('user', {
                         'Content-Type': 'application/json',
                     },
                 });
+
                 if (error.value) {
                     throw new Error(error.value);
                 }
 
-                // Add the newly created user to the local state
                 this.users.push(data.value);
-
             } catch (err) {
                 this.error = err.message;
             } finally {
@@ -73,14 +71,42 @@ export const useUserStore = defineStore('user', {
                 const { error } = await useFetch(apiUrl, {
                     method: 'DELETE'
                 });
+
                 if (error.value) {
                     throw new Error(error.value);
                 }
 
-                // Remove the deleted user from the state
                 this.users = this.users.filter(user => user.id !== userId);
             } catch (err) {
                 this.error = err.message;
+            }
+        },
+
+        async updateUser(userId, updatedData) {
+            this.isLoading = true;
+            this.error = null;
+            const config = useRuntimeConfig();
+            try {
+                const apiUrl = config.public.baseURL + `/api/users/${userId}`;
+                const { data, error } = await useFetch(apiUrl, {
+                    method: 'PUT',
+                    body: JSON.stringify(updatedData),
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (error.value) {
+                    throw new Error(error.value);
+                }
+
+                // Update the local state
+                this.updateLocalUser(userId, data.value);
+
+            } catch (err) {
+                this.error = err.message;
+            } finally {
+                this.isLoading = false;
             }
         },
 
@@ -92,7 +118,7 @@ export const useUserStore = defineStore('user', {
             this.currentUser = null;
         },
 
-        updateUser(userId, updatedData) {
+        updateLocalUser(userId, updatedData) {
             const userIndex = this.users.findIndex(user => user.id === userId);
             if (userIndex !== -1) {
                 this.users[userIndex] = { ...this.users[userIndex], ...updatedData };

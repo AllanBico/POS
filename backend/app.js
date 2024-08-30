@@ -3,15 +3,18 @@ const winston = require('winston');
 const cors = require('cors'); // Import cors package
 const app = express();
 const port = 4000;
-
+const dotenv = require('dotenv');
 // Import Sequelize model
 const Log = require('./models/log');
 
 // Import routes
 const userRoutes = require('./routes/users');
 const productRoutes = require('./routes/products');
-
+const authRoutes = require('./routes/auth');
+const categoryRoutes = require('./routes/category');
+const subCategoryRoutes = require('./routes/subcategory');
 // Middleware to parse JSON bodies
+dotenv.config();
 app.use(express.json());
 
 // Configure CORS to allow requests from specific origins
@@ -53,7 +56,10 @@ app.use(async (req, res, next) => {
 });
 
 // Use routes
+app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/subcategories', subCategoryRoutes);
 app.use('/api/products', productRoutes);
 
 // Start the server

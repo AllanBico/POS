@@ -58,6 +58,7 @@
           <a-menu-item key="2">nav 2</a-menu-item>
           <a-menu-item key="3">nav 3</a-menu-item>
         </a-menu>
+
         <a-avatar style="background-color: #87d068" class="avatar">
           <template #icon>
             <UserOutlined />
@@ -72,7 +73,7 @@
 
       <!-- Footer -->
       <a-layout-footer style="text-align: center; flex-shrink: 0;">
-        Ant Design ©2018 Created by Ant UED
+        POS ©2024 Created by <a href="https://www.intellitech.co.ke" target="_blank">Intellitech LTD</a>
       </a-layout-footer>
     </a-layout>
   </a-layout>

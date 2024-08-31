@@ -12,7 +12,6 @@ export const useSubcategoryStore = defineStore('subcategory', {
             console.log(typeof id)
             console.log("id.value",id)
             const subcategory = state.subcategories.find(subcategory => subcategory.id === id) || null;
-
             console.log("store subcategory",subcategory)
             return subcategory;
         },

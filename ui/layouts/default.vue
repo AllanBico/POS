@@ -27,11 +27,12 @@
 
         <!-- Inventory Section -->
         <a-menu-item-group key="inventory" title="Inventory">
-          <a-menu-item key="4" >Products</a-menu-item>
-          <a-menu-item key="5" ><nuxt-link to="/categories">Categories</nuxt-link></a-menu-item>
-          <a-menu-item key="88" ><nuxt-link to="/subcategories">Sub Categories</nuxt-link></a-menu-item>
-          <a-menu-item key="6" >Expired Products</a-menu-item>
-          <a-menu-item key="7" >Low Stocks</a-menu-item>
+          <a-menu-item key="1" >Products</a-menu-item>
+          <a-menu-item key="2" ><nuxt-link to="/categories">Categories</nuxt-link></a-menu-item>
+          <a-menu-item key="3" ><nuxt-link to="/subcategories">Sub Categories</nuxt-link></a-menu-item>
+          <a-menu-item key="4" ><nuxt-link to="/brands"> Brands</nuxt-link></a-menu-item>
+          <a-menu-item key="5" ><nuxt-link to="/units"> Units</nuxt-link></a-menu-item>
+          <a-menu-item key="6" ><nuxt-link to="/warranties"> warranty</nuxt-link></a-menu-item>
         </a-menu-item-group>
         <a-divider />
 

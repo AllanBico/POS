@@ -13,6 +13,9 @@ const productRoutes = require('./routes/products');
 const authRoutes = require('./routes/auth');
 const categoryRoutes = require('./routes/category');
 const subCategoryRoutes = require('./routes/subcategory');
+const brandRoutes = require('./routes/brand');
+const unitsRouter = require('./routes/units');
+const warrantyRoutes = require('./routes/warranty');
 // Middleware to parse JSON bodies
 dotenv.config();
 app.use(express.json());
@@ -61,6 +64,9 @@ app.use('/api/users', userRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/subcategories', subCategoryRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/brands', brandRoutes);
+app.use('/api/units', unitsRouter);
+app.use('/api/warranties', warrantyRoutes);
 
 // Start the server
 app.listen(port, () => {

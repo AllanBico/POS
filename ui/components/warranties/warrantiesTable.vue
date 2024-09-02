@@ -31,14 +31,17 @@
         </span>
       </template>
       <template v-else-if="column.dataIndex === 'operation'">
-        <a style="margin-right: 3px" @click="onEdit(record.id)">Edit</a>
+        <a-tooltip  title="Edit" placement="bottom">
+          <a-button @click="onEdit(record.id)" style="margin-right: 3px"  :icon="h(EditOutlined)" />
+        </a-tooltip>
         <a-popconfirm
             v-if="WarrantyStore.warranties.length"
             title="Sure to delete?"
-            @confirm="onDelete(record.id)">
-          <a>Delete</a>
+            @confirm="onDelete(record.id)" >
+          <a-tooltip title="Delete" placement="bottom">
+            <a-button  :icon="h(DeleteOutlined)" />
+          </a-tooltip>
         </a-popconfirm>
-
       </template>
     </template>
   </a-table>
@@ -53,6 +56,7 @@ let warranty_id = ref(null)
 import {useWarrantyStore} from '~/stores/warranty.js';
 import WarrantyAddModal from '~/components/warranties/warrantyAddModal.vue'
 import WarrantyEditModal from '~/components/warranties/WarrantyEditModal.vue'
+import {DeleteOutlined, EditOutlined} from "@ant-design/icons-vue";
 const WarrantyStore = useWarrantyStore();
 WarrantyStore.fetchWarranties()
 console.log("WarrantyStore.warranties",WarrantyStore.warranties)

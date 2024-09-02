@@ -1,9 +1,10 @@
 const express = require('express');
 const winston = require('winston');
-const cors = require('cors'); // Import cors package
-const app = express();
-const port = 4000;
+const cors = require('cors');
 const dotenv = require('dotenv');
+const http = require('http'); // Import http module
+const { Server } = require('socket.io'); // Import Socket.IO
+
 // Import Sequelize model
 const Log = require('./models/log');
 
@@ -16,13 +17,27 @@ const subCategoryRoutes = require('./routes/subcategory');
 const brandRoutes = require('./routes/brand');
 const unitsRouter = require('./routes/units');
 const warrantyRoutes = require('./routes/warranty');
-// Middleware to parse JSON bodies
+
 dotenv.config();
+
+const app = express();
+const server = http.createServer(app); // Create an HTTP server
+const port = process.env.PORT || 4000;
+
+// Initialize Socket.IO and allow CORS
+const io = new Server(server, {
+    cors: {
+        origin: 'http://localhost:3000', // Allow this origin to make requests
+        methods: ['GET', 'POST'],
+    },
+});
+
+// Middleware to parse JSON bodies
 app.use(express.json());
 
-// Configure CORS to allow requests from specific origins
+// Configure CORS
 app.use(cors({
-    origin: 'http://localhost:3000' // Allow this origin to make requests
+    origin: 'http://localhost:3000',
 }));
 
 // Configure Winston logger
@@ -35,12 +50,12 @@ const logger = winston.createLogger({
     ],
 });
 
-// Middleware to log user actions and save to database
+// Middleware to log user actions and save to the database
 app.use(async (req, res, next) => {
     const logEntry = {
         method: req.method,
         url: req.url,
-        user_id: req.user ? req.user.id : 'anonymous', // Assuming you have user information in req.user
+        user_id: req.user ? req.user.id : 'anonymous',
         timestamp: new Date(),
         body: req.body,
         query: req.query,
@@ -58,7 +73,12 @@ app.use(async (req, res, next) => {
     next();
 });
 
-// Use routes
+// Use routes and pass Socket.IO to them
+app.use((req, res, next) => {
+    req.io = io; // Attach the io instance to the request object
+    next();
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/categories', categoryRoutes);
@@ -68,7 +88,18 @@ app.use('/api/brands', brandRoutes);
 app.use('/api/units', unitsRouter);
 app.use('/api/warranties', warrantyRoutes);
 
+// Listen for Socket.IO connections
+io.on('connection', (socket) => {
+    console.log('A user connected:', socket.id);
+
+    socket.on('disconnect', () => {
+        console.log('A user disconnected:', socket.id);
+    });
+
+    // Define more socket events here
+});
+
 // Start the server
-app.listen(port, () => {
+server.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
 });

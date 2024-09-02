@@ -13,7 +13,7 @@ router.post('/', asyncHandler(async (req, res) => {
     const { name, description } = req.body;
     const category = await Category.create({ name, description });
     res.status(201).json(category);
-
+    req.io.emit('newCategory', category);
 }));
 
 // Get all categories
@@ -45,15 +45,17 @@ router.put('/:id', asyncHandler(async (req, res) => {
     category.description = description || category.description;
     await category.save();
     res.status(200).json(category);
+    req.io.emit('updateCategory', category);
 }));
 
 // Delete a category by ID
 router.delete('/:id', asyncHandler(async (req, res) => {
-    const category = await Category.findByPk(req.params.id);
+    const id = req.params.id
+    const category = await Category.findByPk(id);
     if (!category) return res.status(404).json({ error: 'Category not found' });
-
     await category.destroy(); // Soft delete because of `paranoid: true`
     res.status(204).json({ message: 'Category deleted' });
+    req.io.emit('deleteCategory', id);
 }));
 
 module.exports = router;

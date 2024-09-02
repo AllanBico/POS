@@ -1,116 +1,112 @@
 <template>
-
-  <div>
-    <!-- Header with Search and Actions -->
-    <div class="header">
-      <h2>User List</h2>
-      <p>Manage Your Users</p>
-      <a-input-search
-          placeholder="Search"
-          style="width: 200px; margin-bottom: 16px;"
-          v-model:value="searchValue"
-          @search="onSearch"
-      />
-      <div class="actions">
-        <!-- Actions like Add New User, Sort, etc. -->
-        <a-button type="primary" @click="addNewUser">Add New User</a-button>
-      </div>
-    </div>
-
-    <!-- User List Table -->
-    <a-table
-        :columns="columns"
-        :data-source="filteredData"
-        row-key="email"
-        :pagination="{ pageSize: 10 }"
-    >
-      <!-- Custom Render for Status -->
-      <template #status="{ text, record }">
-        <a-badge
-            :status="record.status === 'Active' ? 'success' : 'error'"
-            :text="record.status"
+  <div class="coupons-container">
+    <a-card title="Coupons" bordered={false}>
+      <div class="header-controls">
+        <a-input-search
+            placeholder="Search"
+            v-model:value="searchTerm"
+            style="width: 200px;"
+            @search="handleSearch"
         />
-      </template>
 
-      <!-- Custom Render for Actions -->
-      <template #action="{ record }">
-        <a-button-group>
-          <a-button @click="viewUser(record)">View</a-button>
-          <a-button @click="editUser(record)">Edit</a-button>
-          <a-button type="danger" @click="deleteUser(record)">Delete</a-button>
-        </a-button-group>
-      </template>
-    </a-table>
+        <div class="actions">
+          <a-button type="primary" @click="addCoupon">
+            <a-icon type="plus" />
+            Add New Coupons
+          </a-button>
+        </div>
+      </div>
+
+      <a-table
+          :columns="columns"
+          :dataSource="coupons"
+          :pagination="pagination"
+          rowKey="id"
+          bordered
+      >
+        <template #name="{ text }">
+          {{ text }}
+        </template>
+        <template #code="{ text }">
+          <a-tag color="red">{{ text }}</a-tag>
+        </template>
+        <template #type="{ text }">
+          {{ text }}
+        </template>
+        <template #discount="{ text }">
+          {{ text }}
+        </template>
+        <template #limit="{ text }">
+          {{ text }}
+        </template>
+        <template #used="{ text }">
+          {{ text }}
+        </template>
+        <template #valid="{ text }">
+          {{ text }}
+        </template>
+        <template #status="{ text }">
+          <a-badge status="success" text="Active" />
+        </template>
+        <template #action="{ record }">
+          <a-space>
+            <a-button type="link" icon="edit" @click="editCoupon(record.id)" />
+            <a-button type="link" icon="delete" @click="deleteCoupon(record.id)" />
+          </a-space>
+        </template>
+      </a-table>
+    </a-card>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { message, Badge, Button, Input, Table } from 'ant-design-vue';
+import { ref } from 'vue';
 
-// Sample Data for Users
-const users = ref([
-  {
-    key: '1',
-    avatar: 'path/to/avatar1.jpg',
-    name: 'Thomas',
-    phone: '+12163547758',
-    email: 'thomas@example.com',
-    role: 'Admin',
-    createdOn: '19 Jan 2023',
-    status: 'Inactive',
-  },
-  {
-    key: '2',
-    avatar: 'path/to/avatar2.jpg',
-    name: 'Rose',
-    phone: '+11367529510',
-    email: 'rose@example.com',
-    role: 'Manager',
-    createdOn: '23 Jan 2023',
-    status: 'Active',
-  },
-  // ...more user data
+const searchTerm = ref('');
+
+const coupons = ref([
+  { id: 1, name: 'Coupons 21', code: 'Christmas', type: 'Fixed', discount: '$20', limit: '04', used: '01', valid: '04 Jan 2023', status: 'Active' },
+  { id: 2, name: 'First Offer', code: 'First Offer', type: 'Percentage', discount: '10%', limit: '47', used: '10', valid: '15 Feb 2023', status: 'Active' },
+  { id: 3, name: 'Offer 40', code: '40% Offer', type: 'Fixed', discount: '$20', limit: '21', used: '14', valid: '08 Apr 2023', status: 'Active' },
+  { id: 4, name: 'Subscription', code: 'FirstSub01', type: 'Fixed', discount: '$20', limit: '09', used: '07', valid: '12 Aug 2023', status: 'Active' },
 ]);
-
-const searchValue = ref('');
-const filteredData = computed(() => {
-  if (!searchValue.value) return users.value;
-  return users.value.filter(user =>
-      Object.values(user).some(val =>
-          String(val).toLowerCase().includes(searchValue.value.toLowerCase())
-      )
-  );
-});
 
 const columns = [
   {
-    title: 'User Name',
+    title: 'Name',
     dataIndex: 'name',
     key: 'name',
-    sorter: (a, b) => a.name.localeCompare(b.name),
-    scopedSlots: { customRender: 'name' },
   },
   {
-    title: 'Phone',
-    dataIndex: 'phone',
-    key: 'phone',
+    title: 'Code',
+    dataIndex: 'code',
+    key: 'code',
+    scopedSlots: { customRender: 'code' },
   },
   {
-    title: 'Email',
-    dataIndex: 'email',
-    key: 'email',
+    title: 'Type',
+    dataIndex: 'type',
+    key: 'type',
   },
   {
-    title: 'Role',
-    dataIndex: 'role',
-    key: 'role',
-    sorter: (a, b) => a.role.localeCompare(b.role),
+    title: 'Discount',
+    dataIndex: 'discount',
+    key: 'discount',
   },
   {
-    title: 'Created On',
-    dataIndex: 'createdOn',
-    key: 'createdOn',
+    title: 'Limit',
+    dataIndex: 'limit',
+    key: 'limit',
+  },
+  {
+    title: 'Used',
+    dataIndex: 'used',
+    key: 'used',
+  },
+  {
+    title: 'Valid',
+    dataIndex: 'valid',
+    key: 'valid',
   },
   {
     title: 'Status',
@@ -125,63 +121,42 @@ const columns = [
   },
 ];
 
-const onSearch = (value) => {
+const pagination = ref({ pageSize: 10 });
+
+const handleSearch = (value) => {
   console.log('Search:', value);
 };
 
-const addNewUser = () => {
-  message.success('Add new user clicked');
+const addCoupon = () => {
+  console.log('Add Coupon');
 };
 
-const viewUser = (record) => {
-  message.info(`View user: ${record.name}`);
+const editCoupon = (id) => {
+  console.log('Edit Coupon:', id);
 };
 
-const editUser = (record) => {
-  message.info(`Edit user: ${record.name}`);
-};
-
-const deleteUser = (record) => {
-  message.error(`Delete user: ${record.name}`);
+const deleteCoupon = (id) => {
+  console.log('Delete Coupon:', id);
 };
 </script>
 
 <style scoped>
-.header {
+.coupons-container {
+  padding: 20px;
+}
+
+.header-controls {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   margin-bottom: 20px;
 }
 
 .actions {
   display: flex;
-  gap: 8px;
+  align-items: center;
 }
 
-.actions .ant-btn {
-  margin-right: 8px;
-}
-
-.ant-table-thead > tr > th {
-  background-color: #f5f5f5;
-}
-
-.ant-table-tbody > tr > td {
-  vertical-align: middle;
-}
-
-.avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-}
-
-.badge-active {
-  color: green;
-}
-
-.badge-inactive {
-  color: red;
+.actions a-button {
+  margin-left: 10px;
 }
 </style>

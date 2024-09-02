@@ -19,14 +19,17 @@
   <a-table bordered :data-source="brandStore.brands" :columns="columns">
     <template #bodyCell="{ column, text, record }">
       <template v-if="column.dataIndex === 'operation'">
-        <a style="margin-right: 3px" @click="onEdit(record.id)">Edit</a>
+        <a-tooltip  title="Edit" placement="bottom">
+          <a-button @click="onEdit(record.id)" style="margin-right: 3px"  :icon="h(EditOutlined)" />
+        </a-tooltip>
         <a-popconfirm
             v-if="brandStore.brands.length"
             title="Sure to delete?"
-            @confirm="onDelete(record.id)">
-          <a>Delete</a>
+            @confirm="onDelete(record.id)" >
+          <a-tooltip title="Delete" placement="bottom">
+            <a-button  :icon="h(DeleteOutlined)" />
+          </a-tooltip>
         </a-popconfirm>
-
       </template>
     </template>
   </a-table>
@@ -37,6 +40,7 @@ import {cloneDeep} from 'lodash-es';
 import {useBrandStore} from '~/stores/brand.js';
 import BrandAddModal from "~/components/brands/brandAddModal.vue";
 import BrandEditModal from "~/components/brands/brandEditModal.vue";
+import {DeleteOutlined, EditOutlined} from "@ant-design/icons-vue";
 
 const brandStore = useBrandStore();
 const open = ref(false);

@@ -30,16 +30,23 @@ export const useCategoryStore = defineStore('category', {
             this.category = data.value;
         },
         async createCategory(category) {
+            const { $toast } = useNuxtApp()
             const config = useRuntimeConfig();
             const apiUrl = config.public.baseURL + `/api/categories`;
             const { data, error } = await useFetch(apiUrl, {
                 method: 'POST',
                 body: category,
             });
-            if (error.value) throw error.value;
+            if (error.value) {
+
+                throw error.value
+
+            }
             this.categories.push(data.value);
+            $toast.success('Category Created')
         },
         async updateCategory(id, category) {
+            const { $toast } = useNuxtApp()
             const config = useRuntimeConfig();
             const apiUrl = config.public.baseURL + `/api/categories/${id}`;
             const { data, error } = await useFetch(apiUrl, {
@@ -49,8 +56,10 @@ export const useCategoryStore = defineStore('category', {
             if (error.value) throw error.value;
             const index = this.categories.findIndex(cat => cat.id === id);
             if (index !== -1) this.categories[index] = data.value;
+            $toast.success('Category Updated')
         },
         async deleteCategory(id) {
+            const { $toast } = useNuxtApp()
             const config = useRuntimeConfig();
             const apiUrl = config.public.baseURL + `/api/categories/${id}`;
             const { error } = await useFetch(apiUrl, {
@@ -58,6 +67,7 @@ export const useCategoryStore = defineStore('category', {
             });
             if (error.value) throw error.value;
             this.categories = this.categories.filter(cat => cat.id !== id);
+            $toast.warning('Category Deleted')
         },
     },
 });

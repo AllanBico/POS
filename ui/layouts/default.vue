@@ -68,7 +68,7 @@
       </a-layout-header>
 
       <!-- Content -->
-      <a-layout-content :style="{ margin: '1px 1px 0', padding: '1px', flex: '1 0 auto' }">
+      <a-layout-content :style="{  flex: '1 0 auto' }">
         <slot />
       </a-layout-content>
 

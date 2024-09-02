@@ -1,4 +1,5 @@
 <template>
+
   <a-form :form="form" @submit.prevent="handleSubmit">
     <a-form-item label="name" :rules="[{ required: true, message: 'Please input your name!' }]">
       <a-input v-model:value="form.name" />
@@ -18,7 +19,7 @@ import { ref } from 'vue';
 import {useCategoryStore} from '~/stores/category.js';
 const categoryStore = useCategoryStore();
 const emit = defineEmits(['submit-success']);
-
+const { $toast } = useNuxtApp()
 const form = ref({
   name: '',
   description: '',
@@ -41,11 +42,11 @@ const handleSubmit = async () => {
 
     // Reset form
     form.value = { name: '', description: '' };
-
     // Emit event to close the modal if needed
     emit('submit-success');
   } catch (error) {
     console.error('Error adding user:', error);
+    $toast.error('Error Creating Category')
     // Optionally, show an error message to the user
   }
 };

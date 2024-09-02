@@ -18,14 +18,17 @@
   <a-table bordered :data-source="users" :columns="columns" @change="onChange">
     <template #bodyCell="{ column, text, record }">
       <template v-if="column.dataIndex === 'operation'">
-        <a style="margin-right: 3px" @click="onEdit(record.id)">Edit</a>
+        <a-tooltip  title="Edit" placement="bottom">
+          <a-button @click="onEdit(record.id)" style="margin-right: 3px"  :icon="h(EditOutlined)" />
+        </a-tooltip>
         <a-popconfirm
             v-if="users.length"
             title="Sure to delete?"
             @confirm="onDelete(record.id)" >
-          <a>Delete</a>
+          <a-tooltip title="Delete" placement="bottom">
+            <a-button  :icon="h(DeleteOutlined)" />
+          </a-tooltip>
         </a-popconfirm>
-
       </template>
     </template>
   </a-table>
@@ -36,6 +39,7 @@ import { cloneDeep } from 'lodash-es';
 import UserAddModal from "~/components/users/userAddModal.vue";
 import UserEditModal from "~/components/users/userEditModal.vue";
 import { useUserStore } from '~/stores/useUserStore.js';
+import {DeleteOutlined, EditOutlined} from "@ant-design/icons-vue";
 const userStore = useUserStore();
 const open = ref(false);
 const edit_open = ref(false);

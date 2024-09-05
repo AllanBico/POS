@@ -1,5 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 // @ts-ignore
+// @ts-ignore
 export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
   devtools: { enabled: true },
@@ -9,6 +10,7 @@ export default defineNuxtConfig({
       baseURL: process.env.BASE_URL || 'http://localhost:4000',
     },
   },
+
   pwa: {
     manifest: {
       name: 'Nuxt 3 Inventory & POS',
@@ -46,5 +48,20 @@ export default defineNuxtConfig({
       ],
     },
   },
-
+  hooks: {
+    'render:errorMiddleware': (app) => {
+      app.use((err, req, res, next) => {
+        if (err.statusCode === 404) {
+          res.statusCode = 404
+          res.end('<div id="__nuxt"><nuxt-page></nuxt-page></div>')
+        } else if (err.statusCode === 403) {
+          res.statusCode = 403
+          res.end('<div id="__nuxt"><nuxt-page></nuxt-page></div>')
+        } else {
+          res.statusCode = 500
+          res.end('<div id="__nuxt"><nuxt-page></nuxt-page></div>')
+        }
+      })
+    }
+  }
 })

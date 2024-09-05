@@ -8,7 +8,7 @@
       <a-textarea :rows="4" v-model:value="form.description" />
     </a-form-item>
     <a-form-item>
-      <a-button type="primary" html-type="submit">Submit</a-button>
+      <a-button type="primary" :loading="loading" html-type="submit">Submit</a-button>
     </a-form-item>
   </a-form>
 </template>
@@ -20,6 +20,7 @@ import {useCategoryStore} from '~/stores/category.js';
 const categoryStore = useCategoryStore();
 const emit = defineEmits(['submit-success']);
 const { $toast } = useNuxtApp()
+const loading = ref(false);
 const form = ref({
   name: '',
   description: '',
@@ -32,7 +33,7 @@ const handleSubmit = async () => {
     if (!form.value.name || !form.value.description ) {
       throw new Error('All fields are required.');
     }
-
+    loading.value = true
 
     // Call the store method to add the user
     await categoryStore.createCategory({
@@ -44,9 +45,11 @@ const handleSubmit = async () => {
     form.value = { name: '', description: '' };
     // Emit event to close the modal if needed
     emit('submit-success');
-  } catch (error) {
-    console.error('Error adding user:', error);
-    $toast.error('Error Creating Category')
+    loading.value = false
+  } catch  {
+    loading.value = false
+    console.error('Error adding Category:');
+    //$toast.error('Error Creating Category')
     // Optionally, show an error message to the user
   }
 };

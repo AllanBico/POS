@@ -53,6 +53,22 @@ export const useWarrantyStore = defineStore('warranty', {
             });
             if (error.value) throw error.value;
             this.warranties = this.warranties.filter(w => w.id !== id);
-        }
+        },
+        // Socket event handlers
+        async socketUpdateWarranty(warranty) {
+            const index = this.warranties.findIndex(obj => obj.id === warranty.id);
+            if (index !== -1) this.warranties[index] = warranty;
+        },
+        async socketCreateWarranty(warranty) {
+            const exists = this.warranties.some(obj => obj.id === warranty.id);
+            // Only add the warranty if it doesn't already exist
+            if (!exists) {
+                this.warranties.push(warranty);
+            }
+        },
+        async socketDeleteWarranty(id) {
+            const index = this.warranties.findIndex(warranty => warranty.id === id);
+            if (index !== -1) this.warranties.splice(index, 1);
+        },
     },
 });

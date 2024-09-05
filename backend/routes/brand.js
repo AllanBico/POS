@@ -9,6 +9,7 @@ router.post('/', asyncHandler(async (req, res) => {
     const { name, description } = req.body;
     const brand = await Brand.create({ name, description });
     res.status(201).json(brand);
+    req.io.emit('newBrand', brand);
 }));
 
 // Get all brands
@@ -33,17 +34,20 @@ router.put('/:id', asyncHandler(async (req, res) => {
     brand.name = name || brand.name;
     brand.description = description || brand.description;
     await brand.save();
-
-    res.status(200).json(brand);
+    const updatedBrand = await Brand.findByPk(req.params.id);
+    res.status(200).json(updatedBrand);
+    req.io.emit('updateBrand', updatedBrand);
 }));
 
 // Delete a brand (soft delete)
 router.delete('/:id', asyncHandler(async (req, res) => {
-    const brand = await Brand.findByPk(req.params.id);
+    const id = req.params.id
+    const brand = await Brand.findByPk(parseInt(id));
     if (!brand) return res.status(404).json({ error: 'Brand not found' });
 
     await brand.destroy();
     res.status(204).json();
+    req.io.emit('deleteBrand', id);
 }));
 
 module.exports = router;

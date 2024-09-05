@@ -1,0 +1,53 @@
+const express = require('express');
+const  Attribute  = require('../models/attribute');
+
+const router = express.Router();
+const asyncHandler = fn => (req, res, next) =>
+    Promise.resolve(fn(req, res, next)).catch(next);
+// Create Attribute
+router.post('/', asyncHandler(async (req, res) => {
+    const { name, description } = req.body;
+    const attribute = await Attribute.create({ name, description });
+    res.status(201).json(attribute);
+    req.io.emit('newAttribute', attribute);
+}));
+
+// Get All Attributes
+router.get('/', asyncHandler(async (req, res) => {
+    const attributes = await Attribute.findAll();
+    res.json(attributes);
+}));
+
+// Get Single Attribute by ID
+router.get('/:id', asyncHandler(async (req, res) => {
+    const attribute = await Attribute.findByPk(req.params.id);
+    if (!attribute) return res.status(404).json({ error: 'Attribute not found' });
+    res.json(attribute);
+}));
+
+// Update Attribute by ID
+router.put('/:id', asyncHandler(async (req, res) => {
+    const { name, description } = req.body;
+    const attribute = await Attribute.findByPk(req.params.id);
+    if (!attribute) return res.status(404).json({ error: 'Attribute not found' });
+
+    attribute.name = name || attribute.name;
+    attribute.description = description || attribute.description;
+    await attribute.save();
+    const updatedAttribute = await Attribute.findByPk(req.params.id);
+    res.json(updatedAttribute);
+    req.io.emit('updateAttribute', updatedAttribute);
+}));
+
+// Delete Attribute by ID
+router.delete('/:id', asyncHandler(async (req, res) => {
+    const id = req.params.id
+    const attribute = await Attribute.findByPk(id);
+    if (!attribute) return res.status(404).json({ error: 'Attribute not found' });
+
+    await attribute.destroy();
+    res.status(204).end();
+    req.io.emit('deleteAttribute', id);
+}));
+
+module.exports = router;

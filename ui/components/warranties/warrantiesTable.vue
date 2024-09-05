@@ -25,8 +25,8 @@
               :key="record.id"
               :color="record.status ? 'success' : 'error'"
           >
-  {{ record.status ? 'Active' : 'Inactive' }}
-</a-tag>
+          {{ record.status ? 'Active' : 'Inactive' }}
+        </a-tag>
 
         </span>
       </template>

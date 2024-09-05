@@ -18,14 +18,8 @@
   <div class="coupons-container">
     <a-card title="Categories" bordered={false}>
       <div class="header-controls">
-        <a-input-search
-            placeholder="Search"
-            style="width: 200px;"
-        />
-
         <div class="actions">
           <a-button type="primary" @click="handleAdd" :icon="h(PlusOutlined)">Add New</a-button>
-
         </div>
       </div>
 
@@ -95,7 +89,6 @@ import {useCategoryStore} from '~/stores/category.js';
 import CategoryAddModal from "~/components/categories/categoryAddModal.vue";
 import CategoryEditModal from "~/components/categories/categoryEditModal.vue";
 import {DeleteOutlined, EditOutlined,PlusOutlined} from "@ant-design/icons-vue";
-
 const categoryStore = useCategoryStore();
 const open = ref(false);
 const edit_open = ref(false);

@@ -76,5 +76,21 @@ export const useSubcategoryStore = defineStore('subcategory', {
             if (error.value) throw error.value;
             this.subcategories = this.subcategories.filter(sub => sub.id !== id);
         },
+        // Socket event handlers
+        async socketUpdateSubcategory(subCategory) {
+            const index = this.subcategories.findIndex(cat => cat.id === subCategory.id);
+            if (index !== -1) this.subcategories[index] = subCategory;
+        },
+        async socketCreateSubcategory(subCategory) {
+            const exists = this.subcategories.some(cat => cat.id === subCategory.id);
+            // Only add the category if it doesn't already exist
+            if (!exists) {
+                this.subcategories.push(subCategory);
+            }
+        },
+        async socketDeleteSubcategory(id) {
+            const index = this.subcategories.findIndex(subCategory => subCategory.id === id);
+            if (index !== -1) this.subcategories.splice(index, 1);
+        },
     },
 });

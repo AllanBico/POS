@@ -35,6 +35,7 @@ router.post('/', async (req, res) => {
         });
 
         res.status(201).json(createdSubcategory);
+        req.io.emit('newSubcategory', createdSubcategory);
     } catch (error) {
         console.error('Error creating subcategory:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -96,16 +97,19 @@ router.put('/:id', asyncHandler(async (req, res) => {
     });
     // Send the updated subcategory as the response
     res.status(200).json(updatedsubcategory);
+    req.io.emit('updateSubcategory', updatedsubcategory);
 }));
 
 
 // Delete a subcategory by ID
 router.delete('/:id', asyncHandler(async (req, res) => {
-    const subcategory = await Subcategory.findByPk(req.params.id);
+    const id = req.params.id
+    const subcategory = await Subcategory.findByPk(parseInt(id));
     if (!subcategory) return res.status(404).json({ error: 'Subcategory not found' });
 
     await subcategory.destroy(); // Soft delete because of `paranoid: true`
     res.status(204).json({ message: 'Subcategory deleted' });
+    req.io.emit('deleteSubcategory', id);
 }));
 
 module.exports = router;

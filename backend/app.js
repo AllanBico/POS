@@ -17,6 +17,14 @@ const subCategoryRoutes = require('./routes/subcategory');
 const brandRoutes = require('./routes/brand');
 const unitsRouter = require('./routes/units');
 const warrantyRoutes = require('./routes/warranty');
+const suppliersRoutes = require('./routes/suppliers');
+const customersRoutes = require('./routes/customer');
+const warehousesRoutes = require('./routes/warehouse');
+const storesRoutes = require('./routes/store');
+const attributesRoutes = require('./routes/attributes');
+const attributeValuesRoutes = require('./routes/attributeValues');
+const variantAttributeRoutes = require('./routes/variantAttributeValues');
+const productVariantsRoutes = require('./routes/productVariants');
 
 dotenv.config();
 
@@ -87,6 +95,14 @@ app.use('/api/products', productRoutes);
 app.use('/api/brands', brandRoutes);
 app.use('/api/units', unitsRouter);
 app.use('/api/warranties', warrantyRoutes);
+app.use('/api/suppliers', suppliersRoutes);
+app.use('/api/customers', customersRoutes);
+app.use('/api/warehouses', warehousesRoutes);
+app.use('/api/stores', storesRoutes);
+app.use('/api/attributes', attributesRoutes);
+app.use('/api/attribute-values', attributeValuesRoutes);
+app.use('/api/product-variants', productVariantsRoutes);
+app.use('/api/variant-attribute-values', variantAttributeRoutes);
 
 // Listen for Socket.IO connections
 io.on('connection', (socket) => {

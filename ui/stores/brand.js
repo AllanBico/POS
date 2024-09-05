@@ -75,5 +75,21 @@ export const useBrandStore = defineStore('brand', {
                 console.error('Error deleting brand:', error);
             }
         },
+        // Socket event handlers
+        async socketUpdateBrand(brand) {
+            const index = this.brands.findIndex(obj => obj.id === brand.id);
+            if (index !== -1) this.brands[index] = brand;
+        },
+        async socketCreateBrand(brand) {
+            const exists = this.brands.some(obj => obj.id === brand.id);
+            // Only add the brand if it doesn't already exist
+            if (!exists) {
+                this.brands.push(brand);
+            }
+        },
+        async socketDeleteBrand(id) {
+            const index = this.brands.findIndex(brand => brand.id === id);
+            if (index !== -1) this.brands.splice(index, 1);
+        },
     },
 });

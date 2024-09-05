@@ -1,115 +1,172 @@
 <template>
-  <a-layout style="min-height: 100vh">
-    <!-- Sidebar -->
+  <a-layout>
     <a-layout-sider
         breakpoint="lg"
         collapsed-width="0"
         @collapse="onCollapse"
         @breakpoint="onBreakpoint"
     >
-      <div class="logo" />
+      <div class="logo">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/9/95/Vue.js_Logo_2.svg" alt="Vue Antd Admin"/>
+      </div>
+
       <a-menu
-          mode="inline"
           theme="dark"
-          v-model:selectedKeys="selectedKeys"
-          :defaultOpenKeys="['sub1', 'sub2', 'sub3']"
+          mode="inline"
       >
-        <!-- Main Section -->
-        <a-menu-item-group key="main" title="Main">
-          <a-sub-menu key="sub1" title="Dashboard" >
-            <a-menu-item key="1">Admin Dashboard</a-menu-item>
-            <a-menu-item key="2">Sales Dashboard</a-menu-item>
-          </a-sub-menu>
-          <a-menu-item key="3" >Application</a-menu-item>
-        </a-menu-item-group>
+        <!-- Dashboard Menu Item -->
+        <a-menu-item key="dashboard">
+          <NuxtLink to="/">
+            <bar-chart-outlined/>
+            <span>Dashboard</span>
+          </NuxtLink>
+        </a-menu-item>
+        <a-divider style="border-color: whitesmoke;color: whitesmoke; ">Inventory</a-divider>
+        <a-sub-menu key="Products">
+          <template #title>
+            <span>
+              <team-outlined/>
+              <span>Products</span>
+            </span>
+          </template>
+          <a-menu-item key="ProductsList"><NuxtLink to="/products">Products</NuxtLink></a-menu-item>
+          <a-menu-item key="Expired Products">Expired Products</a-menu-item>
+          <a-menu-item key="Low Stocks">Low Stocks</a-menu-item>
+          <a-menu-item key="Print Barcode">Print Barcode</a-menu-item>
+        </a-sub-menu>
+        <a-sub-menu key="Categories">
+          <template #title>
+            <span>
+              <apartment-outlined/>
+              <span>Categories</span>
+            </span>
+          </template>
+          <a-menu-item key="Category">
+            <NuxtLink to="/categories">Category</NuxtLink>
+          </a-menu-item>
+          <a-menu-item key="Sub Category">
+            <NuxtLink to="/subcategories">Sub Category</NuxtLink>
+          </a-menu-item>
+        </a-sub-menu>
+        <a-menu-item key="Brands">
+          <NuxtLink to="/brands">
+            <pie-chart-outlined/>
+            <span>Brands</span>
+          </NuxtLink>
+        </a-menu-item>
+        <a-menu-item key="Units">
+          <NuxtLink to="/units">
+            <pie-chart-outlined/>
+            <span>Units</span>
+          </NuxtLink>
+        </a-menu-item>
+        <a-menu-item key="Variants">
+          <NuxtLink to="/units">
+            <pie-chart-outlined/>
+            <span>Variants</span>
+          </NuxtLink>
+        </a-menu-item>
+        <a-menu-item key="Attributes">
+          <NuxtLink to="/attributes">
+            <pie-chart-outlined/>
+            <span>Attributes</span>
+          </NuxtLink>
+        </a-menu-item>
+        <a-menu-item key="Warranties">
+          <NuxtLink to="/warranties">
+            <pie-chart-outlined/>
+            <span>Warranties</span>
+          </NuxtLink>
+        </a-menu-item>
 
-        <a-divider />
-
-        <!-- Inventory Section -->
-        <a-menu-item-group key="inventory" title="Inventory">
-          <a-menu-item key="1" >Products</a-menu-item>
-          <a-menu-item key="2" ><nuxt-link to="/categories">Categories</nuxt-link></a-menu-item>
-          <a-menu-item key="3" ><nuxt-link to="/subcategories">Sub Categories</nuxt-link></a-menu-item>
-          <a-menu-item key="4" ><nuxt-link to="/brands"> Brands</nuxt-link></a-menu-item>
-          <a-menu-item key="5" ><nuxt-link to="/units"> Units</nuxt-link></a-menu-item>
-          <a-menu-item key="6" ><nuxt-link to="/warranties"> warranty</nuxt-link></a-menu-item>
-        </a-menu-item-group>
-        <a-divider />
-
-        <!-- Stock Section -->
-        <a-menu-item-group key="people" title="People">
-          <a-menu-item key="16" ><nuxt-link to="/users">Users</nuxt-link></a-menu-item>
-          <a-menu-item key="17" >Stock Adjustment</a-menu-item>
-        </a-menu-item-group>
+        <a-divider style="border-color: whitesmoke;color: whitesmoke; ">Stock</a-divider>
+        <a-divider style="border-color: whitesmoke;color: whitesmoke; ">Sales</a-divider>
+        <a-divider style="border-color: whitesmoke;color: whitesmoke; ">Reports</a-divider>
+        <a-divider style="border-color: whitesmoke;color: whitesmoke; ">People</a-divider>
+        <a-sub-menu key="Users">
+          <template #title>
+            <span>
+              <team-outlined/>
+              <span>Users</span>
+            </span>
+          </template>
+          <a-menu-item key="Users">
+            <NuxtLink to="/users">Users</NuxtLink>
+          </a-menu-item>
+          <a-menu-item key="Users Roles">Users Roles</a-menu-item>
+        </a-sub-menu>
+        <a-menu-item key="Customers">
+          <NuxtLink to="/customers">
+          <contacts-outlined/>
+          <span>Customers</span>
+          </NuxtLink>
+        </a-menu-item>
+        <a-menu-item key="Suppliers">
+          <NuxtLink to="/suppliers">
+          <pie-chart-outlined/>
+          <span>Suppliers</span>
+          </NuxtLink>
+        </a-menu-item>
+        <a-menu-item key="Warehouses">
+          <NuxtLink to="/warehouses">
+            <pie-chart-outlined/>
+            <span>Warehouses</span>
+          </NuxtLink>
+        </a-menu-item>
+        <a-menu-item key="Stores">
+          <NuxtLink to="/stores">
+            <pie-chart-outlined/>
+            <span>Stores</span>
+          </NuxtLink>
+        </a-menu-item>
+        <a-sub-menu key="Settings">
+          <template #title>
+            <span>
+              <setting-outlined/>
+              <span>Settings</span>
+            </span>
+          </template>
+          <a-menu-item key="setttings1">
+            <NuxtLink to="/settings">Barcode Settings</NuxtLink>
+          </a-menu-item>
+          <a-menu-item key="Users Roles">Users Roles</a-menu-item>
+        </a-sub-menu>
       </a-menu>
     </a-layout-sider>
-
-    <!-- Main Layout -->
-    <a-layout>
-      <!-- Header -->
-      <a-layout-header class="header">
-        <div class="logo" />
-        <a-menu
-            v-model:selectedKeys="selectedKeys"
-            theme="dark"
-            mode="horizontal"
-            :style="{ lineHeight: '64px' }"
-        >
-          <a-menu-item key="1">nav 1</a-menu-item>
-          <a-menu-item key="2">nav 2</a-menu-item>
-          <a-menu-item key="3">nav 3</a-menu-item>
-        </a-menu>
-
-        <a-avatar style="background-color: #87d068" class="avatar">
-          <template #icon>
-            <UserOutlined />
-          </template>
-        </a-avatar>
-      </a-layout-header>
-
-      <!-- Content -->
-      <a-layout-content :style="{  flex: '1 0 auto' }">
-        <slot />
+    <a-layout style="min-height: 100vh;">
+      <a-layout-content>
+        <page-header :style="{ background: '#fff', padding: '10px' }"/>
+        <div :style="{  background: '#fff', minHeight: '360px' }">
+          <slot/>
+        </div>
       </a-layout-content>
-
-      <!-- Footer -->
-      <a-layout-footer style="text-align: center; flex-shrink: 0;">
-        POS ©2024 Created by <a href="https://www.intellitech.co.ke" target="_blank">Intellitech LTD</a>
+      <a-layout-footer style="text-align: center">
+        Ant Design ©2018 Created by Ant UED
       </a-layout-footer>
     </a-layout>
   </a-layout>
 </template>
-
 <script setup>
-import { ref } from 'vue';
+import {ref} from 'vue';
+import PageHeader from "~/components/layout/pageHeader.vue";
 
-const selectedKeys1 = ref(['2']);
 const onCollapse = (collapsed, type) => {
   console.log(collapsed, type);
 };
-const onBreakpoint = (broken) => {
+const onBreakpoint = broken => {
   console.log(broken);
 };
 const selectedKeys = ref(['4']);
 </script>
-
 <style scoped>
-.logo {
+#components-layout-demo-responsive .logo {
   height: 32px;
   background: rgba(255, 255, 255, 0.2);
   margin: 16px;
 }
 
-.header {
-  background: #001529;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  padding: 0 24px;
-}
-
-a-layout-sider {
-  height: 100vh;
+.site-layout-sub-header-background {
+  background: #fff;
 }
 
 .site-layout-background {
@@ -119,7 +176,16 @@ a-layout-sider {
 [data-theme='dark'] .site-layout-sub-header-background {
   background: #141414;
 }
-.avatar {
-  margin-left: auto; /* Pushes the avatar to the right */
+
+.logo {
+  height: 32px;
+  margin: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.logo img {
+  max-height: 100%;
 }
 </style>

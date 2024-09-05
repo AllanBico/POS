@@ -12,6 +12,7 @@ router.post('/', asyncHandler(async (req, res) => {
     try {
         const unit = await Unit.create({ name, abbreviation, description });
         res.status(201).json(unit);
+        req.io.emit('newUnit', unit);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
@@ -42,15 +43,18 @@ router.put('/:id', asyncHandler(async (req, res) => {
 
     await unit.save();
     res.status(200).json(unit);
+    req.io.emit('updateUnit', unit);
 }));
 
 // Delete a unit
 router.delete('/:id', asyncHandler(async (req, res) => {
-    const unit = await Unit.findByPk(req.params.id);
+    const id = req.params.id
+    const unit = await Unit.findByPk(id);
     if (!unit) return res.status(404).json({ error: 'Unit not found' });
 
     await unit.destroy();
     res.status(204).send();
+    req.io.emit('deleteUnit', id);
 }));
 
 module.exports = router;

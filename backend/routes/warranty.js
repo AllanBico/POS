@@ -26,6 +26,7 @@ router.post('/', asyncHandler(async (req, res) => {
     const {name, duration, periods, description, status} = req.body;
     const warranty = await Warranty.create({name, duration, periods, description, status});
     res.status(201).json(warranty);
+    req.io.emit('newWarranty', warranty);
 }));
 
 // Update a warranty
@@ -43,17 +44,21 @@ router.put('/:id', asyncHandler(async (req, res) => {
     warranty.status = status !== undefined ? status : warranty.status;
 
     await warranty.save();
-    res.json(warranty);
+    const updatedWarranty = await Warranty.findByPk(req.params.id);
+    res.json(updatedWarranty);
+    req.io.emit('updateWarranty', updatedWarranty);
 }));
 
 // Delete a warranty
 router.delete('/:id', asyncHandler(async (req, res) => {
-    const warranty = await Warranty.findByPk(req.params.id);
+    const id = req.params.id
+    const warranty = await Warranty.findByPk(id);
     if (!warranty) {
         return res.status(404).json({error: 'Warranty not found'});
     }
     await warranty.destroy();
     res.status(204).end();
+    req.io.emit('deleteWarranty', id);
 }));
 
 module.exports = router;

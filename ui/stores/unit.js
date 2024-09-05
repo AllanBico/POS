@@ -78,5 +78,21 @@ export const useUnitStore = defineStore('unit', {
                 this.error = err.message;
             }
         },
+        // Socket event handlers
+        async socketUpdateUnit(unit) {
+            const index = this.units.findIndex(obj => obj.id === unit.id);
+            if (index !== -1) this.units[index] = unit;
+        },
+        async socketCreateUnit(unit) {
+            const exists = this.units.some(obj => obj.id === unit.id);
+            // Only add the unit if it doesn't already exist
+            if (!exists) {
+                this.units.push(unit);
+            }
+        },
+        async socketDeleteUnit(id) {
+            const index = this.units.findIndex(unit => unit.id === id);
+            if (index !== -1) this.units.splice(index, 1);
+        },
     },
 });

@@ -1,5 +1,5 @@
 const express = require('express');
-const ProductVariant = require('../models/productVariant');
+const ProductVariant = require('../models/variant');
 const Product = require('../models/product');
 const router = express.Router();
 const asyncHandler = fn => (req, res, next) =>

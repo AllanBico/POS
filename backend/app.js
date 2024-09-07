@@ -11,6 +11,7 @@ const Log = require('./models/log');
 // Import routes
 const userRoutes = require('./routes/users');
 const productRoutes = require('./routes/products');
+const variantsRoutes = require('./routes/variants');
 const authRoutes = require('./routes/auth');
 const categoryRoutes = require('./routes/category');
 const subCategoryRoutes = require('./routes/subcategory');
@@ -92,6 +93,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/subcategories', subCategoryRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/variants', variantsRoutes);
 app.use('/api/brands', brandRoutes);
 app.use('/api/units', unitsRouter);
 app.use('/api/warranties', warrantyRoutes);

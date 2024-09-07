@@ -6,7 +6,14 @@ export const useBrandStore = defineStore('brand', {
         error: null,
     }),
     getters: {
-        BrandById: (state) => (id) => state.brands.find(brand => brand.id === id) || null,
+        BrandById: (state) => (id) => {
+            const brand = state.brands.find(brand => brand.id === id);
+            if (!brand) {
+                console.error(`Brand with id ${id} not found`);
+                return null;
+            }
+            return brand;
+        },
     },
     actions: {
         async fetchBrands() {

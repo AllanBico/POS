@@ -1,6 +1,7 @@
 // models/category.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db'); // Adjust the path as necessary
+const Product = require('./product');
 
 const Category = sequelize.define('Category', {
     id: {
@@ -22,6 +23,5 @@ const Category = sequelize.define('Category', {
     paranoid: false,
     underscored: true, // This will map `created_at` instead of `createdAt`
 });
-
 
 module.exports = Category;

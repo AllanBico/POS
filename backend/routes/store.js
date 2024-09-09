@@ -5,6 +5,10 @@ const Store = require('../models/store');
 // Create a new store
 router.post('/', async (req, res) => {
     try {
+        if (!req.body) {
+            return res.status(400).json({error: 'Missing required fields'});
+        }
+
         const store = await Store.create(req.body);
         res.status(201).json(store);
     } catch (error) {
@@ -16,6 +20,10 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
     try {
         const stores = await Store.findAll();
+        if (!stores) {
+            return res.status(404).json({error: 'No stores found'});
+        }
+
         res.status(200).json(stores);
     } catch (error) {
         res.status(400).json({error: error.message});
@@ -25,8 +33,17 @@ router.get('/', async (req, res) => {
 // Get a specific store by ID
 router.get('/:id', async (req, res) => {
     try {
-        const store = await Store.findByPk(req.params.id);
-        if (!store) return res.status(404).json({error: 'Store not found'});
+        const id = parseInt(req.params.id);
+
+        if (isNaN(id)) {
+            return res.status(400).json({error: 'Invalid store ID'});
+        }
+
+        const store = await Store.findByPk(id);
+        if (!store) {
+            return res.status(404).json({error: 'Store not found'});
+        }
+
         res.status(200).json(store);
     } catch (error) {
         res.status(400).json({error: error.message});
@@ -36,8 +53,20 @@ router.get('/:id', async (req, res) => {
 // Update a store
 router.put('/:id', async (req, res) => {
     try {
-        const store = await Store.findByPk(req.params.id);
-        if (!store) return res.status(404).json({error: 'Store not found'});
+        const id = parseInt(req.params.id);
+
+        if (isNaN(id)) {
+            return res.status(400).json({error: 'Invalid store ID'});
+        }
+
+        if (!req.body) {
+            return res.status(400).json({error: 'Missing required fields'});
+        }
+
+        const store = await Store.findByPk(id);
+        if (!store) {
+            return res.status(404).json({error: 'Store not found'});
+        }
 
         await store.update(req.body);
         res.status(200).json(store);
@@ -49,8 +78,16 @@ router.put('/:id', async (req, res) => {
 // Delete a store
 router.delete('/:id', async (req, res) => {
     try {
-        const store = await Store.findByPk(req.params.id);
-        if (!store) return res.status(404).json({error: 'Store not found'});
+        const id = parseInt(req.params.id);
+
+        if (isNaN(id)) {
+            return res.status(400).json({error: 'Invalid store ID'});
+        }
+
+        const store = await Store.findByPk(id);
+        if (!store) {
+            return res.status(404).json({error: 'Store not found'});
+        }
 
         await store.destroy();
         res.status(204).end();

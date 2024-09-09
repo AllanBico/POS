@@ -9,6 +9,10 @@ const asyncHandler = fn => (req, res, next) =>
 router.post('/', asyncHandler(async (req, res) => {
     const { name, abbreviation, description } = req.body;
 
+    if (!name || !abbreviation || !description) {
+        return res.status(400).json({ error: 'Name, abbreviation, and description are required' });
+    }
+
     try {
         const unit = await Unit.create({ name, abbreviation, description });
         res.status(201).json(unit);
@@ -26,7 +30,12 @@ router.get('/', asyncHandler(async (req, res) => {
 
 // Get a single unit by ID
 router.get('/:id', asyncHandler(async (req, res) => {
-    const unit = await Unit.findByPk(req.params.id);
+    const id = req.params.id;
+    if (isNaN(parseInt(id))) {
+        return res.status(400).json({ error: 'Invalid unit ID' });
+    }
+
+    const unit = await Unit.findByPk(id);
     if (!unit) return res.status(404).json({ error: 'Unit not found' });
     res.status(200).json(unit);
 }));
@@ -34,12 +43,17 @@ router.get('/:id', asyncHandler(async (req, res) => {
 // Update a unit
 router.put('/:id', asyncHandler(async (req, res) => {
     const { name, abbreviation, description } = req.body;
-    const unit = await Unit.findByPk(req.params.id);
+    const id = req.params.id;
+    if (isNaN(parseInt(id))) {
+        return res.status(400).json({ error: 'Invalid unit ID' });
+    }
+
+    const unit = await Unit.findByPk(id);
     if (!unit) return res.status(404).json({ error: 'Unit not found' });
 
-    unit.name = name || unit.name;
-    unit.abbreviation = abbreviation || unit.abbreviation;
-    unit.description = description || unit.description;
+    if (name) unit.name = name;
+    if (abbreviation) unit.abbreviation = abbreviation;
+    if (description) unit.description = description;
 
     await unit.save();
     res.status(200).json(unit);
@@ -48,7 +62,11 @@ router.put('/:id', asyncHandler(async (req, res) => {
 
 // Delete a unit
 router.delete('/:id', asyncHandler(async (req, res) => {
-    const id = req.params.id
+    const id = req.params.id;
+    if (isNaN(parseInt(id))) {
+        return res.status(400).json({ error: 'Invalid unit ID' });
+    }
+
     const unit = await Unit.findByPk(id);
     if (!unit) return res.status(404).json({ error: 'Unit not found' });
 

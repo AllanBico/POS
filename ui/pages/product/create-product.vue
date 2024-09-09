@@ -43,6 +43,23 @@
       <template v-else-if="currentStep === 1">
         <!-- Step 2: Variants -->
         <form @submit.prevent="addVariant">
+          <div v-for="(attributeSelection, index) in newVariant.attributes" :key="index" class="attribute-selection">
+            <a-form-item :label="'Select Attribute ' + (index + 1)">
+              <a-select v-model:value="attributeSelection.attributeId" @change="fetchValuesForAttribute(attributeSelection.attributeId, index)" placeholder="Select attribute">
+                <a-select-option v-for="attribute in attributes" :key="attribute.id" :value="attribute.id">
+                  {{ attribute.name }}
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+            <a-form-item :label="'Select Attribute Value ' + (index + 1)">
+              <a-select v-model:value="attributeSelection.valueId" placeholder="Select attribute value">
+                <a-select-option v-for="value in attributeSelection.attributeValues" :key="value.id" :value="value.id">
+                  {{ value.value }}
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+          </div>
+          <a-button @click="addNewAttribute">Add Another Attribute</a-button>
           <a-form-item label="SKU">
             <a-input v-model:value="newVariant.sku" placeholder="Enter SKU" />
           </a-form-item>
@@ -58,6 +75,10 @@
 
         <!-- Displaying added variants -->
         <div v-for="(variant, index) in variants" :key="index" class="variant-item">
+          <div v-for="(attribute, attrIndex) in variant.attributes" :key="attrIndex">
+            <p><strong>Attribute:</strong> {{ getAttributeName(attribute.attributeId) }}</p>
+            <p><strong>Attribute Value:</strong> {{ getAttributeValueName(attribute.valueId) }}</p>
+          </div>
           <p><strong>SKU:</strong> {{ variant.sku }}</p>
           <p><strong>Price:</strong> {{ variant.price }}</p>
           <p><strong>Stock Quantity:</strong> {{ variant.stockQuantity }}</p>
@@ -81,6 +102,10 @@
           <p><strong>SKU:</strong> {{ variant.sku }}</p>
           <p><strong>Price:</strong> {{ variant.price }}</p>
           <p><strong>Stock Quantity:</strong> {{ variant.stockQuantity }}</p>
+          <div v-for="(attribute, attrIndex) in variant.attributes" :key="attrIndex">
+            <p><strong>Attribute:</strong> {{ getAttributeName(attribute.attributeId) }}</p>
+            <p><strong>Attribute Value:</strong> {{ getAttributeValueName(attribute.valueId) }}</p>
+          </div>
         </div>
 
         <a-button type="primary" @click="submitProductWithVariants">Submit</a-button>
@@ -95,13 +120,16 @@ import { ref } from 'vue';
 import { useProductStore } from '~/stores/product.js';
 import { useCategoryStore } from '~/stores/category.js';
 import { useSubcategoryStore } from '~/stores/subcategory.js';
+import { useAttributesStore } from '~/stores/attribute.js';
 const { $toast } = useNuxtApp();
 const productStore = useProductStore();
 const categoryStore = useCategoryStore();
 const subcategoryStore = useSubcategoryStore();
+const attributesStore = useAttributesStore();
+attributesStore.fetchAttributeValues();
 const router = useRouter();
-const currentStep = ref(0);
 
+const currentStep = ref(0);
 const product = ref({
   name: '',
   description: '',
@@ -114,12 +142,16 @@ const newVariant = ref({
   sku: '',
   price: null,
   stockQuantity: null,
+  attributes: [
+    { attributeId: null, valueId: null, attributeValues: [] },
+  ],
 });
 
 const variants = ref([]);
 
 const categories = ref([]);
 const subcategories = ref([]);
+const attributes = ref([]);
 
 const nextStep = () => {
   currentStep.value += 1;
@@ -131,13 +163,30 @@ const prevStep = () => {
 
 const addVariant = () => {
   variants.value.push({ ...newVariant.value });
+  resetVariantForm();
+};
+
+const resetVariantForm = () => {
   newVariant.value.sku = '';
   newVariant.value.price = null;
   newVariant.value.stockQuantity = null;
+  newVariant.value.attributes = [
+    { attributeId: null, valueId: null, attributeValues: [] },
+  ];
+};
+
+const addNewAttribute = () => {
+  newVariant.value.attributes.push({ attributeId: null, valueId: null, attributeValues: [] });
 };
 
 const removeVariant = (index) => {
   variants.value.splice(index, 1);
+};
+
+const resetForm = () => {
+  product.value = { name: '', description: '', categoryId: null, subcategoryId: null, VATType: 'exclusive' };
+  variants.value = [];
+  currentStep.value = 0;
 };
 
 const submitProductWithVariants = async () => {
@@ -145,15 +194,18 @@ const submitProductWithVariants = async () => {
     const productId = await productStore.createProduct(product.value);
     for (const variant of variants.value) {
       variant.productId = productId.id;
-      await productStore.createVariant(variant);
+      const createdVariant = await productStore.createVariant(variant);
+      for (const attribute of variant.attributes) {
+        const newVariantAttributeValue = {
+          attributeValueId: attribute.valueId,
+          variantId: createdVariant.id,
+        };
+        await productStore.createVariantAttributeValue(newVariantAttributeValue);
+      }
     }
-    await navigateTo('/products')
+    await navigateTo('/products');
     $toast.success('Product and variants created successfully');
-    // Clear form and reset state
-    product.value = { name: '', description: '', categoryId: null, subcategoryId: null, VATType: 'exclusive' };
-    variants.value = [];
-    currentStep.value = 0;
-
+    resetForm();
   } catch (error) {
     console.error('Error submitting product and variants:', error);
     $toast.error('Failed to create product and variants');
@@ -168,6 +220,15 @@ subcategoryStore.fetchSubcategories().then(() => {
   subcategories.value = subcategoryStore.subcategories;
 });
 
+// Fetch attributes on component mount
+attributesStore.fetchAttributes().then(() => {
+  attributes.value = attributesStore.attributes;
+});
+
+const fetchValuesForAttribute = async (attributeId, index) => {
+  newVariant.value.attributes[index].attributeValues = await attributesStore.ValuesByAttributeId(parseInt(attributeId));
+};
+
 const getCategoryName = (categoryId) => {
   const category = categories.value.find(cat => cat.id === categoryId);
   return category ? category.name : '';
@@ -176,6 +237,16 @@ const getCategoryName = (categoryId) => {
 const getSubcategoryName = (subcategoryId) => {
   const subcategory = subcategories.value.find(subcat => subcat.id === subcategoryId);
   return subcategory ? subcategory.name : '';
+};
+
+const getAttributeName = (attributeId) => {
+  const attribute = attributes.value.find(attr => attr.id === attributeId);
+  return attribute ? attribute.name : '';
+};
+
+const getAttributeValueName = (attributeValueId) => {
+  const value = attributes.value.find(val => val.id === attributeValueId);
+  return value ? value.value : '';
 };
 </script>
 
@@ -189,5 +260,9 @@ const getSubcategoryName = (subcategoryId) => {
   padding: 10px;
   border: 1px solid #d9d9d9;
   border-radius: 4px;
+}
+
+.attribute-selection {
+  margin-bottom: 15px;
 }
 </style>

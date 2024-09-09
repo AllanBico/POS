@@ -4,9 +4,15 @@ const  Attribute  = require('../models/attribute');
 const router = express.Router();
 const asyncHandler = fn => (req, res, next) =>
     Promise.resolve(fn(req, res, next)).catch(next);
+
 // Create Attribute
 router.post('/', asyncHandler(async (req, res) => {
     const { name, description } = req.body;
+
+    if (!name) {
+        return res.status(400).json({ error: 'Name is required' });
+    }
+
     const attribute = await Attribute.create({ name, description });
     res.status(201).json(attribute);
     req.io.emit('newAttribute', attribute);
@@ -21,7 +27,9 @@ router.get('/', asyncHandler(async (req, res) => {
 // Get Single Attribute by ID
 router.get('/:id', asyncHandler(async (req, res) => {
     const attribute = await Attribute.findByPk(req.params.id);
-    if (!attribute) return res.status(404).json({ error: 'Attribute not found' });
+    if (!attribute) {
+        return res.status(404).json({ error: 'Attribute not found' });
+    }
     res.json(attribute);
 }));
 
@@ -29,10 +37,13 @@ router.get('/:id', asyncHandler(async (req, res) => {
 router.put('/:id', asyncHandler(async (req, res) => {
     const { name, description } = req.body;
     const attribute = await Attribute.findByPk(req.params.id);
-    if (!attribute) return res.status(404).json({ error: 'Attribute not found' });
+    if (!attribute) {
+        return res.status(404).json({ error: 'Attribute not found' });
+    }
 
-    attribute.name = name || attribute.name;
-    attribute.description = description || attribute.description;
+    if (name) attribute.name = name;
+    if (description) attribute.description = description;
+
     await attribute.save();
     const updatedAttribute = await Attribute.findByPk(req.params.id);
     res.json(updatedAttribute);
@@ -43,7 +54,9 @@ router.put('/:id', asyncHandler(async (req, res) => {
 router.delete('/:id', asyncHandler(async (req, res) => {
     const id = req.params.id
     const attribute = await Attribute.findByPk(id);
-    if (!attribute) return res.status(404).json({ error: 'Attribute not found' });
+    if (!attribute) {
+        return res.status(404).json({ error: 'Attribute not found' });
+    }
 
     await attribute.destroy();
     res.status(204).end();

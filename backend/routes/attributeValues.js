@@ -4,11 +4,15 @@ const  AttributeValue  = require('../models/attributeValue');
 const router = express.Router();
 const asyncHandler = fn => (req, res, next) =>
     Promise.resolve(fn(req, res, next)).catch(next);
+
 // Create AttributeValue
 router.post('/', asyncHandler(async (req, res) => {
-
     const { value, attributeId } = req.body;
-    console.log("value, attributeId",value, attributeId)
+
+    if (!value || !attributeId) {
+        return res.status(400).json({ error: 'Value and attribute ID are required' });
+    }
+
     const attributeValue = await AttributeValue.create({ value, attributeId });
     res.status(201).json(attributeValue);
     req.io.emit('newAttributeValue', attributeValue);
@@ -22,7 +26,13 @@ router.get('/', asyncHandler(async (req, res) => {
 
 // Get Single AttributeValue by ID
 router.get('/:id', asyncHandler(async (req, res) => {
-    const attributeValue = await AttributeValue.findByPk(req.params.id);
+    const id = req.params.id;
+
+    if (isNaN(parseInt(id, 10))) {
+        return res.status(400).json({ error: 'Invalid attribute value ID' });
+    }
+
+    const attributeValue = await AttributeValue.findByPk(id);
     if (!attributeValue) return res.status(404).json({ error: 'AttributeValue not found' });
     res.json(attributeValue);
 }));
@@ -30,20 +40,37 @@ router.get('/:id', asyncHandler(async (req, res) => {
 // Update AttributeValue by ID
 router.put('/:id', asyncHandler(async (req, res) => {
     const { value, attributeId } = req.body;
-    const attributeValue = await AttributeValue.findByPk(req.params.id);
+    const id = req.params.id;
+
+    if (isNaN(parseInt(id, 10))) {
+        return res.status(400).json({ error: 'Invalid attribute value ID' });
+    }
+
+    const attributeValue = await AttributeValue.findByPk(id);
     if (!attributeValue) return res.status(404).json({ error: 'AttributeValue not found' });
 
-    attributeValue.value = value || attributeValue.value;
-    attributeValue.attributeId = attributeId || attributeValue.attributeId;
+    if (value) {
+        attributeValue.value = value;
+    }
+
+    if (attributeId) {
+        attributeValue.attributeId = attributeId;
+    }
+
     await attributeValue.save();
-    const updatedAttributeValue = await AttributeValue.findByPk(req.params.id);
+    const updatedAttributeValue = await AttributeValue.findByPk(id);
     res.json(updatedAttributeValue);
     req.io.emit('updateAttributeValue', updatedAttributeValue);
 }));
 
 // Delete AttributeValue by ID
 router.delete('/:id', asyncHandler(async (req, res) => {
-    const id = req.params.id
+    const id = req.params.id;
+
+    if (isNaN(parseInt(id, 10))) {
+        return res.status(400).json({ error: 'Invalid attribute value ID' });
+    }
+
     const attributeValue = await AttributeValue.findByPk(id);
     if (!attributeValue) return res.status(404).json({ error: 'AttributeValue not found' });
 

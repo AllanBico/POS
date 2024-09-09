@@ -8,6 +8,7 @@ const asyncHandler = fn => (req, res, next) =>
 // Create a new variant attribute value
 router.post('/', asyncHandler(async (req, res) => {
     const { variantId, attributeValueId } = req.body;
+    console.log("variantId, attributeValueId",variantId, attributeValueId)
     const variantAttributeValue = await VariantAttributeValue.create({ variantId, attributeValueId });
     res.status(201).json(variantAttributeValue);
 }));

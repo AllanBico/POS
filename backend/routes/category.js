@@ -11,9 +11,17 @@ const asyncHandler = fn => (req, res, next) =>
 // Create a category
 router.post('/', asyncHandler(async (req, res) => {
     const { name, description } = req.body;
-    const category = await Category.create({ name, description });
-    res.status(201).json(category);
-    req.io.emit('newCategory', category);
+    if (!name ) {
+        return res.status(400).json({ error: 'Name is required' });
+    }
+    try {
+        const category = await Category.create({ name, description });
+        res.status(201).json(category);
+        req.io.emit('newCategory', category);
+    } catch (error) {
+        console.error('Error creating category:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 }));
 
 // Get all categories
@@ -30,7 +38,12 @@ router.get('/', asyncHandler(async (req, res) => {
 
 // Get a single category by ID
 router.get('/:id', asyncHandler(async (req, res) => {
-    const category = await Category.findByPk(req.params.id);
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+        return res.status(400).json({ error: 'Invalid category ID' });
+    }
+
+    const category = await Category.findByPk(id);
     if (!category) return res.status(404).json({ error: 'Category not found' });
     res.status(200).json(category);
 }));
@@ -38,11 +51,16 @@ router.get('/:id', asyncHandler(async (req, res) => {
 // Update a category by ID
 router.put('/:id', asyncHandler(async (req, res) => {
     const { name, description } = req.body;
-    const category = await Category.findByPk(req.params.id);
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+        return res.status(400).json({ error: 'Invalid category ID' });
+    }
+
+    const category = await Category.findByPk(id);
     if (!category) return res.status(404).json({ error: 'Category not found' });
 
-    category.name = name || category.name;
-    category.description = description || category.description;
+    if (name) category.name = name;
+    if (description) category.description = description;
     await category.save();
     res.status(200).json(category);
     req.io.emit('updateCategory', category);
@@ -50,9 +68,14 @@ router.put('/:id', asyncHandler(async (req, res) => {
 
 // Delete a category by ID
 router.delete('/:id', asyncHandler(async (req, res) => {
-    const id = req.params.id
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+        return res.status(400).json({ error: 'Invalid category ID' });
+    }
+
     const category = await Category.findByPk(id);
     if (!category) return res.status(404).json({ error: 'Category not found' });
+
     await category.destroy(); // Soft delete because of `paranoid: true`
     res.status(204).json({ message: 'Category deleted' });
     req.io.emit('deleteCategory', id);

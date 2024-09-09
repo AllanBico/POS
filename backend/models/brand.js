@@ -1,3 +1,6 @@
+
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/db');
 // Define the Brand model using Sequelize
 const Brand = sequelize.define('Brand', {
     // id is an auto-incrementing primary key

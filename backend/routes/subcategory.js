@@ -14,6 +14,10 @@ router.post('/', async (req, res) => {
         const { name, description, categoryId } = req.body;
 
         // Validate categoryId
+        if (!categoryId) {
+            return res.status(400).json({ error: 'Category ID is required' });
+        }
+
         const category = await Category.findByPk(categoryId);
         if (!category) {
             return res.status(400).json({ error: 'Invalid category ID' });
@@ -48,7 +52,7 @@ router.get('/', async (req, res) => {
         const subcategories = await Subcategory.findAll({
             include: {
                 model: Category,
-                attributes: ['name'], // Only fetch the category name, or add other attributes if needed
+                attributes: ['name']
             },
         });
         res.json(subcategories);
@@ -60,6 +64,10 @@ router.get('/', async (req, res) => {
 
 // Get a single subcategory by ID
 router.get('/:id', asyncHandler(async (req, res) => {
+    if (!req.params.id) {
+        return res.status(400).json({ error: 'Subcategory ID is required' });
+    }
+
     const subcategory = await Subcategory.findByPk(req.params.id);
     if (!subcategory) return res.status(404).json({ error: 'Subcategory not found' });
     res.status(200).json(subcategory);
@@ -67,14 +75,17 @@ router.get('/:id', asyncHandler(async (req, res) => {
 
 // Update a subcategory by ID
 router.put('/:id', asyncHandler(async (req, res) => {
+    if (!req.params.id) {
+        return res.status(400).json({ error: 'Subcategory ID is required' });
+    }
+
     const { name, description, categoryId } = req.body;
-    console.log("req.params.id", req.params.id);
 
     // Fetch the subcategory including the related category
     const subcategory = await Subcategory.findByPk(req.params.id, {
         include: {
             model: Category,
-            attributes: ['name'], // Only fetch the category name
+            attributes: ['name']
         },
     });
 
@@ -83,16 +94,16 @@ router.put('/:id', asyncHandler(async (req, res) => {
     }
 
     // Update the subcategory properties if they are provided in the request
-    subcategory.name = name || subcategory.name;
-    subcategory.description = description || subcategory.description;
-    subcategory.categoryId = categoryId || subcategory.categoryId;
+    if (name) subcategory.name = name;
+    if (description) subcategory.description = description;
+    if (categoryId) subcategory.categoryId = categoryId;
 
     // Save the updated subcategory
     await subcategory.save();
     const updatedsubcategory = await Subcategory.findByPk(req.params.id, {
         include: {
             model: Category,
-            attributes: ['name'], // Only fetch the category name
+            attributes: ['name']
         },
     });
     // Send the updated subcategory as the response
@@ -100,16 +111,18 @@ router.put('/:id', asyncHandler(async (req, res) => {
     req.io.emit('updateSubcategory', updatedsubcategory);
 }));
 
-
 // Delete a subcategory by ID
 router.delete('/:id', asyncHandler(async (req, res) => {
-    const id = req.params.id
-    const subcategory = await Subcategory.findByPk(parseInt(id));
+    if (!req.params.id) {
+        return res.status(400).json({ error: 'Subcategory ID is required' });
+    }
+
+    const subcategory = await Subcategory.findByPk(parseInt(req.params.id));
     if (!subcategory) return res.status(404).json({ error: 'Subcategory not found' });
 
     await subcategory.destroy(); // Soft delete because of `paranoid: true`
     res.status(204).json({ message: 'Subcategory deleted' });
-    req.io.emit('deleteSubcategory', id);
+    req.io.emit('deleteSubcategory', req.params.id);
 }));
 
 module.exports = router;

@@ -7,7 +7,11 @@ export const useUnitStore = defineStore('unit', {
         error: null,
     }),
     getters: {
-        UnitById: (state) => (id) => state.units.find(unit => unit.id === id) || null,
+        UnitById: (state) => (id) => {
+            const unit = state.units.find((unit) => unit.id === id);
+            if (!unit) return null;
+            return unit;
+        },
     },
     actions: {
         // Fetch all units
@@ -18,10 +22,13 @@ export const useUnitStore = defineStore('unit', {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/units`;
                 const { data, error } = await useFetch(apiUrl);
-                if (error.value) throw error.value;
-                this.units = data.value;
+                if (error.value) {
+                    console.error('Error fetching units:', error.value);
+                    throw error.value;
+                }
+                this.units = data.value || [];
             } catch (err) {
-                this.error = err.message;
+                this.error = err.message || 'An unexpected error occurred';
             } finally {
                 this.loading = false;
             }
@@ -36,10 +43,13 @@ export const useUnitStore = defineStore('unit', {
                     method: 'POST',
                     body: unit,
                 });
-                if (error.value) throw error.value;
+                if (error.value) {
+                    console.error('Error creating unit:', error.value);
+                    throw error.value;
+                }
                 this.units.push(data.value);
             } catch (err) {
-                this.error = err.message;
+                this.error = err.message || 'An unexpected error occurred';
             }
         },
 
@@ -52,14 +62,17 @@ export const useUnitStore = defineStore('unit', {
                     method: 'PUT',
                     body: updatedUnit,
                 });
-                if (error.value) throw error.value;
+                if (error.value) {
+                    console.error('Error updating unit:', error.value);
+                    throw error.value;
+                }
 
                 const index = this.units.findIndex((unit) => unit.id === id);
                 if (index !== -1) {
                     this.units[index] = data.value;
                 }
             } catch (err) {
-                this.error = err.message;
+                this.error = err.message || 'An unexpected error occurred';
             }
         },
 
@@ -71,27 +84,30 @@ export const useUnitStore = defineStore('unit', {
                 const { error } = await useFetch(apiUrl, {
                     method: 'DELETE',
                 });
-                if (error.value) throw error.value;
+                if (error.value) {
+                    console.error('Error deleting unit:', error.value);
+                    throw error.value;
+                }
 
                 this.units = this.units.filter((unit) => unit.id !== id);
             } catch (err) {
-                this.error = err.message;
+                this.error = err.message || 'An unexpected error occurred';
             }
         },
         // Socket event handlers
         async socketUpdateUnit(unit) {
-            const index = this.units.findIndex(obj => obj.id === unit.id);
+            const index = this.units.findIndex((obj) => obj.id === unit.id);
             if (index !== -1) this.units[index] = unit;
         },
         async socketCreateUnit(unit) {
-            const exists = this.units.some(obj => obj.id === unit.id);
+            const exists = this.units.some((obj) => obj.id === unit.id);
             // Only add the unit if it doesn't already exist
             if (!exists) {
                 this.units.push(unit);
             }
         },
         async socketDeleteUnit(id) {
-            const index = this.units.findIndex(unit => unit.id === id);
+            const index = this.units.findIndex((unit) => unit.id === id);
             if (index !== -1) this.units.splice(index, 1);
         },
     },

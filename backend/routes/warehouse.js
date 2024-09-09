@@ -4,6 +4,10 @@ const  Warehouse  = require('../models/warehouse');
 
 // Create a new warehouse
 router.post('/', async (req, res) => {
+    if (!req.body.name || !req.body.location || !req.body.description) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+
     try {
         const warehouse = await Warehouse.create(req.body);
         res.status(201).json(warehouse);
@@ -24,6 +28,10 @@ router.get('/', async (req, res) => {
 
 // Get a specific warehouse by ID
 router.get('/:id', async (req, res) => {
+    if (isNaN(parseInt(req.params.id))) {
+        return res.status(400).json({ error: 'Invalid warehouse ID' });
+    }
+
     try {
         const warehouse = await Warehouse.findByPk(req.params.id);
         if (!warehouse) return res.status(404).json({ error: 'Warehouse not found' });
@@ -35,6 +43,10 @@ router.get('/:id', async (req, res) => {
 
 // Update a warehouse
 router.put('/:id', async (req, res) => {
+    if (!req.body.name || !req.body.location || !req.body.description) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+
     try {
         const warehouse = await Warehouse.findByPk(req.params.id);
         if (!warehouse) return res.status(404).json({ error: 'Warehouse not found' });
@@ -48,6 +60,10 @@ router.put('/:id', async (req, res) => {
 
 // Delete a warehouse
 router.delete('/:id', async (req, res) => {
+    if (isNaN(parseInt(req.params.id))) {
+        return res.status(400).json({ error: 'Invalid warehouse ID' });
+    }
+
     try {
         const warehouse = await Warehouse.findByPk(req.params.id);
         if (!warehouse) return res.status(404).json({ error: 'Warehouse not found' });

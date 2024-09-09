@@ -10,7 +10,10 @@ export const useAttributesStore = defineStore('attributes', {
     getters: {
         AttributeById: (state) => (id) => state.attributes.find(attr => attr.id === id) || null,
         ValuesByAttributeId: (state) => (attributeId) => {
+            console.log("store attributeId",attributeId)
+            console.log("store attributeId type",typeof attributeId)
             const filteredValues = state.attributeValues.filter(value => value.attributeId === attributeId);
+            console.log("store filteredValues",filteredValues)
             return filteredValues;
         },
         AttributeValueById: (state) => (attributeId) => state.attributeValues.find(value => value.id === attributeId),

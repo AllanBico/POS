@@ -1,27 +1,25 @@
 <template>
-  <a-page-header >
-    <div class="header-content">
-      <!-- Left Section: Title and Breadcrumb -->
-      <div class="header-left">
-        <h2>{{capitalizedPath}}</h2>
-<!--        <a-breadcrumb class="header-breadcrumb">-->
-<!--          <a-breadcrumb-item>Home</a-breadcrumb-item>-->
-<!--          <a-breadcrumb-item>{{ breadcrumb }}</a-breadcrumb-item>-->
-<!--        </a-breadcrumb>-->
-      </div>
+  <a-layout-header class="header">
+    <div class="breadcrumb">
+      <a-breadcrumb>
+        <a-breadcrumb-item>Pages</a-breadcrumb-item>
+        <a-breadcrumb-item>Dashboard</a-breadcrumb-item>
+      </a-breadcrumb>
+    </div>
 
-      <!-- Right Section: Search and Avatar -->
-      <div class="header-right">
-        <a-button type="text" @click="toggleSearch">
-          <SearchOutlined />
-        </a-button>
-        <a-input-search
-            v-if="showSearch"
-            placeholder="Search..."
-            enter-button
-            @blur="toggleSearch"
-            class="header-search-input"
-        />
+<!--    <div class="page-title">-->
+<!--      <h1>Dashboard</h1>-->
+<!--    </div>-->
+
+    <div class="header-right">
+      <a-input-search placeholder="Type here..." class="search-input" />
+
+      <a-space size="middle">
+        <a-badge count="4" dot>
+          <a-button type="link" :icon="h(BellOutlined)" />
+
+        </a-badge>
+        <a-button type="link" :icon="h(SettingOutlined)" />
         <a-dropdown>
           <template #overlay>
             <a-menu>
@@ -29,51 +27,34 @@
               <a-menu-item key="logout">Logout</a-menu-item>
             </a-menu>
           </template>
-          <a-avatar class="header-avatar" icon="user" />
+          <a-avatar style="background-color: #87d068" class="header-avatar" :icon="h(UserOutlined)" />
         </a-dropdown>
-      </div>
+      </a-space>
     </div>
-  </a-page-header>
+  </a-layout-header>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { SearchOutlined } from '@ant-design/icons-vue';
-const route = useRoute()
-const title = ref('Dashboard');
-const breadcrumb = ref('Overview');
-const showSearch = ref(false);
+import { BellOutlined, SettingOutlined, UserOutlined } from '@ant-design/icons-vue';
 
-const toggleSearch = () => {
-  showSearch.value = !showSearch.value;
-};
-const capitalizedPath = ref('');
-
-watchEffect(() => {
-  capitalizedPath.value = route.path.replace('/', '').charAt(0).toUpperCase() + route.path.replace('/', '').slice(1);
-});
 </script>
 
 <style scoped>
-.header-content {
+.header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 100%;
-
+  padding: 0 20px;
+  background-color: #fff;
+  border-bottom: 1px solid #f0f0f0;
 }
 
-.header-left {
-  display: flex;
-  flex-direction: column;
+.breadcrumb {
+  flex-grow: 1;
 }
 
-.header-title {
-  margin: 0;
-}
-
-.header-breadcrumb {
-  margin-top: 4px;
+.page-title {
+  margin-left: 20px;
 }
 
 .header-right {
@@ -81,22 +62,20 @@ watchEffect(() => {
   align-items: center;
 }
 
-.header-search-input {
-  margin-left: 8px;
+.search-input {
+  margin-right: 20px;
+  width: 200px;
 }
 
-.header-avatar {
-  margin-left: 16px;
+.sign-in {
+  font-weight: bold;
 }
 
-@media (max-width: 576px) {
-  .header-content {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+a-button {
+  color: #000;
+}
 
-  .header-right {
-    margin-top: 8px;
-  }
+a-badge .a-button {
+  padding: 0;
 }
 </style>

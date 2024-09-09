@@ -2,7 +2,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db'); // Adjust the path as necessary
 const Category = require('./category');
-const Product = require('./product');
 
 const Subcategory = sequelize.define('Subcategory', {
     id: {
@@ -36,4 +35,5 @@ const Subcategory = sequelize.define('Subcategory', {
 // Define associations
 Category.hasMany(Subcategory, { foreignKey: 'categoryId', onDelete: 'CASCADE' });
 Subcategory.belongsTo(Category, { foreignKey: 'categoryId' });
+
 module.exports = Subcategory;

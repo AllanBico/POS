@@ -29,8 +29,25 @@
               </a-select-option>
             </a-select>
           </a-form-item>
+          <a-form-item label="Brand">
+            <a-select v-model:value="product.brandId" placeholder="Select brand">
+              <a-select-option v-for="brand in brandStore.brands" :key="brand.id" :value="brand.id">
+                {{ brand.name }}
+              </a-select-option>
+            </a-select>
+          </a-form-item>
+          <a-form-item label="Unit">
+            <a-select v-model:value="product.unitId" placeholder="Select unit">
+              <a-select-option v-for="unit in unitStore.units" :key="unit.id" :value="unit.id">
+                {{ unit.name }}
+              </a-select-option>
+            </a-select>
+          </a-form-item>
+          <a-form-item label="Low Stock Alert">
+            <a-input-number v-model:value="product.lowStockAlert" placeholder="Enter low stock alert quantity" min="0" />
+          </a-form-item>
           <a-form-item label="VAT Type">
-            <a-select v-model:value="product.VATType" placeholder="Select VAT type">
+            <a-select v-model:value="product.vatType" placeholder="Select VAT type">
               <a-select-option value="inclusive">Inclusive</a-select-option>
               <a-select-option value="exclusive">Exclusive</a-select-option>
               <a-select-option value="exempted">Exempted</a-select-option>
@@ -95,7 +112,10 @@
         <p><strong>Description:</strong> {{ product.description }}</p>
         <p><strong>Category:</strong> {{ getCategoryName(product.categoryId) }}</p>
         <p><strong>Subcategory:</strong> {{ getSubcategoryName(product.subcategoryId) }}</p>
-        <p><strong>VAT Type:</strong> {{ product.VATType }}</p>
+        <p><strong>Brand:</strong> {{  brandStore.BrandById(product.brandId).name }}</p>
+        <p><strong>Unit:</strong> {{  unitStore.UnitById(product.brandId).name }}</p>
+        <p><strong>Low Stock Alert:</strong> {{ product.lowStockAlert }}</p>
+        <p><strong>VAT Type:</strong> {{ product.vatType }}</p>
 
         <h4>Variants</h4>
         <div v-for="(variant, index) in variants" :key="index" class="variant-item">
@@ -121,12 +141,19 @@ import { useProductStore } from '~/stores/product.js';
 import { useCategoryStore } from '~/stores/category.js';
 import { useSubcategoryStore } from '~/stores/subcategory.js';
 import { useAttributesStore } from '~/stores/attribute.js';
+import { useBrandStore } from '~/stores/brand.js'; // Import the brand store
+import {useUnitStore} from "~/stores/unit.js";
+
 const { $toast } = useNuxtApp();
 const productStore = useProductStore();
 const categoryStore = useCategoryStore();
 const subcategoryStore = useSubcategoryStore();
 const attributesStore = useAttributesStore();
+const brandStore = useBrandStore(); // Initialize the brand store
+const unitStore = useUnitStore();
 attributesStore.fetchAttributeValues();
+brandStore.fetchBrands()
+unitStore.fetchUnits()
 const router = useRouter();
 
 const currentStep = ref(0);
@@ -135,7 +162,11 @@ const product = ref({
   description: '',
   categoryId: null,
   subcategoryId: null,
-  VATType: 'exclusive',
+  vatType: 'exclusive',
+  brandId: null, // Add brandId to the product object
+  unitId: null,
+  lowStockAlert: 0, // Add lowStockAlert to the product object
+
 });
 
 const newVariant = ref({
@@ -184,7 +215,7 @@ const removeVariant = (index) => {
 };
 
 const resetForm = () => {
-  product.value = { name: '', description: '', categoryId: null, subcategoryId: null, VATType: 'exclusive' };
+  product.value = { name: '', description: '', categoryId: null, subcategoryId: null, vatType: 'exclusive',brandId: null,lowStockAlert: 0,unitId: null, };
   variants.value = [];
   currentStep.value = 0;
 };
@@ -248,6 +279,8 @@ const getAttributeValueName = (attributeValueId) => {
   const value = attributes.value.find(val => val.id === attributeValueId);
   return value ? value.value : '';
 };
+const getBrandName = (id) => brands.value.find(brand => brand.id === id)?.name || 'Unknown'; // Function to get brand name
+
 </script>
 
 <style scoped>

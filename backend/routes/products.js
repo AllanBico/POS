@@ -8,11 +8,16 @@ const VariantAttributeValue = require('../models/variantAttributeValue');
 // Create a Product
 router.post('/', async (req, res) => {
     try {
-        const { name, description, price, sku, categoryId, subcategoryId, vatType } = req.body;
-        console.log("name, description, price, sku, categoryId, subCategoryId, vatType",name, description, price, sku, categoryId, subcategoryId, vatType)
-        const product = await Product.create({ name, description, price, sku, categoryId, subcategoryId, vatType });
+        const { name, description, categoryId, subcategoryId, vatType,brandId,lowStockAlert,unitId } = req.body;
+        console.log("name, description, categoryId, subcategoryId, vatType,brandId,lowStockAlert,unitId",name, description, categoryId, subcategoryId, vatType,brandId,lowStockAlert,unitId)
+        if (!name || !description || !categoryId || !subcategoryId || !vatType || !brandId || !lowStockAlert || !unitId) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        const product = await Product.create({ name, description, categoryId, subcategoryId, vatType,brandId,lowStockAlert,unitId });
         res.status(201).json(product);
     } catch (error) {
+        console.log("error.message",error.message)
         res.status(500).json({ error: error.message });
     }
 });
@@ -49,7 +54,7 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', async (req, res) => {
     try {
         const { name, description, price, sku, categoryId, subCategoryId, vatType } = req.body;
-        const [updated] = await Product.update({ name, description, price, sku, categoryId, subCategoryId, vatType }, {
+        const [updated] = await Product.update({ name, description, price, sku, categoryId, subCategoryId, vatType,brandId,lowStockAlert,unitId }, {
             where: { id: req.params.id }
         });
         if (updated) {

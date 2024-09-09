@@ -106,6 +106,10 @@ export const useProductStore = defineStore('product', {
 
         async createProduct(product) {
             const {$toast} = useNuxtApp();
+            if (!product || typeof product !== 'object') {
+                throw new Error('Invalid product object');
+            }
+
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/products`;
@@ -113,7 +117,11 @@ export const useProductStore = defineStore('product', {
                     method: 'POST',
                     body: JSON.stringify(product),
                 });
-                if (error.value) throw error.value;
+                if (error.value) {
+                    console.log("error.value",error.value)
+                    this.error = error.value;
+                    throw error.value;
+                }
                 this.products.push(data.value);
                 $toast.success('Product created successfully');
                 return data.value

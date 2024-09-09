@@ -1,18 +1,21 @@
 <template>
   <a-layout>
     <a-layout-sider
+        theme="light"
         breakpoint="lg"
         collapsed-width="0"
         @collapse="onCollapse"
         @breakpoint="onBreakpoint"
+        :style="{boxShadow: '2px 0 5px rgba(0,0,0,0.1)',overflow: 'auto', height: '100vh',}"
     >
       <div class="logo">
         <img src="https://upload.wikimedia.org/wikipedia/commons/9/95/Vue.js_Logo_2.svg" alt="Vue Antd Admin"/>
       </div>
 
       <a-menu
-          theme="dark"
+          theme="light"
           mode="inline"
+          :style="{borderRight: 'none'}"
       >
         <!-- Dashboard Menu Item -->
         <a-menu-item key="dashboard">
@@ -21,7 +24,7 @@
             <span>Dashboard</span>
           </NuxtLink>
         </a-menu-item>
-        <a-divider style="border-color: whitesmoke;color: whitesmoke; ">Inventory</a-divider>
+        <a-divider style="border-color: whitesmoke;color: whitesmoke;">Inventory</a-divider>
         <a-sub-menu key="Products">
           <template #title>
             <span>
@@ -61,7 +64,7 @@
           </NuxtLink>
         </a-menu-item>
         <a-menu-item key="Variants">
-          <NuxtLink to="/units">
+          <NuxtLink to="/variants">
             <pie-chart-outlined/>
             <span>Variants</span>
           </NuxtLink>
@@ -79,10 +82,10 @@
           </NuxtLink>
         </a-menu-item>
 
-        <a-divider style="border-color: whitesmoke;color: whitesmoke; ">Stock</a-divider>
-        <a-divider style="border-color: whitesmoke;color: whitesmoke; ">Sales</a-divider>
-        <a-divider style="border-color: whitesmoke;color: whitesmoke; ">Reports</a-divider>
-        <a-divider style="border-color: whitesmoke;color: whitesmoke; ">People</a-divider>
+        <a-divider style="border-color: whitesmoke;color: whitesmoke;">Stock</a-divider>
+        <a-divider style="border-color: whitesmoke;color: whitesmoke;">Sales</a-divider>
+        <a-divider style="border-color: whitesmoke;color: whitesmoke;">Reports</a-divider>
+        <a-divider style="border-color: whitesmoke;color: whitesmoke;">People</a-divider>
         <a-sub-menu key="Users">
           <template #title>
             <span>
@@ -97,14 +100,14 @@
         </a-sub-menu>
         <a-menu-item key="Customers">
           <NuxtLink to="/customers">
-          <contacts-outlined/>
-          <span>Customers</span>
+            <contacts-outlined/>
+            <span>Customers</span>
           </NuxtLink>
         </a-menu-item>
         <a-menu-item key="Suppliers">
           <NuxtLink to="/suppliers">
-          <pie-chart-outlined/>
-          <span>Suppliers</span>
+            <pie-chart-outlined/>
+            <span>Suppliers</span>
           </NuxtLink>
         </a-menu-item>
         <a-menu-item key="Warehouses">
@@ -133,19 +136,22 @@
         </a-sub-menu>
       </a-menu>
     </a-layout-sider>
-    <a-layout style="min-height: 100vh;">
-      <a-layout-content>
-        <page-header :style="{ background: '#fff', padding: '10px' }"/>
-        <div :style="{  background: '#fff', minHeight: '360px' }">
+
+    <!-- Main Layout -->
+    <a-layout theme="dark" style="min-height: 100vh; background-image: radial-gradient(ellipse at top left, rgba(92, 0, 103, 0.5) 0%, rgba(0, 212, 255, 0.5) 100%);background-blend-mode: multiply;">
+      <a-layout-content :style="{padding: '20px'}">
+        <page-header :style="{ background: '#fff', padding: '10px', marginBottom: '20px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'}"/>
+        <div >
           <slot/>
         </div>
       </a-layout-content>
-      <a-layout-footer style="text-align: center">
+      <a-layout-footer style="text-align: center;  padding: 10px 0;">
         Smart inventory ©2024 Intellitech LTD
       </a-layout-footer>
     </a-layout>
   </a-layout>
 </template>
+
 <script setup>
 import {ref} from 'vue';
 import PageHeader from "~/components/layout/pageHeader.vue";
@@ -158,34 +164,46 @@ const onBreakpoint = broken => {
 };
 const selectedKeys = ref(['4']);
 </script>
+
 <style scoped>
-#components-layout-demo-responsive .logo {
-  height: 32px;
-  background: rgba(255, 255, 255, 0.2);
-  margin: 16px;
-}
-
-.site-layout-sub-header-background {
-  background: #fff;
-}
-
-.site-layout-background {
-  background: #fff;
-}
-
-[data-theme='dark'] .site-layout-sub-header-background {
-  background: #141414;
-}
-
+/* Styling the Logo */
 .logo {
-  height: 32px;
+  height: 50px;
   margin: 16px;
   display: flex;
   justify-content: center;
   align-items: center;
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .logo img {
   max-height: 100%;
+}
+
+/* Sider & Menu Styling */
+.ant-layout-sider {
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.ant-menu-item:hover,
+.ant-menu-item-active {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #1890ff;
+}
+
+.ant-menu-item-selected {
+  background-color: #1890ff;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+/* Subtle hover effect */
+a {
+  color: white;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: #40a9ff;
 }
 </style>

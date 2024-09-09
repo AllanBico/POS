@@ -1,41 +1,23 @@
 {
   "development": {
-    "username": "sa",
-    "password": "sa2024",
-    "database": "testpos",
-    "host": "INTELHYPERV",
-    "dialect": "mssql",
-    "dialectOptions": {
-      "options": {
-        "encrypt": true,
-        "trustServerCertificate": true
-      }
-    }
+    "username": "postgres",
+    "password": "root",
+    "database": "test",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
   },
   "test": {
-    "username": "sa",
-    "password": "sa2024",
-    "database": "testpos",
-    "host": "INTELHYPERV",
-    "dialect": "mssql",
-    "dialectOptions": {
-      "options": {
-        "encrypt": true,
-        "trustServerCertificate": true
-      }
-    }
+    "username": "postgres",
+    "password": "root",
+    "database": "test",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
   },
   "production": {
-    "username": "sa",
-    "password": "sa2024",
-    "database": "testpos",
-    "host": "INTELHYPERV",
-    "dialect": "mssql",
-    "dialectOptions": {
-      "options": {
-        "encrypt": true,
-        "trustServerCertificate": true
-      }
-    }
+    "username": "root",
+    "password": "root",
+    "database": "test",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
   }
 }

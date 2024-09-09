@@ -1,9 +1,10 @@
 <script setup lang="ts">
 
+import VariantsTable from "~/components/products/variantsTable.vue";
 </script>
 
 <template>
-<products-table/>
+<variants-table/>
 </template>
 
 <style scoped>

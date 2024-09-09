@@ -24,14 +24,14 @@
         />
 
         <div class="actions">
-          <a-button type="primary" @click="handleAdd" :icon="h(PlusOutlined)">Add New</a-button>
+          <a-button type="primary"  :icon="h(PlusOutlined)"> <nuxt-link to="/product/create-product">Add New</nuxt-link> </a-button>
 
         </div>
       </div>
 
       <a-table
           :columns="columns"
-          :data-source="productStore.products"
+          :data-source="productStore.variants"
           :pagination="pagination"
           :rowKey="id"
           bordered
@@ -84,7 +84,7 @@
               <a-button @click="onEdit(record.id)" style="margin-right: 3px" :icon="h(EditOutlined)"/>
             </a-tooltip>
             <a-popconfirm
-                v-if="productStore.products.length"
+                v-if="productStore.variants.length"
                 title="Sure to delete?"
                 @confirm="onDelete(record.id)">
               <a-tooltip title="Delete" placement="bottom">
@@ -110,30 +110,46 @@ const loading = ref(false);
 const open = ref(false);
 const edit_open = ref(false);
 let attribute_id = ref(null)
-productStore.fetchProducts()
-console.log("productStore.attributes", productStore.products)
+productStore.fetchVariants()
+console.log("productStore.variants", productStore.variants)
 const columns = [
   {
-    title: 'Name',
-    dataIndex: 'name',
-    key: 'name',
+    title: 'Product',
+    key: 'sku',
+    customRender: ({record}) => record.Product ? record.Product.name : 'N/A',
+  },
+  {
+    title: 'Sku',
+    dataIndex: 'sku',
+    key: 'sku',
+  },
+  {
+    title: 'Quantity',
+    dataIndex: 'stockQuantity',
+    key: 'stockQuantity',
   },
   {
     title: 'Description',
-    dataIndex: 'description',
     key: 'description',
+    customRender: ({record}) => record.Product ? record.Product.description : 'N/A',
   },
   {
     title: 'Category',
-    dataIndex: 'categoryId',
-    key: 'categoryId',
-    scopedSlots: { customRender: 'category' },
+    key: 'category',
+    customRender: ({record}) => record.Product ? record.Product.category.name : 'N/A',
+    width: '30%',
   },
   {
     title: 'Subcategory',
-    dataIndex: 'subcategoryId',
+    customRender: ({record}) => record.Product ? record.Product.subcategory.name : 'N/A',
     key: 'subcategoryId',
     scopedSlots: { customRender: 'subcategory' },
+  },
+
+  {
+    title: 'VAT',
+    customRender: ({record}) => record.Product ? record.Product.VATType : 'N/A',
+    key: 'VATType',
   },
   {
     title: 'operation',
@@ -148,7 +164,7 @@ const edit = key => {
 const save = key => {
 };
 const onDelete = async key => {
-  await productStore.deleteProduct(key)
+  await productStore.deleteVariant(key)
   console.log("deleted", key)
 };
 const onEdit = async key => {

@@ -1,6 +1,7 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db'); // Adjust the path as necessary
-const Category = require('./category');
+const sequelize = require('../config/db');
+const Category = require('./Category');
+const Subcategory = require('./Subcategory');
 const Product = sequelize.define('Product', {
     id: {
         type: DataTypes.INTEGER,
@@ -18,9 +19,10 @@ const Product = sequelize.define('Product', {
     categoryId: {
         type: DataTypes.INTEGER,
         references: {
-            model: Category,
+            model: 'categories',
             key: 'id',
         },
+        onDelete: 'SET NULL',
     },
     subcategoryId: {
         type: DataTypes.INTEGER,
@@ -28,11 +30,21 @@ const Product = sequelize.define('Product', {
             model: 'subcategories',
             key: 'id',
         },
+        onDelete: 'SET NULL',
+    },
+    VATType: {
+        type: DataTypes.ENUM('inclusive', 'exclusive', 'exempted'),
+        allowNull: false,
+        defaultValue: 'exclusive',
     },
 }, {
     timestamps: true,
     paranoid: false,
     underscored: true,
 });
+
+
+Product.belongsTo(Category, { as: 'category', foreignKey: 'categoryId' });
+Product.belongsTo(Subcategory, { as: 'subcategory', foreignKey: 'subcategoryId' });
 
 module.exports = Product;

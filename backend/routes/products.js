@@ -1,62 +1,83 @@
 const express = require('express');
-const Product = require('../models/product');
-const Category = require('../models/category');
-const Subcategory = require('../models/subcategory');
 const router = express.Router();
-const asyncHandler = fn => (req, res, next) =>
-    Promise.resolve(fn(req, res, next)).catch(next);
-// Create a new product
-router.post('/', asyncHandler(async (req, res) => {
-    const { name, description, price, sku, categoryId, subcategoryId } = req.body;
-    const product = await Product.create({ name, description, price, sku, categoryId, subcategoryId });
-    res.status(201).json(product);
-}));
+const Product = require('../models/product');
+const Variant = require('../models/variant');
+const VariantAttributeValue = require('../models/variantAttributeValue');
 
-// Get all products
-router.get('/', asyncHandler(async (req, res) => {
-    const products = await Product.findAll({
-        include: [
-            { model: Category, as: 'Category' },
-            { model: Subcategory, as: 'Subcategory' },
-        ],
-    });
-    res.status(200).json(products);
-}));
 
-// Get a product by ID
-router.get('/:id', asyncHandler(async (req, res) => {
-    const product = await Product.findByPk(req.params.id, {
-        include: [
-            { model: Category, attributes: ['name'] },
-            { model: Subcategory, attributes: ['name'] },
-        ],
-    });
-    if (!product) return res.status(404).json({ error: 'Product not found' });
-    res.status(200).json(product);
-}));
+// Create a Product
+router.post('/', async (req, res) => {
+    try {
+        const { name, description, price, sku, categoryId, subcategoryId, vatType } = req.body;
+        console.log("name, description, price, sku, categoryId, subCategoryId, vatType",name, description, price, sku, categoryId, subcategoryId, vatType)
+        const product = await Product.create({ name, description, price, sku, categoryId, subcategoryId, vatType });
+        res.status(201).json(product);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 
-// Update a product
-router.put('/:id', asyncHandler(async (req, res) => {
-    const { name, description, price, sku, categoryId, subcategoryId } = req.body;
-    const product = await Product.findByPk(req.params.id);
-    if (!product) return res.status(404).json({ error: 'Product not found' });
+// Get all Products
+router.get('/', async (req, res) => {
+    try {
+        const products = await Product.findAll({
+            include: [{ model: Variant, as: 'variants' }] // Include variants with each product
+        });
+        res.status(200).json(products);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 
-    product.name = name || product.name;
-    product.description = description || product.description;
-    product.price = price || product.price;
-    product.sku = sku || product.sku;
-    product.categoryId = categoryId || product.categoryId;
-    product.subcategoryId = subcategoryId || product.subcategoryId;
-    await product.save();
-    res.status(200).json(product);
-}));
+// Get a Product by ID
+router.get('/:id', async (req, res) => {
+    try {
+        const product = await Product.findByPk(req.params.id, {
+            include: [{ model: Variant, as: 'variants' }] // Include variants with the product
+        });
+        if (product) {
+            res.status(200).json(product);
+        } else {
+            res.status(404).json({ error: 'Product not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 
-// Delete a product
-router.delete('/:id', asyncHandler(async (req, res) => {
-    const product = await Product.findByPk(req.params.id);
-    if (!product) return res.status(404).json({ error: 'Product not found' });
-    await product.destroy();
-    res.status(204).end();
-}));
+// Update a Product
+router.put('/:id', async (req, res) => {
+    try {
+        const { name, description, price, sku, categoryId, subCategoryId, vatType } = req.body;
+        const [updated] = await Product.update({ name, description, price, sku, categoryId, subCategoryId, vatType }, {
+            where: { id: req.params.id }
+        });
+        if (updated) {
+            const updatedProduct = await Product.findByPk(req.params.id);
+            res.status(200).json(updatedProduct);
+        } else {
+            res.status(404).json({ error: 'Product not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Delete a Product
+router.delete('/:id', async (req, res) => {
+    try {
+        const deleted = await Product.destroy({
+            where: { id: req.params.id }
+        });
+        if (deleted) {
+            res.status(204).send();
+        } else {
+            res.status(404).json({ error: 'Product not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 
 module.exports = router;

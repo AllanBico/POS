@@ -1,6 +1,6 @@
 const express = require('express');
 const VariantAttributeValue = require('../models/variantAttributeValue');
-const ProductVariant = require('../models/productVariant');
+const ProductVariant = require('../models/variant');
 const AttributeValue = require('../models/attributeValue');
 const router = express.Router();
 const asyncHandler = fn => (req, res, next) =>

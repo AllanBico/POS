@@ -1,6 +1,6 @@
+// stores/productStore.js
 import { defineStore } from 'pinia';
 import { useRuntimeConfig } from '#app';
-
 export const useProductStore = defineStore('product', {
     state: () => ({
         products: [],
@@ -11,215 +11,194 @@ export const useProductStore = defineStore('product', {
         error: null,
     }),
     getters: {
-    /**
-     * Returns the product with the given ID from the state.
-     *
-     * @param {Object} state - The state object.
-     * @return {Object|null} The product with the given ID, or null if not found.
-     */
         productById: (state) => (id) => state.products.find(product => product.id === id) || null,
         attributesByProductId: (state) => (productId) => state.attributes.filter(attr => attr.productId === productId),
         variantsByProductId: (state) => (productId) => state.variants.filter(variant => variant.productId === productId),
-        attributeValuesByAttributeId: (state) => (attributeId) => state.attributeValues.filter(value => value.attributeId === attributeId),
     },
     actions: {
-        /**
-         * Fetches a list of products from the API.
-         *
-         * @return {Promise<void>} Resolves when the products have been fetched and stored in the state.
-         */
         async fetchProducts() {
-            const { $toast } = useNuxtApp();
+            const { $toast } = useNuxtApp()
             try {
                 const config = useRuntimeConfig();
-                const apiUrl = `${config.public.baseURL}/api/products`;
+                const apiUrl = config.public.baseURL + '/api/products';
                 const { data, error } = await useFetch(apiUrl);
                 if (error.value) throw error.value;
                 this.products = data.value;
             } catch (err) {
                 this.error = err;
                 console.error('Error fetching products:', err);
-                $toast.error('Error fetching products');
+                $toast.error('Error fetching products')
             }
         },
-
         async fetchProduct(id) {
-            const { $toast } = useNuxtApp();
+            const { $toast } = useNuxtApp()
             try {
                 const config = useRuntimeConfig();
-                const apiUrl = `${config.public.baseURL}/api/products/${id}`;
+                const apiUrl = config.public.baseURL + `/api/products/${id}`;
                 const { data, error } = await useFetch(apiUrl);
                 if (error.value) throw error.value;
                 this.product = data.value;
             } catch (err) {
                 this.error = err;
                 console.error('Error fetching product:', err);
-                $toast.error('Error fetching product');
+                $toast.error('Error fetching product')
             }
         },
-
-        async fetchAttributes() {
-            const { $toast } = useNuxtApp();
+        async createProduct(product) {
+            const { $toast } = useNuxtApp()
             try {
                 const config = useRuntimeConfig();
-                const apiUrl = `${config.public.baseURL}/api/attributes`;
+                const apiUrl = config.public.baseURL + '/api/products';
+                const { data, error } = await useFetch(apiUrl, {
+                    method: 'POST',
+                    body: product,
+                });
+                if (error.value) throw error.value;
+                this.products.push(data.value);
+                $toast.success('Product Created')
+            } catch (err) {
+                this.error = err;
+                console.error('Error creating product:', err);
+                $toast.error('Error creating product')
+            }
+        },
+        async updateProduct(id, updatedProduct) {
+            const { $toast } = useNuxtApp()
+            try {
+                const config = useRuntimeConfig();
+                const apiUrl = config.public.baseURL + `/api/products/${id}`;
+                const { data, error } = await useFetch(apiUrl, {
+                    method: 'PUT',
+                    body: updatedProduct,
+                });
+                if (error.value) throw error.value;
+                const index = this.products.findIndex(product => product.id === id);
+                if (index !== -1) {
+                    this.products[index] = data.value;
+                }
+                $toast.success('Product Updated')
+            } catch (err) {
+                this.error = err;
+                console.error('Error updating product:', err);
+                $toast.error('Error updating product')
+            }
+        },
+        async deleteProduct(id) {
+            const { $toast } = useNuxtApp()
+            try {
+                const config = useRuntimeConfig();
+                const apiUrl = config.public.baseURL + `/api/products/${id}`;
+                const { error } = await useFetch(apiUrl, {
+                    method: 'DELETE',
+                });
+                if (error.value) throw error.value;
+                this.products = this.products.filter(product => product.id !== id);
+                $toast.warning('Product Deleted')
+            } catch (err) {
+                this.error = err;
+                console.error('Error deleting product:', err);
+                $toast.error('Error deleting product')
+            }
+        },
+        async fetchAttributes() {
+            const { $toast } = useNuxtApp()
+            try {
+                const config = useRuntimeConfig();
+                const apiUrl = config.public.baseURL + '/api/attributes';
                 const { data, error } = await useFetch(apiUrl);
                 if (error.value) throw error.value;
                 this.attributes = data.value;
             } catch (err) {
                 this.error = err;
                 console.error('Error fetching attributes:', err);
-                $toast.error('Error fetching attributes');
+                $toast.error('Error fetching attributes')
             }
         },
-
         async fetchAttributeValues() {
-            const { $toast } = useNuxtApp();
+            const { $toast } = useNuxtApp()
             try {
                 const config = useRuntimeConfig();
-                const apiUrl = `${config.public.baseURL}/api/attribute-values`;
+                const apiUrl = config.public.baseURL + '/api/attribute-values';
                 const { data, error } = await useFetch(apiUrl);
                 if (error.value) throw error.value;
                 this.attributeValues = data.value;
             } catch (err) {
                 this.error = err;
                 console.error('Error fetching attribute values:', err);
-                $toast.error('Error fetching attribute values');
+                $toast.error('Error fetching attribute values')
             }
         },
-
         async fetchVariants() {
-            const { $toast } = useNuxtApp();
+            const { $toast } = useNuxtApp()
             try {
                 const config = useRuntimeConfig();
-                const apiUrl = `${config.public.baseURL}/api/variants`;
+                const apiUrl = config.public.baseURL + '/api/variants';
                 const { data, error } = await useFetch(apiUrl);
                 if (error.value) throw error.value;
                 this.variants = data.value;
             } catch (err) {
                 this.error = err;
                 console.error('Error fetching variants:', err);
-                $toast.error('Error fetching variants');
+                $toast.error('Error fetching variants')
             }
         },
-
-        async createProduct(product) {
-            const { $toast } = useNuxtApp();
-            try {
-                const config = useRuntimeConfig();
-                const apiUrl = `${config.public.baseURL}/api/products`;
-                const { data, error } = await useFetch(apiUrl, {
-                    method: 'POST',
-                    body: JSON.stringify(product),
-                });
-                if (error.value) throw error.value;
-                this.products.push(data.value);
-                $toast.success('Product created successfully');
-                return data.value
-            } catch (err) {
-                this.error = err;
-                console.error('Error creating product:', err);
-                $toast.error('Error creating product');
-            }
-        },
-
-        async updateProduct(id, product) {
-            const { $toast } = useNuxtApp();
-            try {
-                const config = useRuntimeConfig();
-                const apiUrl = `${config.public.baseURL}/api/products/${id}`;
-                const { data, error } = await useFetch(apiUrl, {
-                    method: 'PUT',
-                    body: JSON.stringify(product),
-                });
-                if (error.value) throw error.value;
-                const index = this.products.findIndex(p => p.id === id);
-                if (index !== -1) {
-                    this.products[index] = data.value;
-                }
-                $toast.success('Product updated successfully');
-            } catch (err) {
-                this.error = err;
-                console.error('Error updating product:', err);
-                $toast.error('Error updating product');
-            }
-        },
-
-        async deleteProduct(id) {
-            const { $toast } = useNuxtApp();
-            try {
-                const config = useRuntimeConfig();
-                const apiUrl = `${config.public.baseURL}/api/products/${id}`;
-                const { data, error } = await useFetch(apiUrl, {
-                    method: 'DELETE',
-                });
-                if (error.value) throw error.value;
-                this.products = this.products.filter(product => product.id !== id);
-                $toast.success('Product deleted successfully');
-            } catch (err) {
-                this.error = err;
-                console.error('Error deleting product:', err);
-                $toast.error('Error deleting product');
-            }
-        },
-
         async createVariant(variant) {
-            const { $toast } = useNuxtApp();
+            const { $toast } = useNuxtApp()
             try {
                 const config = useRuntimeConfig();
-                const apiUrl = `${config.public.baseURL}/api/variants`;
+                const apiUrl = config.public.baseURL + '/api/variants';
                 const { data, error } = await useFetch(apiUrl, {
                     method: 'POST',
-                    body: JSON.stringify(variant),
+                    body: variant,
                 });
                 if (error.value) throw error.value;
                 this.variants.push(data.value);
-                $toast.success('Variant created successfully');
+                $toast.success('Variant Created')
             } catch (err) {
                 this.error = err;
                 console.error('Error creating variant:', err);
-                $toast.error('Error creating variant');
+                $toast.error('Error creating variant')
             }
         },
-
-        async updateVariant(id, variant) {
-            const { $toast } = useNuxtApp();
+        async updateVariant(id, updatedVariant) {
+            const { $toast } = useNuxtApp()
             try {
                 const config = useRuntimeConfig();
-                const apiUrl = `${config.public.baseURL}/api/variants/${id}`;
+                const apiUrl = config.public.baseURL + `/api/variants/${id}`;
                 const { data, error } = await useFetch(apiUrl, {
                     method: 'PUT',
-                    body: JSON.stringify(variant),
+                    body: updatedVariant,
                 });
                 if (error.value) throw error.value;
-                const index = this.variants.findIndex(v => v.id === id);
+                const index = this.variants.findIndex(variant => variant.id === id);
                 if (index !== -1) {
                     this.variants[index] = data.value;
                 }
-                $toast.success('Variant updated successfully');
+                $toast.success('Variant Updated')
             } catch (err) {
                 this.error = err;
                 console.error('Error updating variant:', err);
-                $toast.error('Error updating variant');
+                $toast.error('Error updating variant')
             }
         },
-
         async deleteVariant(id) {
-            const { $toast } = useNuxtApp();
+            const { $toast } = useNuxtApp()
             try {
+
                 const config = useRuntimeConfig();
-                const apiUrl = `${config.public.baseURL}/api/variants/${id}`;
-                const { data, error } = await useFetch(apiUrl, {
+                const apiUrl = config.public.baseURL + `/api/variants/${id}`;
+                const { error } = await useFetch(apiUrl, {
                     method: 'DELETE',
                 });
                 if (error.value) throw error.value;
                 this.variants = this.variants.filter(variant => variant.id !== id);
-                $toast.success('Variant deleted successfully');
+                $toast.success('Variant Deleted')
             } catch (err) {
                 this.error = err;
                 console.error('Error deleting variant:', err);
-                $toast.error('Error deleting variant');
+                $toast.error('Error deleting variant')
             }
         },
     },
 });
+

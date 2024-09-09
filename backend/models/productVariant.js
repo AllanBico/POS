@@ -1,33 +1,30 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db'); // Adjust the path as necessary
-const Category = require('./category');
-const Product = sequelize.define('Product', {
+
+const ProductVariant = sequelize.define('ProductVariant', {
     id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
     },
-    name: {
-        type: DataTypes.STRING,
-        allowNull: false,
+    productId: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: 'Products',
+            key: 'id',
+        },
     },
-    description: {
-        type: DataTypes.TEXT,
+    priceOverride: {
+        type: DataTypes.DECIMAL,
         allowNull: true,
     },
-    categoryId: {
-        type: DataTypes.INTEGER,
-        references: {
-            model: Category,
-            key: 'id',
-        },
+    sku: {
+        type: DataTypes.STRING,
+        allowNull: true,
     },
-    subcategoryId: {
+    stockQuantity: {
         type: DataTypes.INTEGER,
-        references: {
-            model: 'subcategories',
-            key: 'id',
-        },
+        allowNull: true,
     },
 }, {
     timestamps: true,
@@ -35,4 +32,4 @@ const Product = sequelize.define('Product', {
     underscored: true,
 });
 
-module.exports = Product;
+module.exports = ProductVariant;

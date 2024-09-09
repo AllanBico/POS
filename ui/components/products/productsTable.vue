@@ -80,6 +80,9 @@
         </span>
           </template>
           <template v-if="column.dataIndex === 'operation'">
+            <a-tooltip title="Values" placement="bottom">
+              <a-button @click="onValues(record.id)" style="margin-right: 3px" :icon="h(EditOutlined)"/>
+            </a-tooltip>
             <a-tooltip title="Edit" placement="bottom">
               <a-button @click="onEdit(record.id)" style="margin-right: 3px" :icon="h(EditOutlined)"/>
             </a-tooltip>
@@ -124,6 +127,12 @@ const columns = [
     key: 'description',
   },
   {
+    title: 'Price',
+    dataIndex: 'price',
+    key: 'price',
+    scopedSlots: { customRender: 'price' },
+  },
+  {
     title: 'Category',
     dataIndex: 'categoryId',
     key: 'categoryId',
@@ -136,9 +145,9 @@ const columns = [
     scopedSlots: { customRender: 'subcategory' },
   },
   {
-    title: 'operation',
-    dataIndex: 'operation',
-    key: 'operation',
+    title: 'Action',
+    key: 'action',
+    scopedSlots: { customRender: 'action' },
   },
 ];
 
@@ -148,7 +157,7 @@ const edit = key => {
 const save = key => {
 };
 const onDelete = async key => {
-  await productStore.deleteProduct(key)
+  await attributesStore.deleteAttribute(key)
   console.log("deleted", key)
 };
 const onEdit = async key => {

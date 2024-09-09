@@ -141,7 +141,7 @@
         </div>
       </a-layout-content>
       <a-layout-footer style="text-align: center">
-        Smart inventory ©2024 Intellitech LTD
+        Ant Design ©2018 Created by Ant UED
       </a-layout-footer>
     </a-layout>
   </a-layout>

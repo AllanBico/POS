@@ -185,23 +185,4 @@ const handleReset = clearFilters => {
 };
 </script>
 
-<style scoped>
-.coupons-container {
-  padding: 20px;
-}
 
-.header-controls {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-
-.actions {
-  display: flex;
-  align-items: end;
-}
-
-.actions a-button {
-  margin-left: 2px;
-}
-</style>

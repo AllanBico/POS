@@ -138,11 +138,11 @@
     </a-layout-sider>
 
     <!-- Main Layout -->
-    <a-layout theme="dark" style="min-height: 100vh; background-image: radial-gradient(ellipse at top left, rgba(92, 0, 103, 0.5) 0%, rgba(0, 212, 255, 0.5) 100%);background-blend-mode: multiply;">
-      <a-layout-content :style="{padding: '20px'}">
-        <page-header :style="{ background: '#fff', padding: '10px', marginBottom: '20px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'}"/>
+    <a-layout theme="dark" style="min-height: 100vh; background-image: linear-gradient(to top, #a18cd1 0%, #fbc2eb 100%);">
+      <a-layout-content :style="{padding: '5px'}">
+        <page-header :style="{ background: '#fff', padding: '20px', marginBottom: '10px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'}"/>
         <div >
-          <slot/>
+          <slot :style="{ background: '#fff', padding: '20px', marginBottom: '10px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'}" />
         </div>
       </a-layout-content>
       <a-layout-footer style="text-align: center;  padding: 10px 0;">

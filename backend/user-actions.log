@@ -2549,3 +2549,8 @@
 {"body":{},"level":"info","message":"User action","method":"GET","query":{},"timestamp":"2024-09-09T14:18:33.582Z","url":"/api/categories","user_id":"anonymous"}
 {"body":{},"level":"info","message":"User action","method":"DELETE","query":{},"timestamp":"2024-09-09T14:18:52.886Z","url":"/api/categories/48","user_id":"anonymous"}
 {"body":{},"level":"info","message":"User action","method":"DELETE","query":{},"timestamp":"2024-09-09T14:18:59.133Z","url":"/api/categories/49","user_id":"anonymous"}
+{"body":{},"level":"info","message":"User action","method":"GET","query":{},"timestamp":"2024-09-09T14:27:08.588Z","url":"/api/categories","user_id":"anonymous"}
+{"body":{},"level":"info","message":"User action","method":"GET","query":{},"timestamp":"2024-09-09T14:28:17.989Z","url":"/api/categories","user_id":"anonymous"}
+{"body":{},"level":"info","message":"User action","method":"GET","query":{},"timestamp":"2024-09-09T14:28:25.389Z","url":"/api/units","user_id":"anonymous"}
+{"body":{},"level":"info","message":"User action","method":"GET","query":{},"timestamp":"2024-09-09T14:28:29.553Z","url":"/api/warranties","user_id":"anonymous"}
+{"body":{},"level":"info","message":"User action","method":"GET","query":{},"timestamp":"2024-09-09T14:28:32.618Z","url":"/api/categories","user_id":"anonymous"}

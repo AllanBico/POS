@@ -123,6 +123,7 @@ export const useProductStore = defineStore('product', {
                     throw error.value;
                 }
                 this.products.push(data.value);
+                console.log("stor product created",data.value)
                 $toast.success('Product created successfully');
                 return data.value
             } catch (err) {

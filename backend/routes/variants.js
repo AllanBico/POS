@@ -1,13 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const Product = require('../models/product');
-const Variant = require('../models/variant');
-const  Category  = require('../models/category');
-const Subcategory = require('../models/subcategory');
-const VariantAttributeValue = require('../models/variantAttributeValue');
+const { Product, Variant, Category, Subcategory, Unit, Attribute, AttributeValue, VariantAttributeValue } = require('../models/associations');
 
 
-// CRUD operations for Variants
 // Create a Variant
 router.post('/', async (req, res) => {
     try {
@@ -24,13 +19,24 @@ router.get('/', async (req, res) => {
     try {
         const variants = await Variant.findAll({
             include: [
-                { model: VariantAttributeValue, as: 'variantAttributeValues' },
+                {
+                    model: VariantAttributeValue,
+                    as: 'variantAttributeValues',
+                    include: [
+                        { model: AttributeValue, as: 'AttributeValue', attributes: ['id', 'value'],
+                            include: [
+                                { model: Attribute, as: 'Attribute', attributes: ['id', 'name'] } // Include Attribute name
+                            ]
+                        }
+                    ]
+                },
                 {
                     model: Product,
                     as: 'Product',
                     include: [
                         { model: Category, as: 'category', attributes: ['id', 'name'] }, // Include Category name
-                        { model: Subcategory, as: 'subcategory', attributes: ['id', 'name'] } // Include Subcategory name
+                        { model: Subcategory, as: 'subcategory', attributes: ['id', 'name'] }, // Include Subcategory name
+                        { model: Unit, as: 'Unit', attributes: ['id', 'name','abbreviation'] }
                     ]
                 }
             ]
@@ -40,7 +46,6 @@ router.get('/', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-
 
 
 // Get a Variant by ID

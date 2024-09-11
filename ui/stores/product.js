@@ -118,12 +118,12 @@ export const useProductStore = defineStore('product', {
                     body: JSON.stringify(product),
                 });
                 if (error.value) {
-                    console.log("error.value",error.value)
+                    console.log("error.value",error.value.data)
                     this.error = error.value;
                     throw error.value;
                 }
                 this.products.push(data.value);
-                console.log("stor product created",data.value)
+                console.log("store product created",data.value)
                 $toast.success('Product created successfully');
                 return data.value
             } catch (err) {

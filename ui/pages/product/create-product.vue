@@ -1,4 +1,39 @@
 <template>
+  <a-modal v-model:open="open_attribute_value" title="Add Attribute" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
+           cancel-text="Cancel">
+    <attribute-value-add-modal  @submit-success="handleSubmitSuccess"></attribute-value-add-modal>
+    <template #footer>
+    </template>
+  </a-modal>
+  <a-modal v-model:open="open_attribute" title="Add Attribute" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
+           cancel-text="Cancel">
+    <attribute-add-modal @submit-success="handleSubmitSuccess"></attribute-add-modal>
+    <template #footer>
+    </template>
+  </a-modal>
+  <a-modal v-model:open="open_unit" title="Add Unit" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"  cancel-text="Cancel">
+    <UnitsAddModal @submit-success="handleSubmitSuccess"></UnitsAddModal>
+    <template #footer>
+    </template>
+  </a-modal>
+  <a-modal v-model:open="open_subcategory" title="Add SubCategory" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
+           cancel-text="Cancel">
+    <sub-category-add-modal @submit-success="handleSubmitSuccess"></sub-category-add-modal>
+    <template #footer>
+    </template>
+  </a-modal>
+  <a-modal v-model:open="open_category" title="Add Category" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
+           cancel-text="Cancel">
+    <category-add-modal @submit-success="handleSubmitSuccess"></category-add-modal>
+    <template #footer>
+    </template>
+  </a-modal>
+  <a-modal v-model:open="open_brand" title="Add Brand" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
+           cancel-text="Cancel">
+    <brand-add-modal @submit-success="handleSubmitSuccess"></brand-add-modal>
+    <template #footer>
+    </template>
+  </a-modal>
   <a-card>
     <a-steps :current="currentStep">
       <a-step title="Product Details" />
@@ -8,21 +43,25 @@
     <div class="steps-content">
       <template v-if="currentStep === 0">
         <!-- Step 1: Product Details -->
-        <form @submit.prevent="nextStep">
+        <form @submit.prevent="nextStep" >
           <a-form-item label="Product Name">
             <a-input v-model:value="product.name" placeholder="Enter product name" />
           </a-form-item>
           <a-form-item label="Description">
             <a-textarea v-model:value="product.description" placeholder="Enter product description" />
           </a-form-item>
+
           <a-form-item label="Category">
-            <a-select v-model:value="product.categoryId" placeholder="Select category">
+            <a-button type="link" @click="handleAddCategory" :icon="h(PlusOutlined)">Add New</a-button>
+            <a-select v-model:value="product.categoryId" placeholder="Select category" show-search :filter-option="filterOption">
               <a-select-option v-for="category in categories" :key="category.id" :value="category.id">
                 {{ category.name }}
               </a-select-option>
             </a-select>
           </a-form-item>
+
           <a-form-item label="Subcategory">
+            <a-button type="link" @click="handleAddSubCategory" :icon="h(PlusOutlined)">Add New</a-button>
             <a-select v-model:value="product.subcategoryId" placeholder="Select subcategory">
               <a-select-option v-for="subcategory in subcategories" :key="subcategory.id" :value="subcategory.id">
                 {{ subcategory.name }}
@@ -30,6 +69,7 @@
             </a-select>
           </a-form-item>
           <a-form-item label="Brand">
+            <a-button type="link" @click="handleAddBrand" :icon="h(PlusOutlined)">Add New</a-button>
             <a-select v-model:value="product.brandId" placeholder="Select brand">
               <a-select-option v-for="brand in brandStore.brands" :key="brand.id" :value="brand.id">
                 {{ brand.name }}
@@ -37,6 +77,7 @@
             </a-select>
           </a-form-item>
           <a-form-item label="Unit">
+            <a-button type="link" @click="handleAddUnit" :icon="h(PlusOutlined)">Add New</a-button>
             <a-select v-model:value="product.unitId" placeholder="Select unit">
               <a-select-option v-for="unit in unitStore.units" :key="unit.id" :value="unit.id">
                 {{ unit.name }}
@@ -60,7 +101,10 @@
       <template v-else-if="currentStep === 1">
         <!-- Step 2: Variants -->
         <form @submit.prevent="addVariant">
+          <a-button type="link" @click="handleAddAttribute" :icon="h(PlusOutlined)">Add New</a-button>
+          <a-button type="link" @click="handleAddAttributeValue" :icon="h(PlusOutlined)">Add New</a-button>
           <div v-for="(attributeSelection, index) in newVariant.attributes" :key="index" class="attribute-selection">
+
             <a-form-item :label="'Select Attribute ' + (index + 1)">
               <a-select v-model:value="attributeSelection.attributeId" @change="fetchValuesForAttribute(attributeSelection.attributeId, index)" placeholder="Select attribute">
                 <a-select-option v-for="attribute in attributes" :key="attribute.id" :value="attribute.id">
@@ -68,6 +112,7 @@
                 </a-select-option>
               </a-select>
             </a-form-item>
+
             <a-form-item :label="'Select Attribute Value ' + (index + 1)">
               <a-select v-model:value="attributeSelection.valueId" placeholder="Select attribute value">
                 <a-select-option v-for="value in attributeSelection.attributeValues" :key="value.id" :value="value.id">
@@ -141,8 +186,15 @@ import { useProductStore } from '~/stores/product.js';
 import { useCategoryStore } from '~/stores/category.js';
 import { useSubcategoryStore } from '~/stores/subcategory.js';
 import { useAttributesStore } from '~/stores/attribute.js';
-import { useBrandStore } from '~/stores/brand.js'; // Import the brand store
+import { useBrandStore } from '~/stores/brand.js';
 import {useUnitStore} from "~/stores/unit.js";
+import CategoryAddModal from "~/components/categories/categoryAddModal.vue";
+import {PlusOutlined} from "@ant-design/icons-vue";
+import SubCategoryAddModal from "~/components/subcategories/subCategoryAddModal.vue";
+import BrandAddModal from "~/components/brands/brandAddModal.vue";
+import UnitsAddModal from "~/components/units/unitsAddModal.vue";
+import AttributeAddModal from "~/components/attributes/attributeAddModal.vue";
+import AttributeValueAddModal from "~/components/attributes/attributeValueAddModal.vue";
 
 const { $toast } = useNuxtApp();
 const productStore = useProductStore();
@@ -281,6 +333,59 @@ const getAttributeValueName = (attributeValueId) => {
 };
 const getBrandName = (id) => brands.value.find(brand => brand.id === id)?.name || 'Unknown'; // Function to get brand name
 
+const open_category = ref(false);
+const open_subcategory = ref(false);
+const open_brand = ref(false);
+const open_unit = ref(false);
+const open_attribute = ref(false);
+const open_attribute_value = ref(false);
+const handleAddCategory = () => {
+  open_category.value = true;
+};
+const handleAddBrand = () => {
+  open_brand.value = true;
+};
+const handleAddAttribute = () => {
+  open_attribute.value = true;
+};
+const handleAddAttributeValue = () => {
+  open_attribute_value.value = true;
+};
+const handleAddUnit = () => {
+  open_unit.value = true;
+};
+const handleAddSubCategory = () => {
+  open_subcategory.value = true;
+};
+const handleOk = () => {
+  open_category.value = false;
+  open_subcategory.value = false;
+  open_brand.value = false;
+  open_unit.value = false;
+  open_attribute.value = false;
+  open_attribute_value.value = false;
+};
+const handleCancel = () => {
+  open_category.value = false;
+  open_subcategory.value = false;
+  open_brand.value = false;
+  open_unit.value = false;
+  open_attribute.value = false;
+  open_attribute_value.value = false;
+};
+const handleSubmitSuccess = () => {
+  open_category.value = false;
+  open_subcategory.value = false;
+  open_brand.value = false;
+  open_unit.value = false;
+  open_attribute.value = false;
+  open_attribute_value.value = false;
+};
+
+const filterOption = (input, option) => {
+  const name = option.children?.toString() || ''; // Use option.children which represents the inner text of the option
+  return name.toLowerCase().includes(input.toLowerCase());
+};
 </script>
 
 <style scoped>

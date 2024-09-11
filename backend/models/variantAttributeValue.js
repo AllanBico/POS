@@ -31,10 +31,6 @@ const VariantAttributeValue = sequelize.define('VariantAttributeValue', {
     underscored: true,
 });
 
-Variant.hasMany(VariantAttributeValue, { foreignKey: 'variantId', as: 'variantAttributeValues' });
-VariantAttributeValue.belongsTo(Variant, { foreignKey: 'variantId' });
 
-AttributeValue.hasMany(VariantAttributeValue, { foreignKey: 'attributeValueId', as: 'attributeValueVariants' });
-VariantAttributeValue.belongsTo(AttributeValue, { foreignKey: 'attributeValueId' });
 
 module.exports = VariantAttributeValue;

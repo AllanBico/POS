@@ -20,7 +20,7 @@ const Variant = sequelize.define('Variant', {
         type: DataTypes.INTEGER,
         defaultValue: 0,
     },
-    product_id: {
+    productId: {
         type: DataTypes.INTEGER,
         references: {
             model: Product,
@@ -35,7 +35,8 @@ const Variant = sequelize.define('Variant', {
 
 });
 
-Product.hasMany(Variant, { foreignKey: 'productId', as: 'variants' });
-Variant.belongsTo(Product, { foreignKey: 'productId' });
+
+
+
 
 module.exports = Variant;

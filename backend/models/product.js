@@ -4,6 +4,7 @@ const Category = require('./Category');
 const Subcategory = require('./Subcategory');
 const Brand = require('./Brand'); // Import the Brand model
 const Unit = require('./unit');
+const Variant = require('./Variant');
 const Product = sequelize.define('Product', {
     id: {
         type: DataTypes.INTEGER,
@@ -66,9 +67,6 @@ const Product = sequelize.define('Product', {
     underscored: true,
 });
 
-Product.belongsTo(Category, { as: 'category', foreignKey: 'categoryId' });
-Product.belongsTo(Subcategory, { as: 'subcategory', foreignKey: 'subcategoryId' });
-Product.belongsTo(Brand, { as: 'brand', foreignKey: 'brandId' }); // Add association with Brand
-Product.belongsTo(Brand, { as: 'Unit', foreignKey: 'unitId' }); // Add association with Unit
+
 
 module.exports = Product;

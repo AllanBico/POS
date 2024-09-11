@@ -16,6 +16,7 @@ export const useUnitStore = defineStore('unit', {
     actions: {
         // Fetch all units
         async fetchUnits() {
+            const { $toast } = useNuxtApp();
             this.loading = true;
             this.error = null;
             try {
@@ -29,6 +30,7 @@ export const useUnitStore = defineStore('unit', {
                 this.units = data.value || [];
             } catch (err) {
                 this.error = err.message || 'An unexpected error occurred';
+                $toast.error(this.error);
             } finally {
                 this.loading = false;
             }
@@ -36,6 +38,7 @@ export const useUnitStore = defineStore('unit', {
 
         // Create a new unit
         async createUnit(unit) {
+            const { $toast } = useNuxtApp();
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/units`;
@@ -45,16 +48,20 @@ export const useUnitStore = defineStore('unit', {
                 });
                 if (error.value) {
                     console.error('Error creating unit:', error.value);
+                    $toast.error('Error creating unit');
                     throw error.value;
                 }
                 this.units.push(data.value);
+                $toast.success('Unit Created');
             } catch (err) {
                 this.error = err.message || 'An unexpected error occurred';
+                $toast.error(this.error);
             }
         },
 
         // Update an existing unit
         async updateUnit(id, updatedUnit) {
+            const { $toast } = useNuxtApp();
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/units/${id}`;
@@ -71,13 +78,16 @@ export const useUnitStore = defineStore('unit', {
                 if (index !== -1) {
                     this.units[index] = data.value;
                 }
+                $toast.success("Unit Updated");
             } catch (err) {
                 this.error = err.message || 'An unexpected error occurred';
+                $toast.error(this.error);
             }
         },
 
         // Delete a unit
         async deleteUnit(id) {
+            const { $toast } = useNuxtApp();
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/units/${id}`;
@@ -90,8 +100,10 @@ export const useUnitStore = defineStore('unit', {
                 }
 
                 this.units = this.units.filter((unit) => unit.id !== id);
+                $toast.warning("Unit Deleted");
             } catch (err) {
                 this.error = err.message || 'An unexpected error occurred';
+                $toast.error(this.error);
             }
         },
         // Socket event handlers

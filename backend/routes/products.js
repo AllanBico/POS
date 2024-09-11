@@ -1,23 +1,29 @@
 const express = require('express');
 const router = express.Router();
-const Product = require('../models/product');
-const Variant = require('../models/variant');
-const VariantAttributeValue = require('../models/variantAttributeValue');
+const { Product, Variant } = require('../models/associations');
+
 
 
 // Create a Product
 router.post('/', async (req, res) => {
     try {
         const { name, description, categoryId, subcategoryId, vatType,brandId,lowStockAlert,unitId } = req.body;
-        console.log("name, description, categoryId, subcategoryId, vatType,brandId,lowStockAlert,unitId",name, description, categoryId, subcategoryId, vatType,brandId,lowStockAlert,unitId)
-        if (!name || !description || !categoryId || !subcategoryId || !vatType || !brandId || !lowStockAlert || !unitId) {
-            return res.status(400).json({ error: 'Missing required fields' });
-        }
+        const errors = [];
+        if (!name) errors.push({ field: 'name', message: 'Name is required' });
+        if (!description) errors.push({ field: 'description', message: 'Description is required' });
+        if (!categoryId) errors.push({ field: 'categoryId', message: 'Category ID is required' });
+        if (!subcategoryId) errors.push({ field: 'subcategoryId', message: 'Subcategory ID is required' });
+        if (!vatType) errors.push({ field: 'vatType', message: 'VAT Type is required' });
+        if (!brandId) errors.push({ field: 'brandId', message: 'Brand ID is required' });
+        if (!lowStockAlert) errors.push({ field: 'lowStockAlert', message: 'Low Stock Alert is required' });
+        if (!unitId) errors.push({ field: 'unitId', message: 'Unit ID is required' });
 
+        if (errors.length > 0) {
+            return res.status(400).json({ errors });
+        }
         const product = await Product.create({ name, description, categoryId, subcategoryId, vatType,brandId,lowStockAlert,unitId });
         res.status(201).json(product);
     } catch (error) {
-        console.log("error.message",error.message)
         res.status(500).json({ error: error.message });
     }
 });

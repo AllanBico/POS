@@ -27,6 +27,8 @@ export const useBrandStore = defineStore('brand', {
                 this.brands = data.value;
             } catch (error) {
                 console.error('Error fetching brands:', error);
+                const { $toast } = useNuxtApp();
+                $toast.error('Error fetching brands');
             }
         },
 
@@ -42,8 +44,12 @@ export const useBrandStore = defineStore('brand', {
                 if (error.value) throw error.value;
 
                 this.brands.push(data.value);
+                const { $toast } = useNuxtApp();
+                $toast.success('Brand Created');
             } catch (error) {
                 console.error('Error creating brand:', error);
+                const { $toast } = useNuxtApp();
+                $toast.error('Error creating brand');
             }
         },
 
@@ -62,8 +68,12 @@ export const useBrandStore = defineStore('brand', {
                 if (index !== -1) {
                     this.brands[index] = data.value;
                 }
+                const { $toast } = useNuxtApp();
+                $toast.success('Brand Updated');
             } catch (error) {
                 console.error('Error updating brand:', error);
+                const { $toast } = useNuxtApp();
+                $toast.error('Error updating brand');
             }
         },
 
@@ -78,8 +88,12 @@ export const useBrandStore = defineStore('brand', {
                 if (error.value) throw error.value;
 
                 this.brands = this.brands.filter((brand) => brand.id !== id);
+                const { $toast } = useNuxtApp();
+                $toast.success('Brand Deleted');
             } catch (error) {
                 console.error('Error deleting brand:', error);
+                const { $toast } = useNuxtApp();
+                $toast.error('Error deleting brand');
             }
         },
         // Socket event handlers

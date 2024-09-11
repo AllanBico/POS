@@ -1,7 +1,7 @@
 // routes/category.js
 const express = require('express');
-const  Category  = require('../models/category');
-const User = require("../models/user");
+const {  Category } = require('../models/associations');
+
 const router = express.Router();
 
 // Error handling middleware

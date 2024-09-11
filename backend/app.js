@@ -4,7 +4,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const http = require('http'); // Import http module
 const { Server } = require('socket.io'); // Import Socket.IO
-
+require('./models/associations');
 // Import Sequelize model
 const Log = require('./models/log');
 
@@ -26,6 +26,13 @@ const attributesRoutes = require('./routes/attributes');
 const attributeValuesRoutes = require('./routes/attributeValues');
 const variantAttributeRoutes = require('./routes/variantAttributeValues');
 const productVariantsRoutes = require('./routes/productVariants');
+const serialNumbersRoutes = require('./routes/serialNumbers');
+const inventoryRouter = require('./routes/inventory');
+const paymentMethodRoutes = require('./routes/paymentMethodRoutes');
+const expenseCategoryRoutes = require('./routes/expenseCategoryRoutes');
+const expensesRoutes = require('./routes/expenses');
+
+
 
 dotenv.config();
 
@@ -105,6 +112,12 @@ app.use('/api/attributes', attributesRoutes);
 app.use('/api/attribute-values', attributeValuesRoutes);
 app.use('/api/product-variants', productVariantsRoutes);
 app.use('/api/variant-attribute-values', variantAttributeRoutes);
+app.use('/api/serial-numbers', serialNumbersRoutes);
+app.use('/api/inventories', inventoryRouter);
+app.use('/api/payment-methods', paymentMethodRoutes);
+app.use('/api/expense-categories', expenseCategoryRoutes);
+app.use('/api/expenses', expensesRoutes);
+
 
 // Listen for Socket.IO connections
 io.on('connection', (socket) => {

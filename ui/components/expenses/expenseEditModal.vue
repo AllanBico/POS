@@ -1,0 +1,127 @@
+<template>
+  <a-form :form="form" @submit.prevent="updateExpense" layout="vertical">
+    <a-form-item label="Expense Category" :rules="[{ required: true, message: 'Please select an expense category' }]">
+      <a-select v-model:value="form.expenseCategoryId" placeholder="Select an expense category">
+        <a-select-option v-for="category in categoryStore.expenseCategories" :key="category.id" :value="category.id">
+          {{ category.name }}
+        </a-select-option>
+      </a-select>
+    </a-form-item>
+
+    <a-form-item label="Date of Expense" :rules="[{ required: true, message: 'Please select a date' }]">
+      <a-date-picker v-model:date="form.date" :format="dateFormat" placeholder="Select date" />
+    </a-form-item>
+
+    <a-form-item label="Amount" :rules="[{ required: true, message: 'Please enter the amount' }]">
+      <a-input-number v-model:value="form.amount" placeholder="Enter amount" :min="0" />
+    </a-form-item>
+
+    <a-form-item label="Description">
+      <a-input v-model:value="form.description" placeholder="Enter description" />
+    </a-form-item>
+
+    <a-form-item label="Reference Number">
+      <a-input v-model:value="form.referenceNumber" placeholder="Enter reference number" />
+    </a-form-item>
+
+    <a-form-item label="Payment Method" :rules="[{ required: true, message: 'Please select a payment method' }]">
+      <a-select v-model:value="form.paymentMethodId" placeholder="Select a payment method">
+        <a-select-option v-for="method in paymentMethodStore.paymentMethods" :key="method.id" :value="method.id">
+          {{ method.name }}
+        </a-select-option>
+      </a-select>
+    </a-form-item>
+
+    <a-form-item label="Paid By">
+      <a-input v-model:value="form.paidBy" placeholder="Enter who paid" />
+    </a-form-item>
+
+    <a-form-item label="Supplier (Optional)">
+      <a-select v-model:value="form.supplierId" placeholder="Select a supplier" allow-clear>
+        <a-select-option v-for="supplier in supplierStore.suppliers" :key="supplier.id" :value="supplier.id">
+          {{ supplier.name }}
+        </a-select-option>
+      </a-select>
+    </a-form-item>
+
+    <a-form-item>
+      <a-button type="primary" html-type="submit">Submit</a-button>
+    </a-form-item>
+  </a-form>
+</template>
+
+<script setup>
+import { ref, onMounted, watch } from 'vue';
+import { useExpenseStore } from '@/stores/expense';
+import { useExpenseCategoryStore } from '@/stores/expenseCategory';
+import { usePaymentMethodStore } from '@/stores/paymentMethod';
+import { useSupplierStore } from '@/stores/supplier';
+import dayjs from 'dayjs';
+const props = defineProps({
+  expenseId: {
+    type: Number,
+    required: true
+  }
+});
+
+const emit = defineEmits(['submit-success']);
+
+const expenseStore = useExpenseStore();
+const categoryStore = useExpenseCategoryStore();
+const paymentMethodStore = usePaymentMethodStore();
+const supplierStore = useSupplierStore();
+const dateFormat = 'YYYY-MM-DD';
+const form = ref({
+  expenseCategoryId: null,
+  date: null,
+  amount: null,
+  description: '',
+  referenceNumber: '',
+  paymentMethodId: null,
+  paidBy: '',
+  supplierId: null
+});
+
+const fetchExpense = async () => {
+  try {
+    const expense = await expenseStore.ExpenseById(props.expenseId);
+    if (expense) {
+      form.value = { ...expense };
+    } else {
+      console.error('Expense not found');
+    }
+  } catch (error) {
+    console.error('Error fetching expense:', error);
+  }
+};
+
+const fetchData = async () => {
+  try {
+    await categoryStore.fetchExpenseCategories();
+    await paymentMethodStore.fetchPaymentMethods();
+    await supplierStore.fetchSuppliers();
+    await fetchExpense();
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
+};
+const expenseId = ref(null)
+watch(() => props.expenseId, (newexpenseId) => {
+  expenseId.value = newexpenseId;
+  fetchData();
+}, { immediate: true });
+onMounted(fetchData);
+
+const updateExpense = async () => {
+  try {
+    await expenseStore.updateExpense(props.expenseId, form.value);
+    emit('submit-success');
+  } catch (error) {
+    console.error('Error updating expense:', error);
+  }
+};
+</script>
+
+<style scoped>
+/* Add any custom styles if needed */
+</style>

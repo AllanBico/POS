@@ -1,5 +1,6 @@
 const express = require('express');
-const Brand = require('../models/brand');
+const {  Brand } = require('../models/associations');
+
 
 const router = express.Router();
 const asyncHandler = fn => (req, res, next) =>

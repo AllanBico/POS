@@ -1,7 +1,6 @@
 // stores/category.js
 import { defineStore } from 'pinia';
 import { useRuntimeConfig } from '#app';
-import { ref } from 'vue';
 
 export const useCategoryStore = defineStore('category', {
     state: () => ({

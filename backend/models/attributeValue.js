@@ -26,7 +26,6 @@ const AttributeValue = sequelize.define('AttributeValue', {
     underscored: true,
 });
 
-Attribute.hasMany(AttributeValue, { foreignKey: 'attributeId' });
-AttributeValue.belongsTo(Attribute, { foreignKey: 'attributeId' });
+
 
 module.exports = AttributeValue;

@@ -1,7 +1,7 @@
 // routes/suppliers.js
 const express = require('express');
 const router = express.Router();
-const { Supplier } = require('../models/supplier');
+const { Supplier } = require('../models/associations');
 
 const asyncHandler = fn => (req, res, next) =>
     Promise.resolve(fn(req, res, next)).catch(next);

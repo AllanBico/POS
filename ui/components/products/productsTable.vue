@@ -136,6 +136,12 @@ const columns = [
     scopedSlots: { customRender: 'subcategory' },
   },
   {
+    title: 'VAT',
+    dataIndex: 'VATType',
+    key: 'VATType',
+    scopedSlots: { customRender: 'VATType' },
+  },
+  {
     title: 'operation',
     dataIndex: 'operation',
     key: 'operation',

@@ -1,7 +1,6 @@
 const express = require('express');
-const VariantAttributeValue = require('../models/variantAttributeValue');
-const ProductVariant = require('../models/variant');
-const AttributeValue = require('../models/attributeValue');
+const {  Variant,  AttributeValue,  VariantAttributeValue } = require('../models/associations');
+
 const router = express.Router();
 const asyncHandler = fn => (req, res, next) =>
     Promise.resolve(fn(req, res, next)).catch(next);
@@ -17,7 +16,7 @@ router.post('/', asyncHandler(async (req, res) => {
 router.get('/', asyncHandler(async (req, res) => {
     const variantAttributeValues = await VariantAttributeValue.findAll({
         include: [
-            { model: ProductVariant, attributes: ['sku'] },
+            { model: Variant, attributes: ['sku'] },
             { model: AttributeValue, attributes: ['value'] },
         ],
     });
@@ -28,7 +27,7 @@ router.get('/', asyncHandler(async (req, res) => {
 router.get('/:id', asyncHandler(async (req, res) => {
     const variantAttributeValue = await VariantAttributeValue.findByPk(req.params.id, {
         include: [
-            { model: ProductVariant, attributes: ['sku'] },
+            { model: Variant, attributes: ['sku'] },
             { model: AttributeValue, attributes: ['value'] },
         ],
     });

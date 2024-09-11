@@ -1,5 +1,6 @@
 const express = require('express');
-const  Attribute  = require('../models/attribute');
+const {  Attribute } = require('../models/associations');
+
 
 const router = express.Router();
 const asyncHandler = fn => (req, res, next) =>

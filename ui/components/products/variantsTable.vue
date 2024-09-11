@@ -16,7 +16,7 @@
   <div>
   </div>
   <div class="coupons-container">
-    <a-card  bordered={false}>
+    <a-card bordered={false}>
       <div class="header-controls">
         <a-input-search
             placeholder="Search"
@@ -24,7 +24,9 @@
         />
 
         <div class="actions">
-          <a-button type="primary"  :icon="h(PlusOutlined)"> <nuxt-link to="/product/create-product">Add New</nuxt-link> </a-button>
+          <a-button type="primary" :icon="h(PlusOutlined)">
+            <nuxt-link to="/product/create-product">Add New</nuxt-link>
+          </a-button>
 
         </div>
       </div>
@@ -56,7 +58,9 @@
                 style="width: 90px; margin-right: 8px"
                 @click="handleSearch(selectedKeys, confirm, column.dataIndex)"
             >
-              <template #icon><SearchOutlined /></template>
+              <template #icon>
+                <SearchOutlined/>
+              </template>
               Search
             </a-button>
             <a-button size="small" style="width: 90px" @click="handleReset(clearFilters)">
@@ -65,33 +69,41 @@
           </div>
         </template>
         <template #customFilterIcon="{ filtered }">
-          <search-outlined :style="{ color: filtered ? '#108ee9' : undefined }" />
+          <search-outlined :style="{ color: filtered ? '#108ee9' : undefined }"/>
         </template>
         <template #bodyCell="{ column, text, record }">
-          <template v-if="column.dataIndex === 'status'">
-        <span>
-          <a-tag
-              :key="record.id"
-              :color="record.status ? 'success' : 'error'"
-          >
-          {{ record.status ? 'Active' : 'Inactive' }} {{record.status}}
-        </a-tag>
-
-        </span>
+          <template v-if="column.dataIndex === 'stockQuantity'">
+            {{record.stockQuantity}} <span v-if="record.Product.unitId">{{record.Product.Unit.abbreviation}}</span>
+          </template>
+          <template v-if="column.dataIndex === 'variantAttributeValues'">
+            <span v-for="(attribute, index) in record.variantAttributeValues">
+              <a-tag color="blue"
+                     style="margin-bottom: 1px;">{{ attribute.AttributeValue.Attribute.name }} : {{ attribute.AttributeValue.value }}</a-tag>
+            </span>
           </template>
           <template v-if="column.dataIndex === 'operation'">
-            <a-tooltip title="Edit" placement="bottom">
-              <a-button @click="onEdit(record.id)" style="margin-right: 3px" :icon="h(EditOutlined)"/>
-            </a-tooltip>
-            <a-popconfirm
-                v-if="productStore.variants.length"
-                title="Sure to delete?"
-                @confirm="onDelete(record.id)">
-              <a-tooltip title="Delete" placement="bottom">
-                <a-button :icon="h(DeleteOutlined)"/>
-              </a-tooltip>
-            </a-popconfirm>
+            <a-dropdown :trigger="['click']">
+              <a class="ant-dropdown-link" @click.prevent>
+                Actions
+                <DownOutlined/>
+              </a>
+              <template #overlay>
+                <a-menu>
 
+                  <a-menu-item>
+                    <a href="javascript:;" @click="onEdit(record.id)">edit</a>
+                  </a-menu-item>
+                  <a-menu-item>
+                    <a-popconfirm
+                        v-if="productStore.variants.length"
+                        :title="'Delete ' + record.sku +' ?'"
+                        @confirm="onDelete(record.id)">
+                      <a href="javascript:;">delete</a>
+                    </a-popconfirm>
+                  </a-menu-item>
+                </a-menu>
+              </template>
+            </a-dropdown>
           </template>
         </template>
       </a-table>
@@ -100,12 +112,14 @@
 </template>
 
 <script setup>
-import { ref} from 'vue';
-import {DeleteOutlined, EditOutlined,PlusOutlined} from "@ant-design/icons-vue";
-import { useProductStore } from '~/stores/product.js';
+import {ref} from 'vue';
+import {DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons-vue";
+import {useProductStore} from '~/stores/product.js';
+
 const productStore = useProductStore();
 import AttributeAddModal from "~/components/attributes/attributeAddModal.vue";
 import AttributeEditModal from "~/components/attributes/attributeEditModal.vue";
+
 const loading = ref(false);
 const open = ref(false);
 const edit_open = ref(false);
@@ -127,6 +141,10 @@ const columns = [
     title: 'Quantity',
     dataIndex: 'stockQuantity',
     key: 'stockQuantity',
+  }, {
+    title: 'Variant',
+    dataIndex: 'variantAttributeValues',
+    key: 'variantAttributeValues',
   },
   {
     title: 'Description',
@@ -143,14 +161,14 @@ const columns = [
     title: 'Subcategory',
     customRender: ({record}) => record.Product ? record.Product.subcategory.name : 'N/A',
     key: 'subcategoryId',
-    scopedSlots: { customRender: 'subcategory' },
+    scopedSlots: {customRender: 'subcategory'},
   },
-
-  {
-    title: 'VAT',
-    customRender: ({record}) => record.Product ? record.Product.VATType : 'N/A',
-    key: 'VATType',
-  },
+  //
+  // {
+  //   title: 'VAT',
+  //   customRender: ({record}) => record.Product ? record.Product.VATType : 'N/A',
+  //   key: 'VATType',
+  // },
   {
     title: 'operation',
     dataIndex: 'operation',

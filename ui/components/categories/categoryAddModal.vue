@@ -1,6 +1,5 @@
 <template>
-
-  <a-form :form="form" @submit.prevent="handleSubmit">
+  <a-form layout="vertical" :form="form" @submit.prevent="handleSubmit">
     <a-form-item label="name" :rules="[{ required: true, message: 'Please input your name!' }]">
       <a-input v-model:value="form.name" />
     </a-form-item>

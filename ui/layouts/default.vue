@@ -9,7 +9,7 @@
         :style="{boxShadow: '2px 0 5px rgba(0,0,0,0.1)',overflow: 'auto', height: '100vh',}"
     >
       <div class="logo">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/9/95/Vue.js_Logo_2.svg" alt="Vue Antd Admin"/>
+        <img src="https://its.intellitech.co.ke/static/logo.png" alt="Vue Antd Admin"/>
       </div>
 
       <a-menu
@@ -24,7 +24,7 @@
             <span>Dashboard</span>
           </NuxtLink>
         </a-menu-item>
-        <a-divider style="border-color: whitesmoke;color: whitesmoke;">Inventory</a-divider>
+        <a-divider style="border-color: black;color: black;">Inventory</a-divider>
         <a-sub-menu key="Products">
           <template #title>
             <span>
@@ -82,10 +82,35 @@
           </NuxtLink>
         </a-menu-item>
 
-        <a-divider style="border-color: whitesmoke;color: whitesmoke;">Stock</a-divider>
-        <a-divider style="border-color: whitesmoke;color: whitesmoke;">Sales</a-divider>
-        <a-divider style="border-color: whitesmoke;color: whitesmoke;">Reports</a-divider>
-        <a-divider style="border-color: whitesmoke;color: whitesmoke;">People</a-divider>
+        <a-divider style="border-color: black;color: black;">Stock</a-divider>
+        <a-menu-item key="inventories">
+          <NuxtLink to="/inventories">
+            <pie-chart-outlined/>
+            <span>Inventories</span>
+          </NuxtLink>
+        </a-menu-item>
+        <a-divider style="border-color: black;color: black;">Finance & Accounts</a-divider>
+        <a-menu-item key="expenses">
+          <NuxtLink to="/expenses">
+            <pie-chart-outlined/>
+            <span>Expenses</span>
+          </NuxtLink>
+        </a-menu-item>
+        <a-menu-item key="expenses_categories">
+          <NuxtLink to="/expenses/expense_categories">
+            <pie-chart-outlined/>
+            <span>Expenses Categories</span>
+          </NuxtLink>
+        </a-menu-item>
+        <a-menu-item key="payment_method">
+          <NuxtLink to="/expenses/payment_method">
+            <pie-chart-outlined/>
+            <span>Payment Method</span>
+          </NuxtLink>
+        </a-menu-item>
+        <a-divider style="border-color: black;color: black;">Sales</a-divider>
+        <a-divider style="border-color: black;color: black;">Reports</a-divider>
+        <a-divider style="border-color: black;color: black;">People</a-divider>
         <a-sub-menu key="Users">
           <template #title>
             <span>

@@ -1,7 +1,7 @@
 // routes/subcategory.js
 const express = require('express');
-const  Subcategory  = require('../models/subcategory');
-const Category = require('../models/category')
+const {  Category, Subcategory } = require('../models/associations');
+
 const router = express.Router();
 
 // Error handling middleware

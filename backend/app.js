@@ -28,9 +28,10 @@ const variantAttributeRoutes = require('./routes/variantAttributeValues');
 const productVariantsRoutes = require('./routes/productVariants');
 const serialNumbersRoutes = require('./routes/serialNumbers');
 const inventoryRouter = require('./routes/inventory');
-const paymentMethodRoutes = require('./routes/paymentMethodRoutes');
-const expenseCategoryRoutes = require('./routes/expenseCategoryRoutes');
+const paymentMethodRoutes = require('./routes/paymentMethod');
+const expenseCategoryRoutes = require('./routes/expenseCategory');
 const expensesRoutes = require('./routes/expenses');
+const purchaseOrderRoutes = require('./routes/purchaseOrder');
 
 
 
@@ -62,7 +63,7 @@ const logger = winston.createLogger({
     format: winston.format.json(),
     transports: [
         new winston.transports.File({ filename: 'user-actions.log' }),
-        new winston.transports.Console(),
+        //new winston.transports.Console(),
     ],
 });
 
@@ -117,6 +118,7 @@ app.use('/api/inventories', inventoryRouter);
 app.use('/api/payment-methods', paymentMethodRoutes);
 app.use('/api/expense-categories', expenseCategoryRoutes);
 app.use('/api/expenses', expensesRoutes);
+app.use('/api/purchase-orders', purchaseOrderRoutes);
 
 
 // Listen for Socket.IO connections

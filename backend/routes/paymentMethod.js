@@ -1,4 +1,4 @@
-// routes/paymentMethodRoutes.js
+// routes/paymentMethod.js
 const express = require('express');
 const router = express.Router();
 const { PaymentMethod } = require('../models/associations'); // Adjust the import path if needed

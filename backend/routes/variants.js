@@ -23,9 +23,9 @@ router.get('/', async (req, res) => {
                     model: VariantAttributeValue,
                     as: 'variantAttributeValues',
                     include: [
-                        { model: AttributeValue, as: 'AttributeValue', attributes: ['id', 'value'],
+                        { model: AttributeValue, as: 'attributeValue', attributes: ['id', 'value'],
                             include: [
-                                { model: Attribute, as: 'Attribute', attributes: ['id', 'name'] } // Include Attribute name
+                                { model: Attribute, as: 'attribute', attributes: ['id', 'name'] } // Include Attribute name
                             ]
                         }
                     ]

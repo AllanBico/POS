@@ -1,7 +1,7 @@
-// models/SerialNumber.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
-const Product = require('./Product');
+const Variant = require('./Variant');
+const StockMovement = require('./StockMovement');
 
 const SerialNumber = sequelize.define('SerialNumber', {
     id: {
@@ -9,28 +9,32 @@ const SerialNumber = sequelize.define('SerialNumber', {
         primaryKey: true,
         autoIncrement: true,
     },
-    serialNumber: {
+    serial: {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true,
     },
-    productId: {
+    variantId: {
         type: DataTypes.INTEGER,
+        allowNull: false,
         references: {
-            model: 'products',
+            model: Variant,
             key: 'id',
         },
         onDelete: 'CASCADE',
     },
-    status: {
-        type: DataTypes.ENUM('available', 'sold', 'returned','inactive'),
-        defaultValue: 'available',
+    stockMovementId: {
+        type: DataTypes.INTEGER,
+        allowNull: true, // Optional because some serial numbers may not have a movement associated yet
+        references: {
+            model: StockMovement,
+            key: 'id',
+        },
+        onDelete: 'SET NULL',
     },
 }, {
     timestamps: true,
     underscored: true,
 });
-
-
 
 module.exports = SerialNumber;

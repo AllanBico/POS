@@ -1,4 +1,4 @@
-// routes/expenseCategoryRoutes.js
+// routes/expenseCategory.js
 const express = require('express');
 const router = express.Router();
 const { ExpenseCategory } = require('../models/associations'); // Adjust the import path if needed

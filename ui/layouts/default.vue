@@ -89,6 +89,13 @@
             <span>Inventories</span>
           </NuxtLink>
         </a-menu-item>
+        <a-divider style="border-color: black;color: black;">Purchases</a-divider>
+        <a-menu-item key="purchases">
+          <NuxtLink to="/purchases">
+            <pie-chart-outlined/>
+            <span>Purchases</span>
+          </NuxtLink>
+        </a-menu-item>
         <a-divider style="border-color: black;color: black;">Finance & Accounts</a-divider>
         <a-menu-item key="expenses">
           <NuxtLink to="/expenses">

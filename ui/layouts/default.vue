@@ -19,10 +19,10 @@
       >
         <!-- Dashboard Menu Item -->
         <a-menu-item key="dashboard">
-          <NuxtLink to="/">
+          <a to="/">
             <bar-chart-outlined/>
             <span>Dashboard</span>
-          </NuxtLink>
+          </a>
         </a-menu-item>
         <a-divider style="border-color: black;color: black;">Inventory</a-divider>
         <a-sub-menu key="Products">
@@ -32,7 +32,7 @@
               <span>Products</span>
             </span>
           </template>
-          <a-menu-item key="ProductsList"><NuxtLink to="/products">Products</NuxtLink></a-menu-item>
+          <a-menu-item key="ProductsList"><a @click="addTab('Products', productsTable)">Products</a></a-menu-item>
           <a-menu-item key="Expired Products">Expired Products</a-menu-item>
           <a-menu-item key="Low Stocks">Low Stocks</a-menu-item>
           <a-menu-item key="Print Barcode">Print Barcode</a-menu-item>
@@ -45,75 +45,75 @@
             </span>
           </template>
           <a-menu-item key="Category">
-            <NuxtLink to="/categories">Category</NuxtLink>
+            <a @click="addTab('Categories', categoriesTable)">Category</a>
           </a-menu-item>
           <a-menu-item key="Sub Category">
-            <NuxtLink to="/subcategories">Sub Category</NuxtLink>
+            <a @click="addTab('SubCategories', subCategoriesTable)">Sub Category</a>
           </a-menu-item>
         </a-sub-menu>
         <a-menu-item key="Brands">
-          <NuxtLink to="/brands">
+          <a @click="addTab('Brands', brandsTable)">
             <pie-chart-outlined/>
             <span>Brands</span>
-          </NuxtLink>
+          </a>
         </a-menu-item>
         <a-menu-item key="Units">
-          <NuxtLink to="/units">
+          <a @click="addTab('Units', unitsTable)">
             <pie-chart-outlined/>
             <span>Units</span>
-          </NuxtLink>
+          </a>
         </a-menu-item>
         <a-menu-item key="Variants">
-          <NuxtLink to="/variants">
+          <a to="/variants">
             <pie-chart-outlined/>
             <span>Variants</span>
-          </NuxtLink>
+          </a>
         </a-menu-item>
         <a-menu-item key="Attributes">
-          <NuxtLink to="/attributes">
+          <a @click="addTab('Attributes', attributesTable)">
             <pie-chart-outlined/>
             <span>Attributes</span>
-          </NuxtLink>
+          </a>
         </a-menu-item>
         <a-menu-item key="Warranties">
-          <NuxtLink to="/warranties">
+          <a @click="addTab('Warranties', warrantiesTable)">
             <pie-chart-outlined/>
             <span>Warranties</span>
-          </NuxtLink>
+          </a>
         </a-menu-item>
 
         <a-divider style="border-color: black;color: black;">Stock</a-divider>
         <a-menu-item key="inventories">
-          <NuxtLink to="/inventories">
+          <a @click="addTab('Inventory', inventoriesTable)">
             <pie-chart-outlined/>
             <span>Inventories</span>
-          </NuxtLink>
+          </a>
         </a-menu-item>
         <a-divider style="border-color: black;color: black;">Purchases</a-divider>
         <a-menu-item key="purchases">
-          <NuxtLink to="/purchases">
+          <a @click="addTab('Purchases', purchasesTable)">
             <pie-chart-outlined/>
             <span>Purchases</span>
-          </NuxtLink>
+          </a>
         </a-menu-item>
         <a-divider style="border-color: black;color: black;">Finance & Accounts</a-divider>
         <a-menu-item key="expenses">
-          <NuxtLink to="/expenses">
+          <a @click="addTab('Expenses', expensesTable)">
             <pie-chart-outlined/>
             <span>Expenses</span>
-          </NuxtLink>
+          </a>
         </a-menu-item>
         <a-menu-item key="expenses_categories">
-          <NuxtLink to="/expenses/expense_categories">
+          <a @click="addTab('Expenses Categories', expensesCategoriesTable)">
             <pie-chart-outlined/>
             <span>Expenses Categories</span>
-          </NuxtLink>
+          </a>
         </a-menu-item>
         <a-menu-item key="payment_method">
-          <NuxtLink to="/expenses/payment_method">
+          <a @click="addTab('Payment Methods', paymentMethodsTable)">
             <pie-chart-outlined/>
             <span>Payment Method</span>
-          </NuxtLink>
+          </a>
         </a-menu-item>
         <a-divider style="border-color: black;color: black;">Sales</a-divider>
         <a-divider style="border-color: black;color: black;">Reports</a-divider>
@@ -126,33 +126,33 @@
             </span>
           </template>
           <a-menu-item key="Users">
-            <NuxtLink to="/users">Users</NuxtLink>
+            <a @click="addTab('Users', usersTable)">Users</a>
           </a-menu-item>
           <a-menu-item key="Users Roles">Users Roles</a-menu-item>
         </a-sub-menu>
         <a-menu-item key="Customers">
-          <NuxtLink to="/customers">
+          <a @click="addTab('Customers', customersTable)">
             <contacts-outlined/>
             <span>Customers</span>
-          </NuxtLink>
+          </a>
         </a-menu-item>
         <a-menu-item key="Suppliers">
-          <NuxtLink to="/suppliers">
+          <a @click="addTab('Suppliers', suppliersTable)">
             <pie-chart-outlined/>
             <span>Suppliers</span>
-          </NuxtLink>
+          </a>
         </a-menu-item>
         <a-menu-item key="Warehouses">
-          <NuxtLink to="/warehouses">
+          <a @click="addTab('Warehouses', warehousesTable)">
             <pie-chart-outlined/>
             <span>Warehouses</span>
-          </NuxtLink>
+          </a>
         </a-menu-item>
         <a-menu-item key="Stores">
-          <NuxtLink to="/stores">
+          <a @click="addTab('Stores', storesTable)">
             <pie-chart-outlined/>
             <span>Stores</span>
-          </NuxtLink>
+          </a>
         </a-menu-item>
         <a-sub-menu key="Settings">
           <template #title>
@@ -162,7 +162,7 @@
             </span>
           </template>
           <a-menu-item key="setttings1">
-            <NuxtLink to="/settings">Barcode Settings</NuxtLink>
+            <a to="/settings">Barcode Settings</a>
           </a-menu-item>
           <a-menu-item key="Users Roles">Users Roles</a-menu-item>
         </a-sub-menu>
@@ -172,12 +172,22 @@
     <!-- Main Layout -->
     <a-layout theme="dark" style="min-height: 100vh; background-image: linear-gradient(to top, #a18cd1 0%, #fbc2eb 100%);">
       <a-layout-content :style="{padding: '5px'}">
-        <page-header :style="{ background: '#fff', padding: '20px', marginBottom: '10px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'}"/>
-        <div >
-          <slot :style="{ background: '#fff', padding: '20px', marginBottom: '10px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'}" />
-        </div>
+<!--        <page-header :style="{ background: '#fff', padding: '20px', marginBottom: '10px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'}" />-->
+
+        <!-- Tabs -->
+        <a-tabs v-model:activeKey="tabsStore.activeKey" :size="size" hide-add @edit="onEdit" type="editable-card">
+          <a-tab-pane v-for="tab in tabsStore.tabs" :key="tab.key" :tab="tab.title" closable>
+            <keep-alive>
+              <component :is="tab.component" v-bind="tab.props" />
+            </keep-alive>
+          </a-tab-pane>
+          <template #rightExtra>
+            <a-button>Right Extra Action</a-button>
+          </template>
+        </a-tabs>
       </a-layout-content>
-      <a-layout-footer style="text-align: center;  padding: 10px 0;">
+
+      <a-layout-footer style="text-align: center; padding: 10px 0;">
         Smart inventory ©2024 Intellitech LTD
       </a-layout-footer>
     </a-layout>
@@ -185,16 +195,67 @@
 </template>
 
 <script setup>
-import {ref} from 'vue';
-import PageHeader from "~/components/layout/pageHeader.vue";
+import { ref } from 'vue';
+import { useTabsStore } from '~/stores/tabsStore';
+const tabsStore = useTabsStore();
+import PageHeader from '~/components/layout/pageHeader.vue';
+import expensesTable from '~/components/expenses/expensesTable.vue';
+import productsTable from '~/components/products/productsTable.vue';
+import categoriesTable from '~/components/categories/categoriesTable.vue';
+import brandsTable from '~/components/brands/brandsTable.vue';
+import unitsTable from '~/components/units/unitsTable.vue';
+import purchasesTable from '~/components/purchases/purchasesTable.vue';
+import usersTable from '~/components/users/usersTable.vue';
+import subCategoriesTable from '~/components/subcategories/subCategoriesTable.vue';
+import attributesTable from '~/components/attributes/attributesTable.vue'
+import warrantiesTable from '~/components/warranties/warrantiesTable.vue'
+import customersTable from '~/components/customers/customersTable.vue'
+import inventoriesTable from '~/components/inventory/inventoriesTable.vue'
+import storesTable from '~/components/stores/storesTable.vue'
+import suppliersTable from '~/components/suppliers/suppliersTable.vue'
+import warehousesTable from '~/components/warehouses/warehousesTable.vue'
+import paymentMethodsTable from '~/components/expenses/paymentMethodsTable.vue'
+import expensesCategoriesTable from '~/components/expenses/expensesCategoriesTable.vue'
+
+
+const collapsed = ref(false);
+
+
+
+const size = ref('small');
+const activeKey = ref('1');  // Default active tab
+const tabs = ref([
+  { key: '1', title: 'Dashboard', component: expensesTable }
+]);
+
+// Function to add a new tab dynamically
+const addTab = (title, component) => {
+  //const existingTab = tabs.value.find(tab => tab.title === title);
+ // if (!existingTab && tabs.value.length < 4) {  // Max 4 tabs
+ //  if (!existingTab) {  // Max 4 tabs
+ //    const newKey = String(tabs.value.length + 1);
+
+    tabsStore.addTab(title, component);
+  //   activeKey.value = newKey;
+  // } else if (existingTab) {
+  //   activeKey.value = existingTab.key;  // If the tab already exists, just activate it
+  // }
+};
+
+const onEdit = (targetKey, action) => {
+  if (action === 'remove') {
+    tabsStore.removeTab(targetKey)
+  }
+};
 
 const onCollapse = (collapsed, type) => {
   console.log(collapsed, type);
 };
-const onBreakpoint = broken => {
+
+const onBreakpoint = (broken) => {
   console.log(broken);
 };
-const selectedKeys = ref(['4']);
+
 </script>
 
 <style scoped>

@@ -17,6 +17,7 @@ const handleError = () => clearError({redirect: '/'})
     </a-result>
   </div>
   <div v-else-if=" error.statusCode === 500">
+    P{{error}}
     <a-result status="500" title="500" sub-title="Sorry, the server is wrong.">
       <template #extra>
         <a-button type="primary" @click="handleError">Back Home</a-button>

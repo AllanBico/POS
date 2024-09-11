@@ -109,6 +109,9 @@ import { useAttributesStore } from '~/stores/attribute.js';
 const attributesStore = useAttributesStore();
 import AttributeAddModal from "~/components/attributes/attributeAddModal.vue";
 import AttributeEditModal from "~/components/attributes/attributeEditModal.vue";
+import { useTabsStore } from '~/stores/tabsStore';
+import attributesValuesTable from '~/components/attributes/attributesValuesTable.vue';
+const tabsStore = useTabsStore();
 const router = useRouter();
 const open = ref(false);
 const edit_open = ref(false);
@@ -175,7 +178,7 @@ const onEdit = async key => {
 };
 
 const onValues = async key => {
-  await router.push({name: 'attribute-values-id', params: {id: key}});
+  tabsStore.addTab('Attribute Values', attributesValuesTable, { id: key });
 };
 
 const handleAdd = () => {

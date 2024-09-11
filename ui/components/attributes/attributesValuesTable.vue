@@ -100,7 +100,7 @@
 </template>
 
 <script setup>
-import { ref} from 'vue';
+import {ref, watch} from 'vue';
 import {DeleteOutlined, EditOutlined,PlusOutlined} from "@ant-design/icons-vue";
 import { useAttributesStore } from '~/stores/attribute.js';
 const attributesStore = useAttributesStore();
@@ -111,11 +111,18 @@ const open = ref(false);
 const edit_open = ref(false);
 let attribute_value_id = ref(null)
 const route = useRoute();
-const  attribute_id = route.params.id
+const props = defineProps({
+  id: {
+    type: String,
+    required: true,
+  },
+});
+let  attribute_id = props.id
 attributesStore.fetchAttributeValues()
-console.log("attributesStore.attributeValues", attributesStore.attributeValues)
-const values =  computed(() => attributesStore.ValuesByAttributeId(parseInt(route.params.id)));
-console.log("values",values.value,attribute_id)
+const values = computed(() => attributesStore.ValuesByAttributeId(parseInt(props.id)));
+watch(() => props.id, (newcategoryId) => {
+  attribute_id = newcategoryId;
+}, { immediate: true });
 const columns = [
   {
     title: 'Value',

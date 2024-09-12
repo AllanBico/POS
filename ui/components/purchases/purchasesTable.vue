@@ -68,6 +68,12 @@
         </template>
         <template #bodyCell="{ column, text, record }">
           <template v-if="column.dataIndex === 'operation'">
+            <a-tooltip title="Values" placement="bottom">
+              <a-button @click="onValues(record.id)" style="margin-right: 3px" :icon="h(OrderedListOutlined)"/>
+            </a-tooltip>
+            <a-tooltip title="Receive" placement="bottom">
+              <a-button @click="receiveGoods(record.id)" style="margin-right: 3px" :icon="h(EyeOutlined)"/>
+            </a-tooltip>
             <a-tooltip title="Edit" placement="bottom">
               <a-button @click="onEdit(record.id)" style="margin-right: 3px" :icon="h(EditOutlined)"/>
             </a-tooltip>
@@ -79,7 +85,6 @@
                 <a-button :icon="h(DeleteOutlined)"/>
               </a-tooltip>
             </a-popconfirm>
-
           </template>
         </template>
       </a-table>
@@ -90,10 +95,13 @@
 <script setup>
 import {computed, reactive, ref} from 'vue';
 import {usePurchaseOrderStore} from '~/stores//purchaseOrder.js';
-import {DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons-vue";
+import {DeleteOutlined, EditOutlined, OrderedListOutlined, PlusOutlined,EyeOutlined} from "@ant-design/icons-vue";
 import PurchaseOrderAddModal from "~/components/purchases/purchaseOrderAddModal.vue";
 import PurchaseOrderEditModal from "~/components/purchases/purchaseOrderEditModal.vue";
-
+import {useTabsStore} from "~/stores/tabsStore.js";
+import purchaseOrderView from "~/components/purchases/purchaseOrderView.vue";
+import GoodsReceivingForm from "~/components/inventory/receive/GoodsReceivingAdd.vue";
+const tabsStore = useTabsStore();
 const purchaseOrderStore = usePurchaseOrderStore();
 const open = ref(false);
 const edit_open = ref(false);
@@ -168,12 +176,23 @@ const columns = [
     },
   },
   {
+    title: 'Status',
+    dataIndex: 'status',
+    key: 'status',
+  },
+  {
     title: 'operation',
     dataIndex: 'operation',
     key: 'operation',
   },
 ];
 
+const onValues = async key => {
+  tabsStore.addTab('Purchase Order', purchaseOrderView, { purchaseOrderId: key });
+};
+const receiveGoods = async key => {
+  tabsStore.addTab('Receive Goods', GoodsReceivingForm, { purchaseOrderId: key });
+};
 const pagination = ref({pageSize: 10});
 const edit = key => {
 };

@@ -19,7 +19,8 @@ const SerialNumber = require('./SerialNumber'); // SerialNumber model
 const StockMovement = require('./StockMovement'); // StockMovement model
 const PurchaseOrder = require('./PurchaseOrder'); // PurchaseOrder model
 const PurchaseOrderLineItem = require('./PurchaseOrderLineItem'); // PurchaseOrderLineItem model
-
+const GoodsReceived = require('./goodsReceivedNote');
+const GoodsReceivedLineItem = require('./GoodsReceivedLineItem');
 // Define associations AFTER model initialization
 
 // Product <-> Variant
@@ -77,6 +78,9 @@ StockMovement.belongsTo(Warehouse, {foreignKey: 'destinationWarehouseId', as: 'd
 StockMovement.belongsTo(Store, {foreignKey: 'sourceStoreId', as: 'sourceStore'});
 StockMovement.belongsTo(Store, {foreignKey: 'destinationStoreId', as: 'destinationStore'});
 
+// Purchase Order -> Goods Received (One-to-Many)
+PurchaseOrder.hasMany(GoodsReceived, { as: 'goodsReceived', foreignKey: 'purchaseOrderId' });
+GoodsReceived.belongsTo(PurchaseOrder, { as: 'purchaseOrder', foreignKey: 'purchaseOrderId' });
 PurchaseOrder.hasMany(PurchaseOrderLineItem, {foreignKey: 'purchaseOrderId', as: 'lineItems', onDelete: 'CASCADE'});
 PurchaseOrderLineItem.belongsTo(PurchaseOrder, {foreignKey: 'purchaseOrderId', as: 'purchaseOrder'});
 
@@ -85,6 +89,24 @@ PurchaseOrderLineItem.belongsTo(Variant, {foreignKey: 'variantId', as: 'variant'
 PurchaseOrder.belongsTo(Supplier, {foreignKey: 'supplierId', as: 'supplier'});
 PurchaseOrder.belongsTo(Warehouse, {foreignKey: 'warehouseId', as: 'warehouse'});
 PurchaseOrder.belongsTo(Store, {foreignKey: 'storeId', as: 'store'});
+
+// Warehouse -> Goods Received (One-to-Many)
+Warehouse.hasMany(GoodsReceived, { as: 'goodsReceived', foreignKey: 'warehouseId' });
+GoodsReceived.belongsTo(Warehouse, { as: 'warehouse', foreignKey: 'warehouseId' });
+
+
+// Store -> Goods Received (One-to-Many)
+Store.hasMany(GoodsReceived, { as: 'goodsReceived', foreignKey: 'storeId' });
+GoodsReceived.belongsTo(Store, { as: 'store', foreignKey: 'storeId' });
+
+// GoodsReceived -> GoodsReceivedLineItem (One-to-Many)
+GoodsReceived.hasMany(GoodsReceivedLineItem, { as: 'lineItems', foreignKey: 'goodsReceivedId' });
+GoodsReceivedLineItem.belongsTo(GoodsReceived, { as: 'goodsReceived', foreignKey: 'goodsReceivedId' });
+
+Variant.hasMany(GoodsReceivedLineItem, { as: 'goodsReceivedLineItems', foreignKey: 'variantId' });
+GoodsReceivedLineItem.belongsTo(Variant, { as: 'variant', foreignKey: 'variantId' });
+
+
 
 module.exports = {
     Product,
@@ -107,5 +129,7 @@ module.exports = {
     SerialNumber,
     StockMovement,
     PurchaseOrderLineItem,
-    PurchaseOrder
+    PurchaseOrder,
+    GoodsReceived,
+    GoodsReceivedLineItem,
 };

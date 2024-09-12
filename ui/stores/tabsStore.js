@@ -16,7 +16,6 @@ export const useTabsStore = defineStore('tabsStore', {
                 // Add component along with the passed props
                 this.tabs.push({ key: newKey, title, component, props });
                 this.activeKey = newKey;
-                console.log("tabs",this.tabs)
             } else {
                 // If the tab already exists, update the props and activate the tab
                 existingTab.props = props;

@@ -32,7 +32,7 @@ const paymentMethodRoutes = require('./routes/paymentMethod');
 const expenseCategoryRoutes = require('./routes/expenseCategory');
 const expensesRoutes = require('./routes/expenses');
 const purchaseOrderRoutes = require('./routes/purchaseOrder');
-
+const goodsReceivedRoutes = require('./routes/goodsReceived');
 
 
 dotenv.config();
@@ -119,7 +119,7 @@ app.use('/api/payment-methods', paymentMethodRoutes);
 app.use('/api/expense-categories', expenseCategoryRoutes);
 app.use('/api/expenses', expensesRoutes);
 app.use('/api/purchase-orders', purchaseOrderRoutes);
-
+app.use('/api/goods-received', goodsReceivedRoutes);
 
 // Listen for Socket.IO connections
 io.on('connection', (socket) => {

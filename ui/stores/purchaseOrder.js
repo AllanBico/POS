@@ -9,7 +9,7 @@ export const usePurchaseOrderStore = defineStore('purchaseOrder', {
         loading: false,
     }),
     getters: {
-        purchaseOrderId: (state) => (id) => state.purchaseOrders.find(order => order.id === id) || null,
+        purchaseOrderById: (state) => (id) => state.purchaseOrders.find(order => order.id === id) || null,
     },
     actions: {
         setLoading(value) {

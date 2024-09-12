@@ -10,7 +10,7 @@ const GoodsReceivedLineItem = sequelize.define('GoodsReceivedLineItem', {
         primaryKey: true,
         autoIncrement: true,
     },
-    goodsReceivedNoteId: {
+    goodsReceivedId: {
         type: DataTypes.INTEGER,
         references: {
             model: GoodsReceivedNote,

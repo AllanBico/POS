@@ -89,6 +89,12 @@
             <span>Inventories</span>
           </a>
         </a-menu-item>
+        <a-menu-item key="Received">
+          <a @click="addTab('Goods Received', GoodsReceivingTable)">
+            <pie-chart-outlined/>
+            <span>Received</span>
+          </a>
+        </a-menu-item>
         <a-divider style="border-color: black;color: black;">Purchases</a-divider>
         <a-menu-item key="purchases">
           <a @click="addTab('Purchases', purchasesTable)">
@@ -173,7 +179,44 @@
     <a-layout theme="dark" style="min-height: 100vh; background-image: linear-gradient(to top, #a18cd1 0%, #fbc2eb 100%);">
       <a-layout-content :style="{padding: '5px'}">
 <!--        <page-header :style="{ background: '#fff', padding: '20px', marginBottom: '10px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'}" />-->
-
+        <a-float-button-group trigger="click" type="primary" :style="{ right: '24px' }">
+          <template #icon1>
+            <PlusOutlined />
+          </template>
+          <!-- Popover with submenu on the left side -->
+          <a-popover placement="left" trigger="click" style="margin: 1px;padding: 1px;">
+            <template #content>
+              <ul>
+                <li>order1</li>
+                <li>receive1</li>
+                <li>unit1</li>
+              </ul>
+            </template>
+            <a-float-button>
+              <template #icon1>
+                <CommentOutlined />
+              </template>
+            </a-float-button>
+          </a-popover>
+          <template #icon>
+            <PlusOutlined />
+          </template>
+          <!-- Popover with submenu on the left side -->
+          <a-popover placement="left" trigger="click" style="margin: 1px;padding: 1px;">
+            <template #content>
+              <ul>
+                <li>order</li>
+                <li>receive</li>
+                <li>unit</li>
+              </ul>
+            </template>
+            <a-float-button>
+              <template #icon>
+                <CommentOutlined />
+              </template>
+            </a-float-button>
+          </a-popover>
+        </a-float-button-group>
         <!-- Tabs -->
         <a-tabs v-model:activeKey="tabsStore.activeKey" :size="size" hide-add @edit="onEdit" type="editable-card">
           <a-tab-pane v-for="tab in tabsStore.tabs" :key="tab.key" :tab="tab.title" closable>
@@ -182,7 +225,23 @@
             </keep-alive>
           </a-tab-pane>
           <template #rightExtra>
-            <a-button>Right Extra Action</a-button>
+
+            <div >
+              <a-badge count="4" dot>
+                <a-button type="link" :icon="h(BellOutlined)" />
+
+              </a-badge>
+              <a-button type="link" :icon="h(SettingOutlined)" />
+              <a-dropdown>
+                <template #overlay>
+                  <a-menu>
+                    <a-menu-item key="settings">Settings</a-menu-item>
+                    <a-menu-item key="logout">Logout</a-menu-item>
+                  </a-menu>
+                </template>
+                <a-avatar style="background-color: #87d068" class="header-avatar" :icon="h(UserOutlined)" />
+              </a-dropdown>
+            </div>
           </template>
         </a-tabs>
       </a-layout-content>
@@ -216,7 +275,8 @@ import suppliersTable from '~/components/suppliers/suppliersTable.vue'
 import warehousesTable from '~/components/warehouses/warehousesTable.vue'
 import paymentMethodsTable from '~/components/expenses/paymentMethodsTable.vue'
 import expensesCategoriesTable from '~/components/expenses/expensesCategoriesTable.vue'
-
+import GoodsReceivingTable from "~/components/inventory/receive/GoodsReceivingTable.vue";
+import {BellOutlined, SettingOutlined, UserOutlined} from "@ant-design/icons-vue";
 
 const collapsed = ref(false);
 

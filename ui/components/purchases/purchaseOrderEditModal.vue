@@ -45,12 +45,12 @@
 
       <!-- Expected Delivery Date -->
       <a-form-item label="Expected Delivery Date" name="expectedDeliveryDate">
-        <a-date-picker v-model:date="formValues.expectedDeliveryDate" />
+        <a-date-picker v-model:value="formValues.expectedDeliveryDate" value-format="YYYY-MM-DD" />
       </a-form-item>
 
       <!-- Order Date -->
       <a-form-item label="Order Date" name="orderDate">
-        <a-date-picker v-model:date="formValues.orderDate" />
+        <a-date-picker v-model:value="formValues.orderDate" value-format="YYYY-MM-DD" />
       </a-form-item>
 
       <!-- Line Items Table -->
@@ -121,7 +121,7 @@ const props = defineProps({
   purchaseOrderId: Number,
 });
 
-const emit = defineEmits(['update']);
+const emit = defineEmits(['submit-success']);
 
 const form = ref(null);
 const formValues = reactive({
@@ -152,12 +152,13 @@ const variants = computed(() => variantStore.variants);
 const stores = computed(() => storeStore.stores);
 
 const fetchPurchaseOrder = async () => {
-  console.log('Fetching purchase order with ID:', props.purchaseOrderId);
   await purchaseOrderStore.fetchPurchaseOrderById(props.purchaseOrderId);
-  console.log('Fetched purchase order:', purchaseOrderStore.purchaseOrder);
-  Object.assign(formValues, purchaseOrderStore.purchaseOrder);
+  formValues.supplierId = purchaseOrderStore.purchaseOrder.supplierId;
+  formValues.warehouseId = purchaseOrderStore.purchaseOrder.warehouseId;
+  formValues.orderDate = purchaseOrderStore.purchaseOrder.orderDate;
+  formValues.storeId = purchaseOrderStore.purchaseOrder.storeId;
+  formValues.expectedDeliveryDate = purchaseOrderStore.purchaseOrder.expectedDeliveryDate;
   formValues.lineItems = purchaseOrderStore.purchaseOrder.lineItems || [];
-  console.log('Assigned form values:', formValues);
 };
 
 const fetchData = async () => {
@@ -177,7 +178,7 @@ onMounted(async () => {
 const handleSubmit = async () => {
   try {
     await purchaseOrderStore.updatePurchaseOrder(props.purchaseOrderId, formValues);
-    emit('update', true); // Notify parent component
+    emit('submit-success');
   } catch (error) {
     console.error('Failed to update purchase order:', error);
   }

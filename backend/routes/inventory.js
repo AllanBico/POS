@@ -19,10 +19,10 @@ router.get('/', async (req, res) => {
                             include: [
                                 {
                                     model: AttributeValue,
-                                    as: 'AttributeValue',
+                                    as: 'attributeValue',
                                     attributes: ['id', 'value'],
                                     include: [
-                                        { model: Attribute, as: 'Attribute', attributes: ['id', 'name'] } // Include Attribute name
+                                        { model: Attribute, as: 'attribute', attributes: ['id', 'name'] } // Include Attribute name
                                     ]
                                 }
                             ]
@@ -40,12 +40,12 @@ router.get('/', async (req, res) => {
                 },
                 {
                     model: Warehouse,
-                    as: 'Warehouse',
+                    as: 'warehouse',
                     attributes: ['id', 'name'], // Include Warehouse name
                 },
                 {
                     model: Store,
-                    as: 'Store',
+                    as: 'store',
                     attributes: ['id', 'name'], // Include Store name
                 }
             ]

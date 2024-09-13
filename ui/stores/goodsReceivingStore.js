@@ -19,7 +19,9 @@ export const useGoodsReceivingStore = defineStore('goodsReceiving', {
             this.error = null;
             try {
                 const config = useRuntimeConfig();
-                const response = await fetch(`${config.public.baseURL}/api/goods-received`);
+                const response = await fetch(`${config.public.baseURL}/api/goods-received`, {
+                    credentials: 'include',
+                });
                 if (!response.ok) {
                     throw new Error('Failed to fetch goods received data');
                 }
@@ -42,7 +44,9 @@ export const useGoodsReceivingStore = defineStore('goodsReceiving', {
             this.error = null;
             try {
                 const config = useRuntimeConfig();
-                const response = await fetch(`${config.public.baseURL}/api/goods-received/${id}`);
+                const response = await fetch(`${config.public.baseURL}/api/goods-received/${id}`, {
+                    credentials: 'include',
+                });
                 if (!response.ok) {
                     throw new Error('Failed to fetch goods received details');
                 }
@@ -68,6 +72,7 @@ export const useGoodsReceivingStore = defineStore('goodsReceiving', {
                 const config = useRuntimeConfig();
                 const response = await fetch(`${config.public.baseURL}/api/goods-received`, {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json',
                     },

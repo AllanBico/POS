@@ -19,7 +19,7 @@ export const usePaymentMethodStore = defineStore('paymentMethod', {
         async fetchPaymentMethods() {
             const config = useRuntimeConfig();
             const apiUrl = `${config.public.baseURL}/api/payment-methods`;
-            const { data, error } = await useFetch(apiUrl);
+            const { data, error } = await useFetch(apiUrl, { credentials: 'include' });
             if (error.value) {
                 this.error = error.value.message;
                 console.error('Error fetching payment methods:', error.value);
@@ -33,7 +33,8 @@ export const usePaymentMethodStore = defineStore('paymentMethod', {
             const apiUrl = `${config.public.baseURL}/api/payment-methods`;
             const { data, error } = await useFetch(apiUrl, {
                 method: 'POST',
-                body: paymentMethod
+                body: paymentMethod,
+                credentials: 'include'
             });
             if (error.value) {
                 this.error = error.value.message;
@@ -50,7 +51,8 @@ export const usePaymentMethodStore = defineStore('paymentMethod', {
             const apiUrl = `${config.public.baseURL}/api/payment-methods/${id}`;
             const { data, error } = await useFetch(apiUrl, {
                 method: 'PUT',
-                body: updatedData
+                body: updatedData,
+                credentials: 'include'
             });
             if (error.value) {
                 this.error = error.value.message;
@@ -70,6 +72,7 @@ export const usePaymentMethodStore = defineStore('paymentMethod', {
             const apiUrl = `${config.public.baseURL}/api/payment-methods/${id}`;
             const { error } = await useFetch(apiUrl, {
                 method: 'DELETE',
+                credentials: 'include'
             });
             if (error.value) {
                 this.error = error.value.message;

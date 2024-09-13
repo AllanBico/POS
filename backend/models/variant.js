@@ -11,6 +11,7 @@ const Variant = sequelize.define('Variant', {
     sku: {
         type: DataTypes.STRING,
         allowNull: false,
+        unique: true,
     },
     price: {
         type: DataTypes.DECIMAL(10, 2),
@@ -36,7 +37,18 @@ const Variant = sequelize.define('Variant', {
 });
 
 
+// Add custom methods for stock management
+Variant.prototype.incrementStock = async function (amount, transaction = null) {
+    // Increment the stock quantity by a given amount
+    return await this.update({ stockQuantity: this.stockQuantity + amount }, { transaction });
+};
 
-
+Variant.prototype.decrementStock = async function (amount, transaction = null) {
+    // Ensure you don't allow stock to go below zero
+    if (this.stockQuantity - amount < 0) {
+        throw new Error('Insufficient stock');
+    }
+    return await this.update({ stockQuantity: this.stockQuantity - amount }, { transaction });
+};
 
 module.exports = Variant;

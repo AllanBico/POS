@@ -23,7 +23,9 @@ export const useExpenseStore = defineStore('expense', {
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/expenses`;
-                const { data, error } = await useFetch(apiUrl);
+                const { data, error } = await useFetch(apiUrl, {
+                    credentials: 'include',
+                });
                 if (error.value) throw error.value;
                 this.expenses = data.value;
             } catch (error) {
@@ -39,6 +41,7 @@ export const useExpenseStore = defineStore('expense', {
                 const { data, error } = await useFetch(apiUrl, {
                     method: 'POST',
                     body: expense,
+                    credentials: 'include',
                 });
                 if (error.value) throw error.value;
                 this.expenses.push(data.value);
@@ -57,6 +60,7 @@ export const useExpenseStore = defineStore('expense', {
                 const { data, error } = await useFetch(apiUrl, {
                     method: 'PUT',
                     body: updatedData,
+                    credentials: 'include',
                 });
                 if (error.value) throw error.value;
                 const index = this.expenses.findIndex(exp => exp.id === id);
@@ -77,6 +81,7 @@ export const useExpenseStore = defineStore('expense', {
                 const apiUrl = `${config.public.baseURL}/api/expenses/${id}`;
                 const { error } = await useFetch(apiUrl, {
                     method: 'DELETE',
+                    credentials: 'include',
                 });
                 if (error.value) throw error.value;
                 this.expenses = this.expenses.filter(exp => exp.id !== id);

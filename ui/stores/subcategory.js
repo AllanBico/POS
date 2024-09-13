@@ -20,14 +20,18 @@ export const useSubcategoryStore = defineStore('subcategory', {
         async fetchSubcategories() {
             const config = useRuntimeConfig();
             const apiUrl = config.public.baseURL + '/api/subcategories';
-            const { data, error } = await useFetch(apiUrl);
+            const { data, error } = await useFetch(apiUrl, {
+                credentials: 'include',
+            });
             if (error.value) throw error.value;
             this.subcategories = data.value;
         },
         async fetchSubcategory(id) {
             const config = useRuntimeConfig();
             const apiUrl = config.public.baseURL + `/api/subcategories/${id}`;
-            const { data, error } = await useFetch(apiUrl);
+            const { data, error } = await useFetch(apiUrl, {
+                credentials: 'include',
+            });
             if (error.value) throw error.value;
             this.subcategory = data.value;
         },
@@ -44,6 +48,7 @@ export const useSubcategoryStore = defineStore('subcategory', {
                     headers: {
                         'Content-Type': 'application/json', // Ensure the server understands the request payload format
                     },
+                    credentials: 'include',
                 });
 
                 if (error.value) throw error.value;
@@ -61,6 +66,7 @@ export const useSubcategoryStore = defineStore('subcategory', {
             const { data, error } = await useFetch(apiUrl, {
                 method: 'PUT',
                 body: subcategory,
+                credentials: 'include',
             });
             if (error.value) throw error.value;
             console.log("store sub dta",data.value)
@@ -72,6 +78,7 @@ export const useSubcategoryStore = defineStore('subcategory', {
             const apiUrl = config.public.baseURL + `/api/subcategories/${id}`;
             const { error } = await useFetch(apiUrl, {
                 method: 'DELETE',
+                credentials: 'include',
             });
             if (error.value) throw error.value;
             this.subcategories = this.subcategories.filter(sub => sub.id !== id);

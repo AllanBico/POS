@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { GoodsReceived, PurchaseOrder, Warehouse, GoodsReceivedLineItem, Variant,Store, Supplier} = require('../models/associations');
+const { GoodsReceived, PurchaseOrder, Warehouse, GoodsReceivedLineItem, Variant,Store, Supplier,SerialNumber,Inventory,StockMovement} = require('../models/associations');
 const authenticateToken = require("../middleware/auth");
-
+const sequelize = require('../config/db');
 // Create a Goods Received (GRN)
-router.post('/',authenticateToken, async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
+    const transaction = await sequelize.transaction(); // Create a transaction
     try {
-        console.log("req.body",req.body)
-        const { purchaseOrderId, warehouseId, receivedDate,storeId, lineItems } = req.body;
+        const { purchaseOrderId, warehouseId, receivedDate, storeId, lineItems } = req.body;
 
         // Validate the request body
         const requiredFields = [
@@ -21,42 +21,118 @@ router.post('/',authenticateToken, async (req, res) => {
         const missingFields = requiredFields.filter(field => !req.body[field]);
 
         if (missingFields.length > 0) {
-            console.error(`Missing required fields: ${missingFields.join(', ')}`);
             return res.status(400).json({ error: `Missing required fields: ${missingFields.join(', ')}` });
         }
 
-        // Validate each line item
+        // Validate each line item and its serial numbers
         for (const item of lineItems) {
             if (!item.variantId || !item.quantity) {
-                console.error("Invalid line item")
                 return res.status(400).json({ error: 'Invalid line item' });
+            }
+            if (item.serialNumbers && item.serialNumbers.length > 0) {
+                if (item.serialNumbers.length !== item.quantity) {
+                    return res.status(400).json({ error: 'The number of serial numbers must match the quantity' });
+                }
             }
         }
 
-        // Create the Goods Received entry
-        const goodsReceived = await GoodsReceived.create({ purchaseOrderId, warehouseId, receivedDate,storeId });
+        // Create the Goods Received entry within the transaction
+        const goodsReceived = await GoodsReceived.create({
+            purchaseOrderId,
+            warehouseId,
+            receivedDate,
+            storeId,
+        }, { transaction });
 
-        // Create line items associated with the Goods Received entry
+        // Create line items and their associated serial numbers within the transaction
         const createdLineItems = await Promise.all(lineItems.map(async (item) => {
-            try {
-                return await GoodsReceivedLineItem.create({
-                    variantId: item.variantId,
-                    receivedQuantity: item.quantity,
-                    goodsReceivedId: goodsReceived.id,
-                });
-            } catch (error) {
-                // Rollback the transaction if any line item creation fails
-                await goodsReceived.destroy();
-                throw error;
+            const variant = await Variant.findByPk(item.variantId, { transaction });
+            if (!variant) {
+                throw new Error(`Variant with id ${item.variantId} not found`);
             }
+
+
+            const lineItem = await GoodsReceivedLineItem.create({
+                variantId: item.variantId,
+                receivedQuantity: item.quantity,
+                goodsReceivedId: goodsReceived.id,
+            }, { transaction });
+            let destinationType = null;
+            let destinationId = null;
+            if (warehouseId) {
+                destinationType = 'warehouse';
+                destinationId =warehouseId;
+            } else if (storeId) {
+                destinationType = 'store';
+                destinationId = storeId;
+            }
+            // Create a StockMovement record
+            const stockMovement = await StockMovement.create({
+                variantId: item.variantId,
+                quantity: item.quantity,
+                transactionType: 'stock_in',
+                sourceType: 'supplier', // Assuming the source is a supplier (you can adjust as necessary)
+                sourceId: purchaseOrderId, // Use purchase order as source for this case
+                destinationType: destinationType, // Assuming the destination is a warehouse
+                destinationId: destinationId, // This is the destination warehouse
+                destinationStoreId: storeId,
+                sourceStoreId: null,
+                transactionDate: receivedDate,
+                sourceWarehouseId: null,
+                destinationWarehouseId: warehouseId,
+                createdBy: req.user.id,
+            }, { transaction });
+
+            let inventory = await Inventory.findOne({
+                where: {
+                    variantId: item.variantId,
+                    warehouseId: destinationType === 'warehouse' ? destinationId : null,
+                    storeId: destinationType === 'store' ? destinationId : null,
+                }
+            });
+
+            if (inventory) {
+                // If inventory exists, update the quantity
+                inventory.quantity += item.quantity;
+                await inventory.save({ transaction });
+            } else {
+                // If no inventory exists, create a new record
+                inventory = await Inventory.create({
+                    variantId: item.variantId,
+                    warehouseId: destinationType === 'warehouse' ? destinationId : null,
+                    storeId: destinationType === 'store' ? destinationId : null,
+                    quantity: item.quantity,
+                }, { transaction });
+            }
+            await variant.incrementStock(item.quantity, transaction);
+
+            // If serial numbers are provided, create entries for them
+            if (item.serialNumbers && item.serialNumbers.length > 0) {
+                await Promise.all(item.serialNumbers.map(async (serialNumber) => {
+                    await SerialNumber.create({
+                        serialNumber: serialNumber,
+                        variantId: item.variantId,
+                        stockMovementId: stockMovement.id,
+                    }, { transaction });
+                }));
+            }
+
+            return lineItem;
         }));
 
+        // Commit the transaction after all operations are successful
+        await transaction.commit();
+
         res.status(201).json({ goodsReceived, lineItems: createdLineItems });
+
     } catch (error) {
-        console.error("error",error.message)
+        if (transaction) await transaction.rollback();
+        console.error("error.message",error.message)
         res.status(500).json({ error: error.message });
     }
 });
+
+
 
 // Fetch all Goods Received (GRNs)
 router.get('/',authenticateToken, async (req, res) => {

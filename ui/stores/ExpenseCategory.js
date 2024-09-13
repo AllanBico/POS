@@ -20,7 +20,9 @@ export const useExpenseCategoryStore = defineStore('expenseCategory', {
         async fetchExpenseCategories() {
             const config = useRuntimeConfig();
             const apiUrl = `${config.public.baseURL}/api/expense-categories`;
-            const { data, error } = await useFetch(apiUrl);
+            const { data, error } = await useFetch(apiUrl, {
+                credentials: 'include',
+            });
             if (error.value) {
                 this.error = error.value.message;
                 console.error('Error fetching expense categories:', error.value);
@@ -35,6 +37,7 @@ export const useExpenseCategoryStore = defineStore('expenseCategory', {
             const { data, error } = await useFetch(apiUrl, {
                 method: 'POST',
                 body: expenseCategory,
+                credentials: 'include',
             });
             if (error.value) {
                 this.error = error.value.message;
@@ -52,6 +55,7 @@ export const useExpenseCategoryStore = defineStore('expenseCategory', {
             const { data, error } = await useFetch(apiUrl, {
                 method: 'PUT',
                 body: updatedData,
+                credentials: 'include',
             });
             if (error.value) {
                 this.error = error.value.message;
@@ -71,6 +75,7 @@ export const useExpenseCategoryStore = defineStore('expenseCategory', {
             const apiUrl = `${config.public.baseURL}/api/expense-categories/${id}`;
             const { error } = await useFetch(apiUrl, {
                 method: 'DELETE',
+                credentials: 'include',
             });
             if (error.value) {
                 this.error = error.value.message;

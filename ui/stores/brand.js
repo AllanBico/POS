@@ -20,7 +20,9 @@ export const useBrandStore = defineStore('brand', {
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/brands`;
-                const { data, error } = await useFetch(apiUrl);
+                const { data, error } = await useFetch(apiUrl, {
+                    credentials: 'include',
+                });
 
                 if (error.value) throw error.value;
 
@@ -39,6 +41,7 @@ export const useBrandStore = defineStore('brand', {
                 const { data, error } = await useFetch(apiUrl, {
                     method: 'POST',
                     body: brand,
+                    credentials: 'include',
                 });
 
                 if (error.value) throw error.value;
@@ -60,6 +63,7 @@ export const useBrandStore = defineStore('brand', {
                 const { data, error } = await useFetch(apiUrl, {
                     method: 'PUT',
                     body: updatedBrand,
+                    credentials: 'include',
                 });
 
                 if (error.value) throw error.value;
@@ -83,6 +87,7 @@ export const useBrandStore = defineStore('brand', {
                 const apiUrl = `${config.public.baseURL}/api/brands/${id}`;
                 const { error } = await useFetch(apiUrl, {
                     method: 'DELETE',
+                    credentials: 'include',
                 });
 
                 if (error.value) throw error.value;

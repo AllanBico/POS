@@ -1,6 +1,8 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 const Variant = require('./Variant');
+const Warehouse = require('./Warehouse'); // Assuming you have a Warehouse model
+const Store = require('./Store'); // Assuming you have a Store model
 
 const StockMovement = sequelize.define('StockMovement', {
     id: {
@@ -49,6 +51,48 @@ const StockMovement = sequelize.define('StockMovement', {
     notes: {
         type: DataTypes.STRING,
         allowNull: true,
+    },
+    sourceWarehouseId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+            model: Warehouse,
+            key: 'id',
+        }
+    },
+    destinationWarehouseId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+            model: Warehouse,
+            key: 'id',
+        }
+    },
+    sourceStoreId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+            model: Store,
+            key: 'id',
+        }
+    },
+    destinationStoreId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+            model: Store,
+            key: 'id',
+        }
+    },
+    createdBy: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'users', // Name of your users table
+            key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
     },
 }, {
     timestamps: true,

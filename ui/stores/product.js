@@ -34,7 +34,7 @@ export const useProductStore = defineStore('product', {
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/products`;
-                const {data, error} = await useFetch(apiUrl);
+                const {data, error} = await useFetch(apiUrl, { credentials: 'include' });
                 if (error.value) throw error.value;
                 this.products = data.value;
             } catch (err) {
@@ -49,7 +49,7 @@ export const useProductStore = defineStore('product', {
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/products/${id}`;
-                const {data, error} = await useFetch(apiUrl);
+                const {data, error} = await useFetch(apiUrl, { credentials: 'include' });
                 if (error.value) throw error.value;
                 this.product = data.value;
             } catch (err) {
@@ -64,7 +64,7 @@ export const useProductStore = defineStore('product', {
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/attributes`;
-                const {data, error} = await useFetch(apiUrl);
+                const {data, error} = await useFetch(apiUrl, { credentials: 'include' });
                 if (error.value) throw error.value;
                 this.attributes = data.value;
             } catch (err) {
@@ -79,7 +79,7 @@ export const useProductStore = defineStore('product', {
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/attribute-values`;
-                const {data, error} = await useFetch(apiUrl);
+                const {data, error} = await useFetch(apiUrl, { credentials: 'include' });
                 if (error.value) throw error.value;
                 this.attributeValues = data.value;
             } catch (err) {
@@ -94,7 +94,7 @@ export const useProductStore = defineStore('product', {
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/variants`;
-                const {data, error} = await useFetch(apiUrl);
+                const {data, error} = await useFetch(apiUrl, { credentials: 'include' });
                 if (error.value) throw error.value;
                 this.variants = data.value;
             } catch (err) {
@@ -115,6 +115,7 @@ export const useProductStore = defineStore('product', {
                 const apiUrl = `${config.public.baseURL}/api/products`;
                 const {data, error} = await useFetch(apiUrl, {
                     method: 'POST',
+                    credentials: 'include',
                     body: JSON.stringify(product),
                 });
                 if (error.value) {
@@ -140,6 +141,7 @@ export const useProductStore = defineStore('product', {
                 const apiUrl = `${config.public.baseURL}/api/products/${id}`;
                 const {data, error} = await useFetch(apiUrl, {
                     method: 'PUT',
+                    credentials: 'include',
                     body: JSON.stringify(product),
                 });
                 if (error.value) throw error.value;
@@ -162,6 +164,7 @@ export const useProductStore = defineStore('product', {
                 const apiUrl = `${config.public.baseURL}/api/products/${id}`;
                 const {data, error} = await useFetch(apiUrl, {
                     method: 'DELETE',
+                    credentials: 'include',
                 });
                 if (error.value) throw error.value;
                 this.products = this.products.filter(product => product.id !== id);
@@ -180,6 +183,7 @@ export const useProductStore = defineStore('product', {
                 const apiUrl = `${config.public.baseURL}/api/variants`;
                 const {data, error} = await useFetch(apiUrl, {
                     method: 'POST',
+                    credentials: 'include',
                     body: JSON.stringify(variant),
                 });
                 if (error.value) throw error.value;
@@ -203,6 +207,7 @@ export const useProductStore = defineStore('product', {
                 const {data, error} = await useFetch(apiUrl, {
                     method: 'PUT',
                     body: JSON.stringify(variant),
+                    credentials: 'include',
                 });
                 if (error.value) throw error.value;
                 const index = this.variants.findIndex(v => v.id === id);
@@ -224,6 +229,7 @@ export const useProductStore = defineStore('product', {
                 const apiUrl = `${config.public.baseURL}/api/variants/${id}`;
                 const {data, error} = await useFetch(apiUrl, {
                     method: 'DELETE',
+                    credentials: 'include',
                 });
                 if (error.value) throw error.value;
                 this.variants = this.variants.filter(variant => variant.id !== id);
@@ -239,7 +245,7 @@ export const useProductStore = defineStore('product', {
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/variant-attribute-values`;
-                const {data, error} = await useFetch(apiUrl);
+                const {data, error} = await useFetch(apiUrl,{credentials: 'include'});
                 if (error.value) throw error.value;
                 this.variantAttributeValues = data.value;
             } catch (err) {
@@ -254,7 +260,7 @@ export const useProductStore = defineStore('product', {
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/variant-attribute-values/${id}`;
-                const {data, error} = await useFetch(apiUrl);
+                const {data, error} = await useFetch(apiUrl,{credentials: 'include'});
                 if (error.value) throw error.value;
                 return data.value;
             } catch (err) {
@@ -272,6 +278,7 @@ export const useProductStore = defineStore('product', {
                 const {data, error} = await useFetch(apiUrl, {
                     method: 'POST',
                     body: JSON.stringify(variantAttributeValue),
+                    credentials: 'include',
                 });
                 if (error.value) throw error.value;
                 this.variantAttributeValues.push(data.value);
@@ -291,6 +298,7 @@ export const useProductStore = defineStore('product', {
                 const {data, error} = await useFetch(apiUrl, {
                     method: 'PUT',
                     body: JSON.stringify(variantAttributeValue),
+                    credentials: 'include',
                 });
                 if (error.value) throw error.value;
                 const index = this.variantAttributeValues.findIndex(vav => vav.id === id);
@@ -312,6 +320,7 @@ export const useProductStore = defineStore('product', {
                 const apiUrl = `${config.public.baseURL}/api/variant-attribute-values/${id}`;
                 const {data, error} = await useFetch(apiUrl, {
                     method: 'DELETE',
+                    credentials: 'include',
                 });
                 if (error.value) throw error.value;
                 this.variantAttributeValues = this.variantAttributeValues.filter(vav => vav.id !== id);

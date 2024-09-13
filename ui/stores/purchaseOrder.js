@@ -21,7 +21,9 @@ export const usePurchaseOrderStore = defineStore('purchaseOrder', {
             this.setLoading(true);
             try {
                 const apiUrl = `${config.public.baseURL}/api/purchase-orders`;
-                const { data, error } = await useFetch(apiUrl);
+                const { data, error } = await useFetch(apiUrl, {
+                    credentials: 'include',
+                });
                 if (error.value) {
                     this.error = error.value.data?.message || error.value.message;
                     throw error.value;
@@ -39,7 +41,9 @@ export const usePurchaseOrderStore = defineStore('purchaseOrder', {
             this.setLoading(true);
             try {
                 const apiUrl = `${config.public.baseURL}/api/purchase-orders/${id}`;
-                const { data, error } = await useFetch(apiUrl);
+                const { data, error } = await useFetch(apiUrl, {
+                    credentials: 'include',
+                });
                 if (error.value) {
                     this.error = error.value.data?.message || error.value.message;
                     throw error.value;
@@ -60,10 +64,10 @@ export const usePurchaseOrderStore = defineStore('purchaseOrder', {
                 const { data, error } = await useFetch(apiUrl, {
                     method: 'POST',
                     body: payload,
+                    credentials: 'include',
                 });
                 if (error.value) {
                     this.error = error.value.data?.message || error.value.message;
-                    console.log("this.error",error)
                     throw error.value;
                 }
                 this.purchaseOrders.push(data.value);
@@ -82,6 +86,7 @@ export const usePurchaseOrderStore = defineStore('purchaseOrder', {
                 const { data, error } = await useFetch(apiUrl, {
                     method: 'PUT',
                     body: payload,
+                    credentials: 'include',
                 });
                 if (error.value) {
                     this.error = error.value.data?.message || error.value.message;
@@ -105,6 +110,7 @@ export const usePurchaseOrderStore = defineStore('purchaseOrder', {
                 const apiUrl = `${config.public.baseURL}/api/purchase-orders/${id}`;
                 const { data, error } = await useFetch(apiUrl, {
                     method: 'DELETE',
+                    credentials: 'include',
                 });
                 if (error.value) {
                     this.error = error.value.data?.message || error.value.message;
@@ -125,6 +131,7 @@ export const usePurchaseOrderStore = defineStore('purchaseOrder', {
                 const apiUrl = `${config.public.baseURL}/api/purchase-orders/${purchaseOrderId}/line-items/${lineItemId}`;
                 const { data, error } = await useFetch(apiUrl, {
                     method: 'DELETE',
+                    credentials: 'include',
                 });
                 if (error.value) {
                     this.error = error.value.data?.message || error.value.message;

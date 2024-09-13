@@ -129,15 +129,15 @@ app.use('/api/goods-received', goodsReceivedRoutes);
 // Listen for Socket.IO connections
 io.use((socket, next) => {
     const token = socket.handshake.auth?.token || socket.handshake.headers?.token; // Extract token from handshake auth
-    console.log("socket token",token)
+  //  console.log("socket token",token)
     if (!token) {
-        console.log('No token provided');
+       // console.log('No token provided');
         return next(new Error('Authentication error'));
     }
 
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
         if (err) {
-            console.log('Token is invalid:', err.message);
+          //  console.log('Token is invalid:', err.message);
             return next(new Error('Authentication error'));
         }
         // Attach user info to socket object if the token is valid
@@ -147,10 +147,10 @@ io.use((socket, next) => {
     });
 });
 io.on('connection', (socket) => {
-    console.log('A user connected:', socket.id);
+    //console.log('A user connected:', socket.id);
 
     socket.on('disconnect', () => {
-        console.log('A user disconnected:', socket.id);
+        //console.log('A user disconnected:', socket.id);
     });
 
     // Define more socket events here

@@ -10,7 +10,9 @@ export const useStoreStore = defineStore('store', {
     actions: {
         async fetchStores() {
             const config = useRuntimeConfig();
-            const { data, error } = await useFetch(`${config.public.baseURL}/api/stores`);
+            const { data, error } = await useFetch(`${config.public.baseURL}/api/stores`, {
+                credentials: 'include',
+            });
             if (error.value) throw error.value;
             this.stores = data.value;
         },
@@ -20,6 +22,7 @@ export const useStoreStore = defineStore('store', {
             const { data, error } = await useFetch(`${config.public.baseURL}/api/stores`, {
                 method: 'POST',
                 body: store,
+                credentials: 'include',
             });
             if (error.value) throw error.value;
             this.stores.push(data.value);
@@ -31,6 +34,7 @@ export const useStoreStore = defineStore('store', {
             const { data, error } = await useFetch(`${config.public.baseURL}/api/stores/${id}`, {
                 method: 'PUT',
                 body: store,
+                credentials: 'include',
             });
             if (error.value) throw error.value;
             this.stores = this.stores.map(s => (s.id === id ? data.value : s));
@@ -41,6 +45,7 @@ export const useStoreStore = defineStore('store', {
             const config = useRuntimeConfig();
             const { error } = await useFetch(`${config.public.baseURL}/api/stores/${id}`, {
                 method: 'DELETE',
+                credentials: 'include',
             });
             if (error.value) throw error.value;
             this.stores = this.stores.filter(s => s.id !== id);

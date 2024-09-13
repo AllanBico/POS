@@ -11,7 +11,7 @@ export const useSupplierStore = defineStore('supplier', {
     actions: {
         async fetchSuppliers() {
             const config = useRuntimeConfig();
-            const { data, error } = await useFetch(`${config.public.baseURL}/api/suppliers`);
+            const { data, error } = await useFetch(`${config.public.baseURL}/api/suppliers`, {credentials: 'include'});
             if (error.value) {
                 console.error('Error fetching suppliers:', error.value);
                 throw error.value;
@@ -24,6 +24,7 @@ export const useSupplierStore = defineStore('supplier', {
             const { data, error } = await useFetch(`${config.public.baseURL}/api/suppliers`, {
                 method: 'POST',
                 body: supplier,
+                credentials: 'include',
             });
             if (error.value) {
                 console.error('Error creating supplier:', error.value);
@@ -43,6 +44,7 @@ export const useSupplierStore = defineStore('supplier', {
             const { data, error } = await useFetch(`${config.public.baseURL}/api/suppliers/${id}`, {
                 method: 'PUT',
                 body: supplier,
+                credentials: 'include',
             });
             if (error.value) {
                 console.error('Error updating supplier:', error.value);
@@ -64,6 +66,7 @@ export const useSupplierStore = defineStore('supplier', {
             const config = useRuntimeConfig();
             const { error } = await useFetch(`${config.public.baseURL}/api/suppliers/${id}`, {
                 method: 'DELETE',
+                credentials: 'include',
             });
             if (error.value) {
                 console.error('Error deleting supplier:', error.value);

@@ -24,6 +24,7 @@ export const useUserStore = defineStore('user', {
                 const apiUrl = config.public.baseURL + '/api/users';
                 const { data, error } = await useFetch(apiUrl, {
                     method: 'GET',
+                    credentials: 'include',
                 });
 
                 if (error.value) {
@@ -50,6 +51,7 @@ export const useUserStore = defineStore('user', {
                     headers: {
                         'Content-Type': 'application/json',
                     },
+                    credentials: 'include',
                 });
 
                 if (error.value) {
@@ -69,7 +71,8 @@ export const useUserStore = defineStore('user', {
             try {
                 const apiUrl = config.public.baseURL + `/api/users/${userId}`;
                 const { error } = await useFetch(apiUrl, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    credentials: 'include',
                 });
 
                 if (error.value) {
@@ -94,6 +97,7 @@ export const useUserStore = defineStore('user', {
                     headers: {
                         'Content-Type': 'application/json',
                     },
+                    credentials: 'include',
                 });
 
                 if (error.value) {

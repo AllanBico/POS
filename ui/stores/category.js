@@ -19,7 +19,7 @@ export const useCategoryStore = defineStore('category', {
             const apiUrl = `${config.public.baseURL}/api/categories`;
 
             try {
-                const { data, error } = await useFetch(apiUrl);
+                const { data, error } = await useFetch(apiUrl, { credentials: 'include' });
                 if (error.value) throw error.value;
                 this.categories = data.value;
             } catch (error) {
@@ -35,7 +35,7 @@ export const useCategoryStore = defineStore('category', {
             const apiUrl = `${config.public.baseURL}/api/categories/${id}`;
 
             try {
-                const { data, error } = await useFetch(apiUrl, { method: 'GET' });
+                const { data, error } = await useFetch(apiUrl, { method: 'GET', credentials: 'include' });
                 if (error.value) throw error.value;
                 this.category = data.value;
             } catch (error) {
@@ -55,6 +55,7 @@ export const useCategoryStore = defineStore('category', {
                 const { data, error } = await useFetch(apiUrl, {
                     method: 'POST',
                     body: category,
+                    credentials: 'include',
                 });
                 if (error.value) throw error.value;
                 this.categories.push(data.value);
@@ -75,6 +76,7 @@ export const useCategoryStore = defineStore('category', {
                 const { data, error } = await useFetch(apiUrl, {
                     method: 'PUT',
                     body: category,
+                    credentials: 'include',
                 });
                 if (error.value) throw error.value;
                 const index = this.categories.findIndex(cat => cat.id === category.id);
@@ -95,6 +97,7 @@ export const useCategoryStore = defineStore('category', {
             try {
                 const { error } = await useFetch(apiUrl, {
                     method: 'DELETE',
+                    credentials: 'include',
                 });
                 if (error.value) throw error.value;
                 this.categories = this.categories.filter(cat => cat.id !== id);

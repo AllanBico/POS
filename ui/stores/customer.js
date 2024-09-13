@@ -10,7 +10,9 @@ export const useCustomerStore = defineStore('customer', {
     actions: {
         async fetchCustomers() {
             const config = useRuntimeConfig();
-            const { data, error } = await useFetch(`${config.public.baseURL}/api/customers`);
+            const { data, error } = await useFetch(`${config.public.baseURL}/api/customers`, {
+                credentials: 'include',
+            });
             if (error.value) throw error.value;
             this.customers = data.value;
         },
@@ -21,6 +23,7 @@ export const useCustomerStore = defineStore('customer', {
             const { data, error } = await useFetch(`${config.public.baseURL}/api/customers`, {
                 method: 'POST',
                 body: customer,
+                credentials: 'include',
             });
             if (error.value) throw error.value;
             this.customers.push(data.value);
@@ -32,6 +35,7 @@ export const useCustomerStore = defineStore('customer', {
             const { data, error } = await useFetch(`${config.public.baseURL}/api/customers/${id}`, {
                 method: 'PUT',
                 body: customer,
+                credentials: 'include',
             });
             if (error.value) throw error.value;
             this.customers = this.customers.map(c => (c.id === id ? data.value : c));
@@ -42,6 +46,7 @@ export const useCustomerStore = defineStore('customer', {
             const config = useRuntimeConfig();
             const { error } = await useFetch(`${config.public.baseURL}/api/customers/${id}`, {
                 method: 'DELETE',
+                credentials: 'include',
             });
             if (error.value) throw error.value;
             this.customers = this.customers.filter(c => c.id !== id);

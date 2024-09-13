@@ -70,7 +70,7 @@ StockMovement.hasMany(SerialNumber, {foreignKey: 'stockMovementId', as: 'serialN
 
 // Stock Movement relationships
 StockMovement.belongsTo(Variant, {foreignKey: 'variantId', as: 'variant'});
-StockMovement.belongsTo(User, {foreignKey: 'userId', as: 'user'});
+StockMovement.belongsTo(User, {foreignKey: 'CreatedBy', as: 'user'});
 
 // Store and Warehouse relationships with StockMovement
 StockMovement.belongsTo(Warehouse, {foreignKey: 'sourceWarehouseId', as: 'sourceWarehouse'});

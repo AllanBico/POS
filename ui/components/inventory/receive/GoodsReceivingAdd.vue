@@ -36,7 +36,7 @@
 
     <!-- Received Date -->
     <a-form-item label="Received Date" name="receivedDate">
-      <a-date-picker v-model:value="formValues.receivedDate" />
+      <a-date-picker v-model:value="formValues.receivedDate"  />
     </a-form-item>
 
     <!-- Line Items Table -->
@@ -53,6 +53,7 @@
               v-model:value="record.quantity"
               min="1"
               placeholder="Enter quantity"
+              @change="openSerialNumberModal(record)"
           />
         </template>
         <template v-else-if="column?.dataIndex === 'price'">
@@ -69,17 +70,20 @@
               show-search
               :filter-option="filterOption"
           >
-            <a-select-option v-for="variant in variants" :key="variant.id" :value="variant.id">
+            <a-select-option
+                v-for="variant in variants"
+                :key="variant.id"
+                :value="variant.id"
+            >
               {{ variant.Product.name }} ({{ variant.sku }})
             </a-select-option>
           </a-select>
         </template>
+        <template v-else-if="column?.dataIndex === 'serialNumbers'">
+          <a-button @click="openSerialNumberModal(record)">Add Serial Numbers</a-button>
+        </template>
         <template v-else-if="column?.dataIndex === 'action'">
-          <a-button
-              @click="removeItem(record.id)"
-              type="danger"
-              icon="delete"
-          >
+          <a-button @click="removeItem(record.id)" type="danger" icon="delete">
             Remove
           </a-button>
         </template>
@@ -95,22 +99,36 @@
     <a-form-item>
       <a-button type="primary" html-type="submit">Submit Goods Receiving</a-button>
     </a-form-item>
+    <!-- Serial Number Modal -->
+    <a-modal
+        v-model:visible="serialNumberModalVisible"
+        title="Enter Serial Numbers"
+        @ok="saveSerialNumbers"
+    >
+      <div v-for="(serialNumber, index) in serialNumbers" :key="index">
+        <a-input
+            v-model:value="serialNumbers[index]"
+            placeholder="Enter serial number"
+        />
+      </div>
+      <a-button @click="addSerialNumberInput">Add Serial Number</a-button>
+    </a-modal>
   </a-form>
 </template>
 
 <script setup>
-import { ref, reactive, toRefs, computed, onMounted } from 'vue';
-import { useGoodsReceivingStore } from '@/stores/goodsReceivingStore.js'; // Import your Pinia store
-import { useWarehouseStore } from '@/stores/warehouse.js'; // Import store for warehouses
-import { useProductStore } from '@/stores/product.js'; // Import store for products
-import { useStoreStore } from '@/stores/store.js'; // Import store for stores
-import { usePurchaseOrderStore } from '@/stores/purchaseOrder.js'; // Import store for purchase orders
+import { ref, reactive, computed, onMounted } from 'vue';
+import { useGoodsReceivingStore } from '@/stores/goodsReceivingStore.js';
+import { useWarehouseStore } from '@/stores/warehouse.js';
+import { useProductStore } from '@/stores/product.js';
+import { useStoreStore } from '@/stores/store.js';
+import { usePurchaseOrderStore } from '@/stores/purchaseOrder.js';
 
 const props = defineProps({
   purchaseOrderId: {
     type: Number,
-    required: true
-  }
+    required: true,
+  },
 });
 
 const emit = defineEmits(['submit-success']);
@@ -124,6 +142,11 @@ const formValues = reactive({
   lineItems: [],
 });
 
+// Modal State
+const serialNumberModalVisible = ref(false);
+const serialNumbers = ref([]); // To hold serial numbers temporarily
+let currentLineItem = null; // Keep track of which line item is being edited
+
 // Initialize stores
 const goodsReceivingStore = useGoodsReceivingStore();
 const warehouseStore = useWarehouseStore();
@@ -134,20 +157,11 @@ const purchaseOrderStore = usePurchaseOrderStore();
 const warehouses = computed(() => warehouseStore.warehouses);
 const variants = computed(() => productStore.variants);
 const stores = computed(() => storeStore.stores);
-
-// Define columns for the table
-const columns = [
-  { title: 'Variant', dataIndex: 'variantId', key: 'variantId' },
-  { title: 'Quantity', dataIndex: 'quantity', key: 'quantity' },
-  { title: 'Price', dataIndex: 'price', key: 'price' },
-  { title: 'Action', dataIndex: 'action', key: 'action' },
-];
-
 // Fetch Purchase Order Details
 const fetchPurchaseOrderDetails = async () => {
   const purchaseOrder = await purchaseOrderStore.purchaseOrderById(props.purchaseOrderId);
   if (purchaseOrder) {
-    formValues.supplierId = purchaseOrder.supplier.name; // Adjust based on actual data structure
+    formValues.supplier = purchaseOrder.supplier.name; // Adjust based on actual data structure
     formValues.warehouseId = purchaseOrder.warehouseId;
     formValues.storeId = purchaseOrder.storeId;
     formValues.lineItems = purchaseOrder.lineItems.map(item => ({
@@ -155,8 +169,53 @@ const fetchPurchaseOrderDetails = async () => {
       variantId: item.variantId,
       quantity: item.quantity,
       price: item.price,
+      serialNumbers: item.serialNumbers || [], // Ensure serialNumbers is an array
     }));
+
   }
+};
+// Define columns for the table
+const columns = [
+  { title: 'Variant', dataIndex: 'variantId', key: 'variantId' },
+  { title: 'Quantity', dataIndex: 'quantity', key: 'quantity' },
+  { title: 'Price', dataIndex: 'price', key: 'price' },
+  { title: 'Serial Numbers', dataIndex: 'serialNumbers', key: 'serialNumbers' },
+  { title: 'Action', dataIndex: 'action', key: 'action' },
+];
+
+// Add line item
+const addItem = () => {
+  formValues.lineItems.push({
+    id: Date.now(),
+    variantId: null,
+    quantity: 1,
+    price: 0,
+    serialNumbers: [], // Initialize serialNumbers as an array
+  });
+};
+
+
+// Remove line item
+const removeItem = (id) => {
+  formValues.lineItems = formValues.lineItems.filter((item) => item.id !== id);
+};
+
+// Open Serial Number Modal
+const openSerialNumberModal = (record) => {
+  serialNumberModalVisible.value = true;
+  currentLineItem = record;
+  serialNumbers.value = [...record.serialNumbers]; // Pre-fill serial numbers
+};
+
+// Save Serial Numbers
+const saveSerialNumbers = () => {
+  currentLineItem.serialNumbers = [...serialNumbers.value];
+  serialNumberModalVisible.value = false;
+};
+
+// Add input for serial numbers dynamically
+const addSerialNumberInput = () => {
+  serialNumbers.value.push('');
 };
 
 // Form submission handler
@@ -165,29 +224,14 @@ const onSubmit = async () => {
   emit('submit-success');
 };
 
-// Add line item
-const addItem = () => {
-  formValues.lineItems.push({ id: Date.now(), variantId: null, quantity: 1, price: 0 });
-};
-
-// Remove line item
-const removeItem = (id) => {
-  formValues.lineItems = formValues.lineItems.filter(item => item.id !== id);
-};
-
-// Search filter for variants
-const filterOption = (input, option) => {
-  const optionLabel = typeof option.children === 'string' ? option.children : option.children.toString();
-  return optionLabel.toLowerCase().includes(input.toLowerCase());
-};
-
 // Fetch necessary data when the component is mounted
 onMounted(() => {
-  fetchPurchaseOrderDetails();
+  // Fetch warehouses, products, and stores
   warehouseStore.fetchWarehouses();
   productStore.fetchVariants();
   storeStore.fetchStores();
 });
+fetchPurchaseOrderDetails();
 </script>
 
 <style scoped>

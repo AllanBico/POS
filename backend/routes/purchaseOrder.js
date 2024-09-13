@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Product,PurchaseOrder, PurchaseOrderLineItem, Supplier, Warehouse, Store, Variant } = require('../models/associations');
-const authenticateToken = require("../middleware/auth");
+const authenticateToken = require('../middleware/auth');
 
 // Create a new Purchase Order with Line Items
 router.post('/',authenticateToken, async (req, res) => {

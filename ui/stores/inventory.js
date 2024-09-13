@@ -19,7 +19,7 @@ export const useInventoryStore = defineStore('inventory', {
             const apiUrl = `${config.public.baseURL}/api/inventories`;
 
             try {
-                const { data, error } = await useFetch(apiUrl);
+                const { data, error } = await useFetch(apiUrl, { credentials: 'include' });
                 if (error.value) throw error.value;
                 this.inventories = data.value;
             } catch (error) {
@@ -35,7 +35,10 @@ export const useInventoryStore = defineStore('inventory', {
             const apiUrl = `${config.public.baseURL}/api/inventories/${id}`;
 
             try {
-                const { data, error } = await useFetch(apiUrl, { method: 'GET' });
+                const { data, error } = await useFetch(apiUrl, {
+                    method: 'GET',
+                    credentials: 'include',
+                });
                 if (error.value) throw error.value;
                 this.inventory = data.value;
             } catch (error) {
@@ -55,6 +58,7 @@ export const useInventoryStore = defineStore('inventory', {
                 const { data, error } = await useFetch(apiUrl, {
                     method: 'POST',
                     body: inventory,
+                    credentials: 'include',
                 });
                 if (error.value) throw error.value;
                 this.inventories.push(data.value);
@@ -76,6 +80,7 @@ export const useInventoryStore = defineStore('inventory', {
                 const { data, error } = await useFetch(apiUrl, {
                     method: 'PUT',
                     body: inventory,
+                    credentials: 'include',
                 });
                 if (error.value) throw error.value;
                 const index = this.inventories.findIndex(inv => inv.id === inventory.id);
@@ -97,6 +102,7 @@ export const useInventoryStore = defineStore('inventory', {
             try {
                 const { error } = await useFetch(apiUrl, {
                     method: 'DELETE',
+                    credentials: 'include',
                 });
                 if (error.value) throw error.value;
                 this.inventories = this.inventories.filter(inv => inv.id !== id);

@@ -1,65 +1,100 @@
-// routes/serialNumbers.js
 const express = require('express');
 const router = express.Router();
-const { Product,  SerialNumber } = require('../models/associations');
-const authenticateToken = require("../middleware/auth");
+const { SerialNumber, Variant } = require('../models/associations');
 
-
-// Get all serial numbers
-router.get('/',authenticateToken, async (req, res) => {
+// Create a new serial number
+router.post('/', async (req, res) => {
     try {
-        const serialNumbers = await SerialNumber.findAll({ include: [Product] });
-        res.json(serialNumbers);
+        const { serial, variantId, stockMovementId } = req.body;
+        const newSerialNumber = await SerialNumber.create({ serial, variantId, stockMovementId });
+        res.status(201).json(newSerialNumber);
     } catch (error) {
-        res.status(500).json({ error: 'Failed to retrieve serial numbers' });
-    }
-});
-
-// Get serial number by ID
-router.get('/:id',authenticateToken, async (req, res) => {
-    try {
-        const serialNumber = await SerialNumber.findByPk(req.params.id, { include: [Product] });
-        if (!serialNumber) return res.status(404).json({ error: 'Serial number not found' });
-        res.json(serialNumber);
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to retrieve serial number' });
-    }
-});
-
-// Create a serial number
-router.post('/',authenticateToken, async (req, res) => {
-    try {
-        const { serialNumber, productId, status } = req.body;
-        const newSerialNumber = await SerialNumber.create({ serialNumber, productId, status });
-        res.json(newSerialNumber);
-    } catch (error) {
+        console.error(error);
         res.status(500).json({ error: 'Failed to create serial number' });
     }
 });
 
-// Update a serial number
-router.put('/:id',authenticateToken, async (req, res) => {
+// Get all serial numbers
+router.get('/', async (req, res) => {
     try {
-        const { serialNumber, productId, status } = req.body;
-        const updated = await SerialNumber.update({ serialNumber, productId, status }, {
-            where: { id: req.params.id },
+        const serialNumbers = await SerialNumber.findAll({
+            include: [{ model: Variant }],
         });
-        if (!updated) return res.status(404).json({ error: 'Serial number not found' });
-        res.json({ message: 'Serial number updated' });
+        res.status(200).json(serialNumbers);
     } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve serial numbers' });
+    }
+});
+
+// Get a specific serial number by ID
+router.get('/:id', async (req, res) => {
+    try {
+        const serialNumber = await SerialNumber.findByPk(req.params.id, {
+            include: [{ model: Variant }],
+        });
+        if (!serialNumber) {
+            return res.status(404).json({ error: 'Serial number not found' });
+        }
+        res.status(200).json(serialNumber);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve serial number' });
+    }
+});
+
+// Update a serial number
+router.put('/:id', async (req, res) => {
+    try {
+        const { serial, variantId, stockMovementId } = req.body;
+        const serialNumber = await SerialNumber.findByPk(req.params.id);
+
+        if (!serialNumber) {
+            return res.status(404).json({ error: 'Serial number not found' });
+        }
+
+        await serialNumber.update({ serial, variantId, stockMovementId });
+        res.status(200).json(serialNumber);
+    } catch (error) {
+        console.error(error);
         res.status(500).json({ error: 'Failed to update serial number' });
     }
 });
 
 // Delete a serial number
-router.delete('/:id',authenticateToken, async (req, res) => {
+router.delete('/:id', async (req, res) => {
     try {
-        const deleted = await SerialNumber.destroy({ where: { id: req.params.id } });
-        if (!deleted) return res.status(404).json({ error: 'Serial number not found' });
-        res.json({ message: 'Serial number deleted' });
+        const serialNumber = await SerialNumber.findByPk(req.params.id);
+
+        if (!serialNumber) {
+            return res.status(404).json({ error: 'Serial number not found' });
+        }
+
+        await serialNumber.destroy();
+        res.status(204).send();
     } catch (error) {
+        console.error(error);
         res.status(500).json({ error: 'Failed to delete serial number' });
     }
 });
+
+// Fetch all serial numbers by variantId
+router.get('/variant/:variantId', async (req, res) => {
+    try {
+        const { variantId } = req.params;
+        const serialNumbers = await SerialNumber.findAll({
+            where: { variantId },
+            include: [{ model: Variant }],
+        });
+        if (serialNumbers.length === 0) {
+            return res.status(404).json({ message: 'No serial numbers found for this variant' });
+        }
+        res.status(200).json(serialNumbers);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve serial numbers' });
+    }
+});
+
 
 module.exports = router;

@@ -9,7 +9,7 @@ const SerialNumber = sequelize.define('SerialNumber', {
         primaryKey: true,
         autoIncrement: true,
     },
-    serial: {
+    serialNumber: {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true,

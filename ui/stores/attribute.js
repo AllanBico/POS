@@ -23,7 +23,9 @@ export const useAttributesStore = defineStore('attributes', {
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = config.public.baseURL + '/api/attributes';
-                const { data, error } = await useFetch(apiUrl);
+                const { data, error } = await useFetch(apiUrl, {
+                    credentials: 'include',
+                });
                 if (error.value) throw error.value;
                 this.attributes = data.value;
             } catch (err) {
@@ -35,7 +37,9 @@ export const useAttributesStore = defineStore('attributes', {
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = config.public.baseURL + '/api/attribute-values';
-                const { data, error } = await useFetch(apiUrl);
+                const { data, error } = await useFetch(apiUrl, {
+                    credentials: 'include',
+                });
                 if (error.value) throw error.value;
                 this.attributeValues = data.value;
                 console.log("this.attributeValues",this.attributeValues)
@@ -51,6 +55,7 @@ export const useAttributesStore = defineStore('attributes', {
                 const { data, error } = await useFetch(apiUrl, {
                     method: 'POST',
                     body: attribute,
+                    credentials: 'include',
                 });
                 if (error.value) throw error.value;
                 this.attributes.push(data.value);
@@ -68,6 +73,7 @@ export const useAttributesStore = defineStore('attributes', {
                 const { data, error } = await useFetch(apiUrl, {
                     method: 'POST',
                     body: attributeValue,
+                    credentials: 'include',
                 });
                 if (error.value) throw error.value;
                 this.attributeValues.push(data.value);
@@ -84,6 +90,7 @@ export const useAttributesStore = defineStore('attributes', {
                 const { data, error } = await useFetch(apiUrl, {
                     method: 'PUT',
                     body: attribute,
+                    credentials: 'include',
                 });
                 if (error.value) throw error.value;
                 const index = this.attributes.findIndex(attr => attr.id === id);
@@ -101,6 +108,7 @@ export const useAttributesStore = defineStore('attributes', {
                 const { data, error } = await useFetch(apiUrl, {
                     method: 'PUT',
                     body: attributeValue,
+                    credentials: 'include',
                 });
                 if (error.value) throw error.value;
                 const index = this.attributeValues.findIndex(value => value.id === id);
@@ -117,6 +125,7 @@ export const useAttributesStore = defineStore('attributes', {
                 const apiUrl = config.public.baseURL + `/api/attributes/${id}`;
                 const { error } = await useFetch(apiUrl, {
                     method: 'DELETE',
+                    credentials: 'include',
                 });
                 if (error.value) throw error.value;
                 this.attributes = this.attributes.filter(attr => attr.id !== id);
@@ -132,6 +141,7 @@ export const useAttributesStore = defineStore('attributes', {
                 const apiUrl = config.public.baseURL + `/api/attribute-values/${id}`;
                 const { error } = await useFetch(apiUrl, {
                     method: 'DELETE',
+                    credentials: 'include',
                 });
                 if (error.value) throw error.value;
                 this.attributeValues = this.attributeValues.filter(value => value.id !== id);

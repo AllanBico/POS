@@ -10,7 +10,7 @@ export const useWarehouseStore = defineStore('warehouse', {
     actions: {
         async fetchWarehouses() {
             const config = useRuntimeConfig();
-            const { data, error } = await useFetch(`${config.public.baseURL}/api/warehouses`);
+            const { data, error } = await useFetch(`${config.public.baseURL}/api/warehouses`, {credentials: 'include'});
             if (error.value) throw error.value;
             this.warehouses = data.value;
         },
@@ -20,6 +20,7 @@ export const useWarehouseStore = defineStore('warehouse', {
             const { data, error } = await useFetch(`${config.public.baseURL}/api/warehouses`, {
                 method: 'POST',
                 body: warehouse,
+                credentials: 'include',
             });
             if (error.value) throw error.value;
             this.warehouses.push(data.value);
@@ -31,6 +32,7 @@ export const useWarehouseStore = defineStore('warehouse', {
             const { data, error } = await useFetch(`${config.public.baseURL}/api/warehouses/${id}`, {
                 method: 'PUT',
                 body: warehouse,
+                credentials: 'include',
             });
             if (error.value) throw error.value;
             this.warehouses = this.warehouses.map(w => (w.id === id ? data.value : w));
@@ -41,6 +43,7 @@ export const useWarehouseStore = defineStore('warehouse', {
             const config = useRuntimeConfig();
             const { error } = await useFetch(`${config.public.baseURL}/api/warehouses/${id}`, {
                 method: 'DELETE',
+                credentials: 'include',
             });
             if (error.value) throw error.value;
             this.warehouses = this.warehouses.filter(w => w.id !== id);

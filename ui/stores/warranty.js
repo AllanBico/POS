@@ -13,14 +13,14 @@ export const useWarrantyStore = defineStore('warranty', {
     actions: {
         async fetchWarranties() {
             const config = useRuntimeConfig();
-            const { data, error } = await useFetch(`${config.public.baseURL}/api/warranties`);
+            const { data, error } = await useFetch(`${config.public.baseURL}/api/warranties`,{credentials: 'include'});
             if (error.value) throw error.value;
             this.warranties = data.value;
         },
 
         async fetchWarranty(id) {
             const config = useRuntimeConfig();
-            const { data, error } = await useFetch(`${config.public.baseURL}/api/warranties/${id}`);
+            const { data, error } = await useFetch(`${config.public.baseURL}/api/warranties/${id}`,{credentials: 'include'});
             if (error.value) throw error.value;
             this.warranty = data.value;
         },
@@ -30,6 +30,7 @@ export const useWarrantyStore = defineStore('warranty', {
             const { data, error } = await useFetch(`${config.public.baseURL}/api/warranties`, {
                 method: 'POST',
                 body: warranty,
+                credentials: 'include',
             });
             if (error.value) throw error.value;
             this.warranties.push(data.value);
@@ -40,6 +41,7 @@ export const useWarrantyStore = defineStore('warranty', {
             const { data, error } = await useFetch(`${config.public.baseURL}/api/warranties/${id}`, {
                 method: 'PUT',
                 body: warranty,
+                credentials: 'include',
             });
             if (error.value) throw error.value;
             const index = this.warranties.findIndex(w => w.id === id);
@@ -50,6 +52,7 @@ export const useWarrantyStore = defineStore('warranty', {
             const config = useRuntimeConfig();
             const { error } = await useFetch(`${config.public.baseURL}/api/warranties/${id}`, {
                 method: 'DELETE',
+                credentials: 'include',
             });
             if (error.value) throw error.value;
             this.warranties = this.warranties.filter(w => w.id !== id);

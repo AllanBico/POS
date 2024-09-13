@@ -17,6 +17,7 @@ router.post('/', asyncHandler(async (req, res) => {
     try {
         const category = await Category.create({ name, description });
         res.status(201).json(category);
+        console.log("socket Id",req)
         req.io.emit('newCategory', category);
     } catch (error) {
         console.error('Error creating category:', error);
@@ -63,6 +64,7 @@ router.put('/:id', asyncHandler(async (req, res) => {
     if (description) category.description = description;
     await category.save();
     res.status(200).json(category);
+
     req.io.emit('updateCategory', category);
 }));
 

@@ -21,6 +21,16 @@ const Unit = sequelize.define('Unit', {
         type: DataTypes.TEXT,
         allowNull: true,
     },
+    createdBy: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'users', // Name of your users table
+            key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
+    },
 }, {
     timestamps: true,
     paranoid: true,

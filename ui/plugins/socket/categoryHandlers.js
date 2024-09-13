@@ -4,6 +4,7 @@ export const setupCategoryHandlers = (socket) => {
     const categoryStore = useCategoryStore();
     const subCategoryStore = useSubcategoryStore();
     socket.on('newCategory', async (category) => {
+        console.log("socket category",category)
         await categoryStore.socketCreateCategory(category);
     });
 

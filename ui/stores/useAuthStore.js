@@ -1,28 +1,36 @@
 import { defineStore } from 'pinia';
-import {jwtDecode} from 'jwt-decode';
 import { ref } from 'vue';
-import { useRuntimeConfig } from '#app'; // For Nuxt config access
+import { useRuntimeConfig, useCookie } from '#app'; // For Nuxt config and cookies
 import { useFetch } from '#app'; // For useFetch
-import nuxtStorage from 'nuxt-storage';
+
 export const useAuthStore = defineStore('auth', () => {
-    const token = ref(nuxtStorage.localStorage.getData('token') || null);
-    const user = ref(nuxtStorage.localStorage.getData('user') || null);
+    // Use cookies to store the token and user information
+    const tokenCookie = useCookie('token');
+    const userCookie = useCookie('user');
+
+    const token = ref(tokenCookie.value || null);
+    const user = ref(userCookie.value || null);
     const isAuthenticated = ref(!!token.value);
     const error = ref(null);
 
     const setToken = (newToken) => {
+        // Save the token and user in cookies
         token.value = newToken.token;
-        nuxtStorage.localStorage.setData('token', newToken.token, 4, 'h');
-        nuxtStorage.localStorage.setData('user', newToken.user, 4, 'h');
+        tokenCookie.value = newToken.token;
+
         user.value = newToken.user;
+        userCookie.value = newToken.user;
+
         isAuthenticated.value = true;
     };
 
     const removeToken = () => {
         token.value = null;
         user.value = null;
-        nuxtStorage.localStorage.removeItem('token');
-        nuxtStorage.localStorage.removeItem('user');
+
+        // Remove token and user from cookies
+        tokenCookie.value = null;
+        userCookie.value = null;
 
         isAuthenticated.value = false;
     };
@@ -39,8 +47,8 @@ export const useAuthStore = defineStore('auth', () => {
             });
 
             if (fetchError.value) {
-                console.log("error.value",fetchError.value.statusCode)
-                console.log("error.value.data",fetchError.value.data.error)
+                console.log("error.value", fetchError.value.statusCode);
+                console.log("error.value.data", fetchError.value.data.error);
                 console.error('Fetch error:', fetchError.value);
                 error.value = fetchError.value.data?.error || fetchError.value.message || 'An error occurred';
                 return;
@@ -49,8 +57,8 @@ export const useAuthStore = defineStore('auth', () => {
             // Store the token and user data received from the backend
             setToken(data.value);
             error.value = null;
-            console.log("login end")
-            navigateTo('/users')
+            console.log("login end");
+            navigateTo('/users');
 
         } catch (err) {
             console.error('Login error:', err);

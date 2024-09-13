@@ -1,35 +1,35 @@
 const express = require('express');
 const router = express.Router();
-const  Unit  = require('../models/unit'); // Adjust the path as necessary
-
+const Unit = require('../models/unit');
 const asyncHandler = fn => (req, res, next) =>
     Promise.resolve(fn(req, res, next)).catch(next);
+const authenticateToken = require('../middleware/auth');
 
-// Create a unit
-router.post('/', asyncHandler(async (req, res) => {
+// Create a unit (requires authentication)
+router.post('/', authenticateToken, asyncHandler(async (req, res) => {
     const { name, abbreviation, description } = req.body;
-
+    const createdBy = req.user.id;
     if (!name || !abbreviation || !description) {
         return res.status(400).json({ error: 'Name, abbreviation, and description are required' });
     }
 
     try {
-        const unit = await Unit.create({ name, abbreviation, description });
+        const unit = await Unit.create({ name, abbreviation, description,createdBy });
         res.status(201).json(unit);
-        req.io.emit('newUnit', unit);
+        req.io.sockets.sockets.get(req.user.socketId)?.broadcast.emit('newUnit', unit);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
 }));
 
-// Get all units
-router.get('/', asyncHandler(async (req, res) => {
+// Get all units (requires authentication)
+router.get('/', authenticateToken, asyncHandler(async (req, res) => {
     const units = await Unit.findAll();
     res.status(200).json(units);
 }));
 
-// Get a single unit by ID
-router.get('/:id', asyncHandler(async (req, res) => {
+// Get a single unit by ID (requires authentication)
+router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
     const id = req.params.id;
     if (isNaN(parseInt(id))) {
         return res.status(400).json({ error: 'Invalid unit ID' });
@@ -40,8 +40,8 @@ router.get('/:id', asyncHandler(async (req, res) => {
     res.status(200).json(unit);
 }));
 
-// Update a unit
-router.put('/:id', asyncHandler(async (req, res) => {
+// Update a unit (requires authentication)
+router.put('/:id', authenticateToken, asyncHandler(async (req, res) => {
     const { name, abbreviation, description } = req.body;
     const id = req.params.id;
     if (isNaN(parseInt(id))) {
@@ -60,8 +60,8 @@ router.put('/:id', asyncHandler(async (req, res) => {
     req.io.emit('updateUnit', unit);
 }));
 
-// Delete a unit
-router.delete('/:id', asyncHandler(async (req, res) => {
+// Delete a unit (requires authentication)
+router.delete('/:id', authenticateToken, asyncHandler(async (req, res) => {
     const id = req.params.id;
     if (isNaN(parseInt(id))) {
         return res.status(400).json({ error: 'Invalid unit ID' });

@@ -1,10 +1,12 @@
 const express = require('express');
 const winston = require('winston');
+const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const http = require('http'); // Import http module
 const { Server } = require('socket.io'); // Import Socket.IO
 require('./models/associations');
+const cookieParser = require('cookie-parser');
 // Import Sequelize model
 const Log = require('./models/log');
 
@@ -46,15 +48,18 @@ const io = new Server(server, {
     cors: {
         origin: 'http://localhost:3000', // Allow this origin to make requests
         methods: ['GET', 'POST'],
+        credentials: true // Allow credentials (cookies) to be sent
     },
 });
 
 // Middleware to parse JSON bodies
 app.use(express.json());
-
+app.use(cookieParser());
 // Configure CORS
 app.use(cors({
     origin: 'http://localhost:3000',
+    methods: 'GET,POST,PUT,DELETE,OPTIONS',
+    credentials: true // Allow credentials (cookies) to be sent
 }));
 
 // Configure Winston logger
@@ -122,6 +127,25 @@ app.use('/api/purchase-orders', purchaseOrderRoutes);
 app.use('/api/goods-received', goodsReceivedRoutes);
 
 // Listen for Socket.IO connections
+io.use((socket, next) => {
+    const token = socket.handshake.auth?.token || socket.handshake.headers?.token; // Extract token from handshake auth
+    console.log("socket token",token)
+    if (!token) {
+        console.log('No token provided');
+        return next(new Error('Authentication error'));
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+        if (err) {
+            console.log('Token is invalid:', err.message);
+            return next(new Error('Authentication error'));
+        }
+        // Attach user info to socket object if the token is valid
+        socket.user = decoded;
+        socket.request.socketId = socket.id;
+        next(); // Proceed with the connection
+    });
+});
 io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
 

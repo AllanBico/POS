@@ -8,10 +8,13 @@ export const setupSocketClient = () => {
     // Create and configure the Socket.IO client instance
     const socket = io(socketUrl, {
         transports: ['websocket'], // Use WebSocket transport
+        auth: {
+            token: useCookie('token').value // Extract the value of the token
+        },
     });
 
     socket.on('connect', () => {
-        console.log('Connected to the Socket.IO server');
+        console.log('Connected to the Socket.IO server',socket.id);
     });
 
     socket.on('disconnect', () => {

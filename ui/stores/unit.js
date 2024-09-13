@@ -22,7 +22,7 @@ export const useUnitStore = defineStore('unit', {
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/units`;
-                const { data, error } = await useFetch(apiUrl);
+                const { data, error } = await useFetch(apiUrl,{credentials: 'include'});
                 if (error.value) {
                     console.error('Error fetching units:', error.value);
                     throw error.value;
@@ -45,6 +45,7 @@ export const useUnitStore = defineStore('unit', {
                 const { data, error } = await useFetch(apiUrl, {
                     method: 'POST',
                     body: unit,
+                    credentials: 'include'
                 });
                 if (error.value) {
                     console.error('Error creating unit:', error.value);
@@ -68,6 +69,7 @@ export const useUnitStore = defineStore('unit', {
                 const { data, error } = await useFetch(apiUrl, {
                     method: 'PUT',
                     body: updatedUnit,
+                    credentials: 'include'
                 });
                 if (error.value) {
                     console.error('Error updating unit:', error.value);
@@ -93,6 +95,7 @@ export const useUnitStore = defineStore('unit', {
                 const apiUrl = `${config.public.baseURL}/api/units/${id}`;
                 const { error } = await useFetch(apiUrl, {
                     method: 'DELETE',
+                    credentials: 'include'
                 });
                 if (error.value) {
                     console.error('Error deleting unit:', error.value);

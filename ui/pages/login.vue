@@ -34,6 +34,9 @@
   </a-form>
 </template>
 <script setup>
+definePageMeta({
+  layout: 'custom'
+})
 import { reactive } from 'vue';
 import { useAuthStore } from '~/stores/useAuthStore.js';
 

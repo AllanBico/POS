@@ -1,5 +1,6 @@
 const express = require('express');
 const Warranty = require('../models/warranty');
+const authenticateToken = require("../middleware/auth");
 
 const router = express.Router();
 
@@ -7,7 +8,7 @@ const asyncHandler = fn => (req, res, next) =>
     Promise.resolve(fn(req, res, next)).catch(next);
 
 // Get all warranties
-router.get('/', asyncHandler(async (req, res) => {
+router.get('/', authenticateToken, asyncHandler(async (req, res) => {
     const warranties = await Warranty.findAll();
     if (!warranties) {
         return res.status(404).json({error: 'No warranties found'});
@@ -16,7 +17,7 @@ router.get('/', asyncHandler(async (req, res) => {
 }));
 
 // Get a single warranty by ID
-router.get('/:id', asyncHandler(async (req, res) => {
+router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
     const id = req.params.id;
     if (!id) {
         return res.status(400).json({error: 'Missing warranty ID'});
@@ -30,7 +31,7 @@ router.get('/:id', asyncHandler(async (req, res) => {
 }));
 
 // Create a new warranty
-router.post('/', asyncHandler(async (req, res) => {
+router.post('/', authenticateToken, asyncHandler(async (req, res) => {
     const {name, duration, periods, description, status} = req.body;
     if (!name || !duration || !periods || !description || status === undefined) {
         return res.status(400).json({error: 'Missing required fields'});
@@ -45,7 +46,7 @@ router.post('/', asyncHandler(async (req, res) => {
 }));
 
 // Update a warranty
-router.put('/:id', asyncHandler(async (req, res) => {
+router.put('/:id', authenticateToken, asyncHandler(async (req, res) => {
     const id = req.params.id;
     if (!id) {
         return res.status(400).json({error: 'Missing warranty ID'});
@@ -73,7 +74,7 @@ router.put('/:id', asyncHandler(async (req, res) => {
 }));
 
 // Delete a warranty
-router.delete('/:id', asyncHandler(async (req, res) => {
+router.delete('/:id', authenticateToken, asyncHandler(async (req, res) => {
     const id = req.params.id;
     if (!id) {
         return res.status(400).json({error: 'Missing warranty ID'});

@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { Product,PurchaseOrder, PurchaseOrderLineItem, Supplier, Warehouse, Store, Variant } = require('../models/associations');
+const authenticateToken = require("../middleware/auth");
 
 // Create a new Purchase Order with Line Items
-router.post('/', async (req, res) => {
+router.post('/',authenticateToken, async (req, res) => {
     const { supplierId, warehouseId, storeId, orderDate, expectedDeliveryDate, status, totalAmount, lineItems } = req.body;
     console.log("supplierId, warehouseId, storeId, orderDate, expectedDeliveryDate, status, totalAmount, lineItems",supplierId, warehouseId, storeId, orderDate, expectedDeliveryDate, status, totalAmount, lineItems)
     const requiredFields = [
@@ -70,7 +71,7 @@ router.post('/', async (req, res) => {
 });
 
 // Get all Purchase Orders with Line Items and Product details
-router.get('/', async (req, res) => {
+router.get('/',authenticateToken, async (req, res) => {
     try {
         const purchaseOrders = await PurchaseOrder.findAll({
             include: [
@@ -105,7 +106,7 @@ router.get('/', async (req, res) => {
 
 
 // Get a single Purchase Order by ID with Line Items
-router.get('/:id', async (req, res) => {
+router.get('/:id',authenticateToken, async (req, res) => {
     const { id } = req.params;
 
     try {
@@ -135,7 +136,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Update a Purchase Order and its Line Items, then return the updated data
-router.put('/:id', async (req, res) => {
+router.put('/:id',authenticateToken, async (req, res) => {
     const { id } = req.params;
     const { supplierId, warehouseId, storeId, orderDate, expectedDeliveryDate, status, totalAmount, lineItems } = req.body;
 
@@ -241,7 +242,7 @@ router.put('/:id', async (req, res) => {
 
 
 // Delete a Purchase Order and its Line Items
-router.delete('/:id', async (req, res) => {
+router.delete('/:id',authenticateToken, async (req, res) => {
     const { id } = req.params;
 
     try {

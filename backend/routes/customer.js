@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const  Customer  = require('../models/customer');
+const authenticateToken = require("../middleware/auth");
 
 // Create a new customer
-router.post('/', async (req, res) => {
+router.post('/',authenticateToken, async (req, res) => {
     if (!req.body) {
         return res.status(400).json({ error: 'Missing request body' });
     }
@@ -17,7 +18,7 @@ router.post('/', async (req, res) => {
 });
 
 // Get all customers
-router.get('/', async (req, res) => {
+router.get('/',authenticateToken, async (req, res) => {
     try {
         const customers = await Customer.findAll();
         res.status(200).json(customers);
@@ -27,7 +28,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get a specific customer by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id',authenticateToken, async (req, res) => {
     if (isNaN(parseInt(req.params.id))) {
         return res.status(400).json({ error: 'Invalid customer ID' });
     }
@@ -42,7 +43,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Update a customer
-router.put('/:id', async (req, res) => {
+router.put('/:id',authenticateToken, async (req, res) => {
     if (isNaN(parseInt(req.params.id))) {
         return res.status(400).json({ error: 'Invalid customer ID' });
     }
@@ -63,7 +64,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete a customer
-router.delete('/:id', async (req, res) => {
+router.delete('/:id',authenticateToken, async (req, res) => {
     if (isNaN(parseInt(req.params.id))) {
         return res.status(400).json({ error: 'Invalid customer ID' });
     }

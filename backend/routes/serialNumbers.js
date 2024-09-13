@@ -2,10 +2,11 @@
 const express = require('express');
 const router = express.Router();
 const { Product,  SerialNumber } = require('../models/associations');
+const authenticateToken = require("../middleware/auth");
 
 
 // Get all serial numbers
-router.get('/', async (req, res) => {
+router.get('/',authenticateToken, async (req, res) => {
     try {
         const serialNumbers = await SerialNumber.findAll({ include: [Product] });
         res.json(serialNumbers);
@@ -15,7 +16,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get serial number by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id',authenticateToken, async (req, res) => {
     try {
         const serialNumber = await SerialNumber.findByPk(req.params.id, { include: [Product] });
         if (!serialNumber) return res.status(404).json({ error: 'Serial number not found' });
@@ -26,7 +27,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create a serial number
-router.post('/', async (req, res) => {
+router.post('/',authenticateToken, async (req, res) => {
     try {
         const { serialNumber, productId, status } = req.body;
         const newSerialNumber = await SerialNumber.create({ serialNumber, productId, status });
@@ -37,7 +38,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update a serial number
-router.put('/:id', async (req, res) => {
+router.put('/:id',authenticateToken, async (req, res) => {
     try {
         const { serialNumber, productId, status } = req.body;
         const updated = await SerialNumber.update({ serialNumber, productId, status }, {
@@ -51,7 +52,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete a serial number
-router.delete('/:id', async (req, res) => {
+router.delete('/:id',authenticateToken, async (req, res) => {
     try {
         const deleted = await SerialNumber.destroy({ where: { id: req.params.id } });
         if (!deleted) return res.status(404).json({ error: 'Serial number not found' });

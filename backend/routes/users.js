@@ -3,8 +3,9 @@ const router = express.Router();
 const User = require('../models/user'); // Adjust based on your database setup
 const bcrypt = require('bcrypt');
 const authMiddleware = require('../middleware/auth');
+const authenticateToken = require("../middleware/auth");
 // Get all users
-router.get('/', async (req, res) => {
+router.get('/',authenticateToken, async (req, res) => {
     try {
         const users = await User.findAll(); // Use Sequelize or your DB library
         res.json(users);
@@ -15,7 +16,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get a specific user by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id',authenticateToken, async (req, res) => {
     try {
         const user = await User.findByPk(req.params.id); // Use Sequelize or your DB library
         if (user) {
@@ -30,7 +31,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create a new user
-router.post('/', async (req, res) => {
+router.post('/',authenticateToken, async (req, res) => {
     try {
         const { name, email, password } = req.body;
 
@@ -57,7 +58,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update a user
-router.put('/:id', async (req, res) => {
+router.put('/:id',authenticateToken, async (req, res) => {
     const { name, email, password } = req.body;
     console.log("name, email, password",name, email, password)
     try {
@@ -98,7 +99,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete a user
-router.delete('/:id', async (req, res) => {
+router.delete('/:id',authenticateToken, async (req, res) => {
     try {
         const { id } = req.params;
         const deletedUser = await User.destroy({ where: { id } });

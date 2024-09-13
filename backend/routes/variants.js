@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const { Product, Variant, Category, Subcategory, Unit, Attribute, AttributeValue, VariantAttributeValue } = require('../models/associations');
+const authenticateToken = require("../middleware/auth");
 
 
 // Create a Variant
-router.post('/', async (req, res) => {
+router.post('/',authenticateToken, async (req, res) => {
     try {
         const { sku, price, stockQuantity, productId } = req.body;
         const variant = await Variant.create({ sku, price, stockQuantity, productId });
@@ -15,7 +16,7 @@ router.post('/', async (req, res) => {
 });
 
 // Get all Variants
-router.get('/', async (req, res) => {
+router.get('/',authenticateToken, async (req, res) => {
     try {
         const variants = await Variant.findAll({
             include: [
@@ -49,7 +50,7 @@ router.get('/', async (req, res) => {
 
 
 // Get a Variant by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id',authenticateToken, async (req, res) => {
     try {
         const variant = await Variant.findByPk(req.params.id, {
             include: [{ model: VariantAttributeValue, as: 'variantAttributeValues' }]
@@ -65,7 +66,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Update a Variant
-router.put('/:id', async (req, res) => {
+router.put('/:id',authenticateToken, async (req, res) => {
     try {
         const { sku, price, stockQuantity, productId } = req.body;
         const [updated] = await Variant.update({ sku, price, stockQuantity, productId }, {
@@ -83,7 +84,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete a Variant
-router.delete('/:id', async (req, res) => {
+router.delete('/:id',authenticateToken, async (req, res) => {
     try {
         const deleted = await Variant.destroy({
             where: { id: req.params.id }

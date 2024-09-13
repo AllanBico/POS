@@ -16,7 +16,7 @@ router.post('/', authenticateToken, asyncHandler(async (req, res) => {
     try {
         const unit = await Unit.create({ name, abbreviation, description,createdBy });
         res.status(201).json(unit);
-        req.io.sockets.sockets.get(req.user.socketId)?.broadcast.emit('newUnit', unit);
+        req.io.emit('newUnit', unit);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }

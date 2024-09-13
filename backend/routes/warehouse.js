@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const  Warehouse  = require('../models/warehouse');
+const authenticateToken = require("../middleware/auth");
 
 // Create a new warehouse
-router.post('/', async (req, res) => {
+router.post('/',authenticateToken, async (req, res) => {
     if (!req.body.name || !req.body.location || !req.body.description) {
         return res.status(400).json({ error: 'Missing required fields' });
     }
@@ -17,7 +18,7 @@ router.post('/', async (req, res) => {
 });
 
 // Get all warehouses
-router.get('/', async (req, res) => {
+router.get('/',authenticateToken, async (req, res) => {
     try {
         const warehouses = await Warehouse.findAll();
         res.status(200).json(warehouses);
@@ -27,7 +28,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get a specific warehouse by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id',authenticateToken, async (req, res) => {
     if (isNaN(parseInt(req.params.id))) {
         return res.status(400).json({ error: 'Invalid warehouse ID' });
     }
@@ -42,7 +43,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Update a warehouse
-router.put('/:id', async (req, res) => {
+router.put('/:id',authenticateToken, async (req, res) => {
     if (!req.body.name || !req.body.location || !req.body.description) {
         return res.status(400).json({ error: 'Missing required fields' });
     }
@@ -59,7 +60,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete a warehouse
-router.delete('/:id', async (req, res) => {
+router.delete('/:id',authenticateToken, async (req, res) => {
     if (isNaN(parseInt(req.params.id))) {
         return res.status(400).json({ error: 'Invalid warehouse ID' });
     }

@@ -1,6 +1,7 @@
 // routes/subcategory.js
 const express = require('express');
 const {  Category, Subcategory } = require('../models/associations');
+const authenticateToken = require("../middleware/auth");
 
 const router = express.Router();
 
@@ -9,7 +10,7 @@ const asyncHandler = fn => (req, res, next) =>
     Promise.resolve(fn(req, res, next)).catch(next);
 
 // Create a subcategory
-router.post('/', async (req, res) => {
+router.post('/', authenticateToken,async (req, res) => {
     try {
         const { name, description, categoryId } = req.body;
 
@@ -47,7 +48,7 @@ router.post('/', async (req, res) => {
 });
 
 // Get all subcategories
-router.get('/', async (req, res) => {
+router.get('/', authenticateToken,async (req, res) => {
     try {
         const subcategories = await Subcategory.findAll({
             include: {
@@ -63,7 +64,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get a single subcategory by ID
-router.get('/:id', asyncHandler(async (req, res) => {
+router.get('/:id', authenticateToken,asyncHandler(async (req, res) => {
     if (!req.params.id) {
         return res.status(400).json({ error: 'Subcategory ID is required' });
     }
@@ -74,7 +75,7 @@ router.get('/:id', asyncHandler(async (req, res) => {
 }));
 
 // Update a subcategory by ID
-router.put('/:id', asyncHandler(async (req, res) => {
+router.put('/:id', authenticateToken,asyncHandler(async (req, res) => {
     if (!req.params.id) {
         return res.status(400).json({ error: 'Subcategory ID is required' });
     }
@@ -112,7 +113,7 @@ router.put('/:id', asyncHandler(async (req, res) => {
 }));
 
 // Delete a subcategory by ID
-router.delete('/:id', asyncHandler(async (req, res) => {
+router.delete('/:id', authenticateToken,asyncHandler(async (req, res) => {
     if (!req.params.id) {
         return res.status(400).json({ error: 'Subcategory ID is required' });
     }

@@ -1,7 +1,7 @@
 // routes/category.js
 const express = require('express');
 const {  Category } = require('../models/associations');
-
+const authenticateToken = require('../middleware/auth');
 const router = express.Router();
 
 // Error handling middleware
@@ -9,7 +9,7 @@ const asyncHandler = fn => (req, res, next) =>
     Promise.resolve(fn(req, res, next)).catch(next);
 
 // Create a category
-router.post('/', asyncHandler(async (req, res) => {
+router.post('/', authenticateToken,asyncHandler(async (req, res) => {
     const { name, description } = req.body;
     if (!name ) {
         return res.status(400).json({ error: 'Name is required' });
@@ -26,7 +26,7 @@ router.post('/', asyncHandler(async (req, res) => {
 }));
 
 // Get all categories
-router.get('/', asyncHandler(async (req, res) => {
+router.get('/', authenticateToken, asyncHandler(async (req, res) => {
 
     try {
         const categories = await Category.findAll(); // Use Sequelize or your DB library
@@ -38,7 +38,7 @@ router.get('/', asyncHandler(async (req, res) => {
 }));
 
 // Get a single category by ID
-router.get('/:id', asyncHandler(async (req, res) => {
+router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) {
         return res.status(400).json({ error: 'Invalid category ID' });
@@ -50,7 +50,7 @@ router.get('/:id', asyncHandler(async (req, res) => {
 }));
 
 // Update a category by ID
-router.put('/:id', asyncHandler(async (req, res) => {
+router.put('/:id', authenticateToken, asyncHandler(async (req, res) => {
     const { name, description } = req.body;
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) {
@@ -69,7 +69,7 @@ router.put('/:id', asyncHandler(async (req, res) => {
 }));
 
 // Delete a category by ID
-router.delete('/:id', asyncHandler(async (req, res) => {
+router.delete('/:id', authenticateToken, asyncHandler(async (req, res) => {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) {
         return res.status(400).json({ error: 'Invalid category ID' });

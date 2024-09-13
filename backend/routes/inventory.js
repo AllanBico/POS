@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const { Product, Variant, Category, Subcategory, Brand, Unit, Attribute, AttributeValue, Inventory,  VariantAttributeValue, Warehouse, Store } = require('../models/associations');
+const authenticateToken = require("../middleware/auth");
 
 
 // Fetch all inventory records
-router.get('/', async (req, res) => {
+router.get('/',authenticateToken, async (req, res) => {
     try {
         // Find all inventory records including related models
         const inventories = await Inventory.findAll({
@@ -90,7 +91,7 @@ router.get('/', async (req, res) => {
 
 
 // Fetch a specific inventory record
-router.get('/:id', async (req, res) => {
+router.get('/:id',authenticateToken, async (req, res) => {
     try {
         const inventory = await Inventory.findByPk(req.params.id, {
             include: [
@@ -109,7 +110,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create a new inventory record
-router.post('/', async (req, res) => {
+router.post('/',authenticateToken, async (req, res) => {
     try {
         const { variantId, warehouseId, storeId, quantity, minimumStock, reorderPoint, costPrice } = req.body;
         const newInventory = await Inventory.create({
@@ -128,7 +129,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update an inventory record
-router.put('/:id', async (req, res) => {
+router.put('/:id',authenticateToken, async (req, res) => {
     try {
         const { quantity, minimumStock, reorderPoint, costPrice } = req.body;
         const inventory = await Inventory.findByPk(req.params.id);
@@ -150,7 +151,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete an inventory record
-router.delete('/:id', async (req, res) => {
+router.delete('/:id',authenticateToken, async (req, res) => {
     try {
         const inventory = await Inventory.findByPk(req.params.id);
         if (!inventory) {

@@ -10,7 +10,9 @@ export default defineNuxtConfig({
       baseURL: process.env.BASE_URL || 'http://localhost:4000',
     },
   },
-
+  css: [
+    '@/assets/styles/ant-theme.less',  // Custom Ant Design theme
+  ],
   pwa: {
     manifest: {
       name: 'Nuxt 3 Inventory & POS',

@@ -1,18 +1,19 @@
 const express = require('express');
 const { Product, Variant} = require('../models/associations');
+const authenticateToken = require("../middleware/auth");
 
 const router = express.Router();
 const asyncHandler = fn => (req, res, next) =>
     Promise.resolve(fn(req, res, next)).catch(next);
 // Create a new product variant
-router.post('/', asyncHandler(async (req, res) => {
+router.post('/', authenticateToken,asyncHandler(async (req, res) => {
     const { productId, priceOverride, sku, stockQuantity } = req.body;
     const variant = await Variant.create({ productId, priceOverride, sku, stockQuantity });
     res.status(201).json(variant);
 }));
 
 // Get all product variants
-router.get('/', asyncHandler(async (req, res) => {
+router.get('/', authenticateToken, asyncHandler(async (req, res) => {
     const variants = await Variant.findAll({
         include: [{ model: Product, attributes: ['name'] }],
     });
@@ -20,7 +21,7 @@ router.get('/', asyncHandler(async (req, res) => {
 }));
 
 // Get a product variant by ID
-router.get('/:id', asyncHandler(async (req, res) => {
+router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
     const variant = await Variant.findByPk(req.params.id, {
         include: [{ model: Product, attributes: ['name'] }],
     });
@@ -29,7 +30,7 @@ router.get('/:id', asyncHandler(async (req, res) => {
 }));
 
 // Update a product variant
-router.put('/:id', asyncHandler(async (req, res) => {
+router.put('/:id', authenticateToken, asyncHandler(async (req, res) => {
     const { productId, priceOverride, sku, stockQuantity } = req.body;
     const variant = await Variant.findByPk(req.params.id);
     if (!variant) return res.status(404).json({ error: 'Variant not found' });
@@ -43,7 +44,7 @@ router.put('/:id', asyncHandler(async (req, res) => {
 }));
 
 // Delete a product variant
-router.delete('/:id', asyncHandler(async (req, res) => {
+router.delete('/:id', authenticateToken, asyncHandler(async (req, res) => {
     const variant = await Variant.findByPk(req.params.id);
     if (!variant) return res.status(404).json({ error: 'Variant not found' });
     await variant.destroy();

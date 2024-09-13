@@ -1,11 +1,12 @@
 const express = require('express');
 const {  Variant,  AttributeValue,  VariantAttributeValue } = require('../models/associations');
+const authenticateToken = require("../middleware/auth");
 
 const router = express.Router();
 const asyncHandler = fn => (req, res, next) =>
     Promise.resolve(fn(req, res, next)).catch(next);
 // Create a new variant attribute value
-router.post('/', asyncHandler(async (req, res) => {
+router.post('/', authenticateToken, asyncHandler(async (req, res) => {
     const { variantId, attributeValueId } = req.body;
     console.log("variantId, attributeValueId",variantId, attributeValueId)
     const variantAttributeValue = await VariantAttributeValue.create({ variantId, attributeValueId });
@@ -13,7 +14,7 @@ router.post('/', asyncHandler(async (req, res) => {
 }));
 
 // Get all variant attribute values
-router.get('/', asyncHandler(async (req, res) => {
+router.get('/',authenticateToken, asyncHandler(async (req, res) => {
     const variantAttributeValues = await VariantAttributeValue.findAll({
         include: [
             { model: Variant, attributes: ['sku'] },
@@ -24,7 +25,7 @@ router.get('/', asyncHandler(async (req, res) => {
 }));
 
 // Get a variant attribute value by ID
-router.get('/:id', asyncHandler(async (req, res) => {
+router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
     const variantAttributeValue = await VariantAttributeValue.findByPk(req.params.id, {
         include: [
             { model: Variant, attributes: ['sku'] },
@@ -36,7 +37,7 @@ router.get('/:id', asyncHandler(async (req, res) => {
 }));
 
 // Update a variant attribute value
-router.put('/:id', asyncHandler(async (req, res) => {
+router.put('/:id', authenticateToken, asyncHandler(async (req, res) => {
     const { variantId, attributeValueId } = req.body;
     const variantAttributeValue = await VariantAttributeValue.findByPk(req.params.id);
     if (!variantAttributeValue) return res.status(404).json({ error: 'Variant Attribute Value not found' });
@@ -48,7 +49,7 @@ router.put('/:id', asyncHandler(async (req, res) => {
 }));
 
 // Delete a variant attribute value
-router.delete('/:id', asyncHandler(async (req, res) => {
+router.delete('/:id', authenticateToken, asyncHandler(async (req, res) => {
     const variantAttributeValue = await VariantAttributeValue.findByPk(req.params.id);
     if (!variantAttributeValue) return res.status(404).json({ error: 'Variant Attribute Value not found' });
     await variantAttributeValue.destroy();

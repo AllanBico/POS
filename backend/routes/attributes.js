@@ -1,13 +1,13 @@
 const express = require('express');
 const {  Attribute } = require('../models/associations');
-
+const authenticateToken = require('../middleware/auth');
 
 const router = express.Router();
 const asyncHandler = fn => (req, res, next) =>
     Promise.resolve(fn(req, res, next)).catch(next);
 
 // Create Attribute
-router.post('/', asyncHandler(async (req, res) => {
+router.post('/', authenticateToken, asyncHandler(async (req, res) => {
     const { name, description } = req.body;
 
     if (!name) {
@@ -20,13 +20,13 @@ router.post('/', asyncHandler(async (req, res) => {
 }));
 
 // Get All Attributes
-router.get('/', asyncHandler(async (req, res) => {
+router.get('/', authenticateToken, asyncHandler(async (req, res) => {
     const attributes = await Attribute.findAll();
     res.json(attributes);
 }));
 
 // Get Single Attribute by ID
-router.get('/:id', asyncHandler(async (req, res) => {
+router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
     const attribute = await Attribute.findByPk(req.params.id);
     if (!attribute) {
         return res.status(404).json({ error: 'Attribute not found' });
@@ -35,7 +35,7 @@ router.get('/:id', asyncHandler(async (req, res) => {
 }));
 
 // Update Attribute by ID
-router.put('/:id', asyncHandler(async (req, res) => {
+router.put('/:id', authenticateToken, asyncHandler(async (req, res) => {
     const { name, description } = req.body;
     const attribute = await Attribute.findByPk(req.params.id);
     if (!attribute) {
@@ -52,7 +52,7 @@ router.put('/:id', asyncHandler(async (req, res) => {
 }));
 
 // Delete Attribute by ID
-router.delete('/:id', asyncHandler(async (req, res) => {
+router.delete('/:id', authenticateToken, asyncHandler(async (req, res) => {
     const id = req.params.id
     const attribute = await Attribute.findByPk(id);
     if (!attribute) {

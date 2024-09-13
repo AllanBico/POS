@@ -1,10 +1,11 @@
 // routes/expenseCategory.js
 const express = require('express');
 const router = express.Router();
-const { ExpenseCategory } = require('../models/associations'); // Adjust the import path if needed
+const { ExpenseCategory } = require('../models/associations');
+const authenticateToken = require("../middleware/auth"); // Adjust the import path if needed
 
 // Get all expense categories
-router.get('/', async (req, res) => {
+router.get('/',authenticateToken, async (req, res) => {
     try {
         const expenseCategories = await ExpenseCategory.findAll();
         res.json(expenseCategories);
@@ -14,7 +15,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get a single expense category by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id',authenticateToken, async (req, res) => {
     try {
         const expenseCategory = await ExpenseCategory.findByPk(req.params.id);
         if (expenseCategory) {
@@ -28,7 +29,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create a new expense category
-router.post('/', async (req, res) => {
+router.post('/',authenticateToken, async (req, res) => {
     try {
         const { name, description } = req.body;
         const newExpenseCategory = await ExpenseCategory.create({ name, description });
@@ -39,7 +40,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update an existing expense category
-router.put('/:id', async (req, res) => {
+router.put('/:id',authenticateToken, async (req, res) => {
     try {
         const { name, description } = req.body;
         const expenseCategory = await ExpenseCategory.findByPk(req.params.id);
@@ -55,7 +56,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete an expense category
-router.delete('/:id', async (req, res) => {
+router.delete('/:id',authenticateToken, async (req, res) => {
     try {
         const expenseCategory = await ExpenseCategory.findByPk(req.params.id);
         if (expenseCategory) {

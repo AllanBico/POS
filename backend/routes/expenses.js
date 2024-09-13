@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { Expense,ExpenseCategory,PaymentMethod,Supplier } = require('../models/associations');
+const authenticateToken = require("../middleware/auth");
 
 // Get all expenses
-router.get('/', async (req, res) => {
+router.get('/',authenticateToken, async (req, res) => {
     try {
         const expenses = await Expense.findAll({
             include: [
@@ -20,7 +21,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get an expense by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id',authenticateToken, async (req, res) => {
     try {
         const expense = await Expense.findByPk(req.params.id, {
             include: [
@@ -41,7 +42,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create a new expense
-router.post('/', async (req, res) => {
+router.post('/',authenticateToken, async (req, res) => {
     try {
         const expense = await Expense.create(req.body);
         const newExpense = await Expense.findByPk(expense.id, {
@@ -59,7 +60,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update an expense
-router.put('/:id', async (req, res) => {
+router.put('/:id',authenticateToken, async (req, res) => {
     try {
         const [updated] = await Expense.update(req.body, {
             where: { id: req.params.id }
@@ -77,7 +78,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete an expense
-router.delete('/:id', async (req, res) => {
+router.delete('/:id',authenticateToken, async (req, res) => {
     try {
         const deleted = await Expense.destroy({
             where: { id: req.params.id }

@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const Store = require('../models/store');
+const authenticateToken = require("../middleware/auth");
 
 // Create a new store
-router.post('/', async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
     try {
         if (!req.body) {
             return res.status(400).json({error: 'Missing required fields'});
@@ -17,7 +18,7 @@ router.post('/', async (req, res) => {
 });
 
 // Get all stores
-router.get('/', async (req, res) => {
+router.get('/', authenticateToken, async (req, res) => {
     try {
         const stores = await Store.findAll();
         if (!stores) {
@@ -31,7 +32,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get a specific store by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticateToken, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
 
@@ -51,7 +52,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Update a store
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticateToken, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
 
@@ -76,7 +77,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete a store
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateToken, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
 

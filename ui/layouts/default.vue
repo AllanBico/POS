@@ -1,5 +1,5 @@
 <template>
-  <a-layout>
+  <a-layout :theme="{ colorPrimary: 'blue' }">
     <a-layout-sider
         theme="light"
         breakpoint="lg"

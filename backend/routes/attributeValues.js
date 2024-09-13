@@ -1,13 +1,13 @@
 const express = require('express');
 const {  AttributeValue } = require('../models/associations');
-
+const authenticateToken = require('../middleware/auth');
 
 const router = express.Router();
 const asyncHandler = fn => (req, res, next) =>
     Promise.resolve(fn(req, res, next)).catch(next);
 
 // Create AttributeValue
-router.post('/', asyncHandler(async (req, res) => {
+router.post('/',authenticateToken, asyncHandler(async (req, res) => {
     const { value, attributeId } = req.body;
 
     if (!value || !attributeId) {
@@ -20,13 +20,13 @@ router.post('/', asyncHandler(async (req, res) => {
 }));
 
 // Get All AttributeValues
-router.get('/', asyncHandler(async (req, res) => {
+router.get('/',authenticateToken, asyncHandler(async (req, res) => {
     const attributeValues = await AttributeValue.findAll();
     res.json(attributeValues);
 }));
 
 // Get Single AttributeValue by ID
-router.get('/:id', asyncHandler(async (req, res) => {
+router.get('/:id',authenticateToken, asyncHandler(async (req, res) => {
     const id = req.params.id;
 
     if (isNaN(parseInt(id, 10))) {
@@ -39,7 +39,7 @@ router.get('/:id', asyncHandler(async (req, res) => {
 }));
 
 // Update AttributeValue by ID
-router.put('/:id', asyncHandler(async (req, res) => {
+router.put('/:id',authenticateToken, asyncHandler(async (req, res) => {
     const { value, attributeId } = req.body;
     const id = req.params.id;
 
@@ -65,7 +65,7 @@ router.put('/:id', asyncHandler(async (req, res) => {
 }));
 
 // Delete AttributeValue by ID
-router.delete('/:id', asyncHandler(async (req, res) => {
+router.delete('/:id',authenticateToken, asyncHandler(async (req, res) => {
     const id = req.params.id;
 
     if (isNaN(parseInt(id, 10))) {

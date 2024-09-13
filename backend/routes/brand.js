@@ -1,13 +1,13 @@
 const express = require('express');
 const {  Brand } = require('../models/associations');
-
+const authenticateToken = require('../middleware/auth');
 
 const router = express.Router();
 const asyncHandler = fn => (req, res, next) =>
     Promise.resolve(fn(req, res, next)).catch(next);
 
 // Create a new brand
-router.post('/', asyncHandler(async (req, res) => {
+router.post('/', authenticateToken,asyncHandler(async (req, res) => {
     const { name, description } = req.body;
     if (!name || !description) {
         return res.status(400).json({ error: 'Name and description are required' });
@@ -19,13 +19,13 @@ router.post('/', asyncHandler(async (req, res) => {
 }));
 
 // Get all brands
-router.get('/', asyncHandler(async (req, res) => {
+router.get('/', authenticateToken, asyncHandler(async (req, res) => {
     const brands = await Brand.findAll();
     res.status(200).json(brands);
 }));
 
 // Get a single brand by ID
-router.get('/:id', asyncHandler(async (req, res) => {
+router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
         return res.status(400).json({ error: 'Invalid Brand ID' });
@@ -37,7 +37,7 @@ router.get('/:id', asyncHandler(async (req, res) => {
 }));
 
 // Update a brand
-router.put('/:id', asyncHandler(async (req, res) => {
+router.put('/:id', authenticateToken, asyncHandler(async (req, res) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
         return res.status(400).json({ error: 'Invalid ID' });
@@ -60,7 +60,7 @@ router.put('/:id', asyncHandler(async (req, res) => {
 }));
 
 // Delete a brand (soft delete)
-router.delete('/:id', asyncHandler(async (req, res) => {
+router.delete('/:id', authenticateToken, asyncHandler(async (req, res) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
         return res.status(400).json({ error: 'Invalid ID' });

@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { GoodsReceived, PurchaseOrder, Warehouse, GoodsReceivedLineItem, Variant,Store, Supplier} = require('../models/associations');
+const authenticateToken = require("../middleware/auth");
 
 // Create a Goods Received (GRN)
-router.post('/', async (req, res) => {
+router.post('/',authenticateToken, async (req, res) => {
     try {
         console.log("req.body",req.body)
         const { purchaseOrderId, warehouseId, receivedDate,storeId, lineItems } = req.body;
@@ -58,7 +59,7 @@ router.post('/', async (req, res) => {
 });
 
 // Fetch all Goods Received (GRNs)
-router.get('/', async (req, res) => {
+router.get('/',authenticateToken, async (req, res) => {
     try {
         const goodsReceived = await GoodsReceived.findAll({
             include: [
@@ -75,7 +76,7 @@ router.get('/', async (req, res) => {
 });
 
 // Fetch a single Goods Received entry by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id',authenticateToken, async (req, res) => {
     try {
         const goodsReceived = await GoodsReceived.findByPk(req.params.id, {
             include: [
@@ -95,7 +96,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Update a Goods Received entry
-router.put('/:id', async (req, res) => {
+router.put('/:id',authenticateToken, async (req, res) => {
     try {
         const { purchaseOrderId, warehouseId, receivedDate, lineItems } = req.body;
 
@@ -132,7 +133,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete a Goods Received entry
-router.delete('/:id', async (req, res) => {
+router.delete('/:id',authenticateToken, async (req, res) => {
     try {
         const goodsReceived = await GoodsReceived.findByPk(req.params.id);
         if (!goodsReceived) {

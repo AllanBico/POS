@@ -1,10 +1,11 @@
 // routes/paymentMethod.js
 const express = require('express');
 const router = express.Router();
-const { PaymentMethod } = require('../models/associations'); // Adjust the import path if needed
+const { PaymentMethod } = require('../models/associations');
+const authenticateToken = require("../middleware/auth"); // Adjust the import path if needed
 
 // Get all payment methods
-router.get('/', async (req, res) => {
+router.get('/',authenticateToken, async (req, res) => {
     try {
         const paymentMethods = await PaymentMethod.findAll();
         res.json(paymentMethods);
@@ -14,7 +15,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get a single payment method by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id',authenticateToken, async (req, res) => {
     try {
         const paymentMethod = await PaymentMethod.findByPk(req.params.id);
         if (paymentMethod) {
@@ -28,7 +29,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create a new payment method
-router.post('/', async (req, res) => {
+router.post('/',authenticateToken, async (req, res) => {
     try {
         const { name, description } = req.body;
         const newPaymentMethod = await PaymentMethod.create({ name, description });
@@ -39,7 +40,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update an existing payment method
-router.put('/:id', async (req, res) => {
+router.put('/:id',authenticateToken, async (req, res) => {
     try {
         const { name, description } = req.body;
         const paymentMethod = await PaymentMethod.findByPk(req.params.id);
@@ -55,7 +56,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete a payment method
-router.delete('/:id', async (req, res) => {
+router.delete('/:id',authenticateToken, async (req, res) => {
 
     try {
         const paymentMethod = await PaymentMethod.findByPk(req.params.id);

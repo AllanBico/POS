@@ -18,7 +18,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import {useWarehouseStore} from '~/stores/warehouse.js';
+import {useWarehouseStore} from '~/stores/WarehouseStore.js';
 const warehouseStore = useWarehouseStore();
 const emit = defineEmits(['submit-success']);
 const { $toast } = useNuxtApp()

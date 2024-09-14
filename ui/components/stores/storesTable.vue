@@ -85,7 +85,7 @@
 <script setup>
 import {computed, reactive, ref} from 'vue';
 import {cloneDeep} from 'lodash-es';
-import { useStoreStore } from '~/stores/store.js';
+import { useStoreStore } from '~/stores/storesStore.js';
 
 const storeStore = useStoreStore();
 import {DeleteOutlined, EditOutlined,PlusOutlined} from "@ant-design/icons-vue";

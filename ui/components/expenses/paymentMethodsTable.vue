@@ -84,7 +84,7 @@
 
 <script setup>
 import {computed, reactive, ref} from 'vue';
-import { usePaymentMethodStore } from '@/stores/PaymentMethod.js';
+import { usePaymentMethodStore } from '~/stores/PaymentMethodStore.js';
 import {DeleteOutlined, EditOutlined,PlusOutlined} from "@ant-design/icons-vue";
 import PaymentMethodAddModal from "~/components/expenses/paymentMethodAddModal.vue";
 import PaymentMethodEditModal from "~/components/expenses/paymentMethodEditModal.vue";

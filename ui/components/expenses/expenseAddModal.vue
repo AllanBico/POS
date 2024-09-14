@@ -57,10 +57,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useExpenseStore } from '@/stores/expense';
+import { useExpenseStore } from '~/stores/expenseStore.js';
 import { useExpenseCategoryStore } from '@/stores/expenseCategory'; // Assuming the store for categories
-import { usePaymentMethodStore } from '@/stores/paymentMethod'; // Assuming the store for payment methods
-import { useSupplierStore } from '@/stores/supplier'; // Assuming the store for suppliers
+import { usePaymentMethodStore } from '~/stores/PaymentMethodStore.js'; // Assuming the store for payment methods
+import { useSupplierStore } from '~/stores/SupplierStore.js'; // Assuming the store for suppliers
 const emit = defineEmits(['submit-success']);
 const form = ref({
   expenseCategoryId: null,

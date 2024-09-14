@@ -21,7 +21,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useUserStore } from '~/stores/useUserStore.js';
+import { useUserStore } from '~/stores/UserStore.js';
 
 const userStore = useUserStore();
 const emit = defineEmits(['submit-success']);

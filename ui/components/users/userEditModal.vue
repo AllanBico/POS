@@ -20,7 +20,7 @@
 </template>
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import { useUserStore } from '~/stores/useUserStore';
+import { useUserStore } from '~/stores/UserStore.js';
 const emit = defineEmits(['submit-success']);
 const props = defineProps({
   user_id: {

@@ -22,13 +22,20 @@
     <a-table :dataSource="lineItems" :columns="columns" rowKey="id">
       <a-table-column title="Variant SKU" :dataIndex="variantSku" />
       <a-table-column title="Received Quantity" dataIndex="receivedQuantity" />
+      <template #bodyCell="{ column, text, record }">
+        <template v-if="column.dataIndex === 'serial'">
+          <li v-for="serial in record.variant?.serialNumbers">
+             *{{serial.serialNumber}}
+          </li>
+        </template>
+      </template>
     </a-table>
   </a-card>
 </template>
 
 <script setup>
 import { ref, watch, onMounted } from 'vue';
-import { useGoodsReceivingStore } from '~/stores/goodsReceivingStore';
+import { useGoodsReceivingStore } from '~/stores/GoodsReceivingStore.js';
 import purchaseOrderView from "~/components/purchases/purchaseOrderView.vue";
 const tabsStore = useTabsStore();
 const props = defineProps({
@@ -46,12 +53,15 @@ const onValues = async (key) => {
 };
 const columns = [
   { title: 'Variant SKU', dataIndex: 'variantSku', customRender: ({ record }) => record.variant.sku },
-  { title: 'Received Quantity', dataIndex: 'receivedQuantity' }
+  { title: 'Received Quantity', dataIndex: 'receivedQuantity' },
+  { title: 'Serial Number', dataIndex: 'serial', customRender: ({ record }) => record.variant? record.variant?.serialNumbers : ''},
+
 ];
 
 const fetchData = async () => {
   goodsReceived.value = await goodsReceivingStore.goodsReceivedById(props.id);
   lineItems.value = goodsReceived.value.lineItems || [];
+  console.log("lineItems.value",lineItems.value)
 };
 
 onMounted(fetchData);

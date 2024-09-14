@@ -18,7 +18,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import {useUnitStore} from '~/stores/Unit.js';
+import {useUnitStore} from '~/stores/UnitStore.js';
 const UnitStore = useUnitStore();
 const emit = defineEmits(['submit-success']);
 

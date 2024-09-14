@@ -25,12 +25,12 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useGoodsReceivingStore } from '@/stores/goodsReceivingStore.js';
+import { useGoodsReceivingStore } from '~/stores/GoodsReceivingStore.js';
 import {DeleteOutlined, EditOutlined,EyeOutlined} from "@ant-design/icons-vue";
 import purchaseOrderView from "~/components/purchases/purchaseOrderView.vue";
 import GoodsReceivingForm from "~/components/inventory/receive/GoodsReceivingAdd.vue";
-import goodReceivedEdit from "~/components/inventory/receive/GoodReceivedEdit.vue";
-import goodsReceivedView from "~/components/inventory/receive/GoodReceivedView.vue";
+import goodReceivedEdit from "~/components/inventory/receive/goodReceivedEdit.vue";
+import goodsReceivedView from "~/components/inventory/receive/goodReceivedView.vue";
 import {useTabsStore} from "~/stores/tabsStore.js";
 const goodsReceivingStore = useGoodsReceivingStore();
 const goodsReceivedList = ref([]);

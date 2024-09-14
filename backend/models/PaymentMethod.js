@@ -1,4 +1,4 @@
-// models/PaymentMethod.js
+// models/PaymentMethodStore.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 

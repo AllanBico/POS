@@ -37,7 +37,7 @@
 <script setup>
 import {computed, reactive, ref} from 'vue';
 import {cloneDeep} from 'lodash-es';
-import {useBrandStore} from '~/stores/brand.js';
+import {useBrandStore} from '~/stores/BrandStore.js';
 import BrandAddModal from "~/components/brands/brandAddModal.vue";
 import BrandEditModal from "~/components/brands/brandEditModal.vue";
 import {DeleteOutlined, EditOutlined} from "@ant-design/icons-vue";

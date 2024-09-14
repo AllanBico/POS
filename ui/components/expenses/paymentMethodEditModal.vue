@@ -13,7 +13,7 @@
 </template>
 <script setup>
 import {ref, onMounted, watch} from 'vue';
-import { usePaymentMethodStore } from '@/stores/PaymentMethod.js';
+import { usePaymentMethodStore } from '~/stores/PaymentMethodStore.js';
 
 const paymentMethodStore = usePaymentMethodStore();
 const emit = defineEmits(['submit-success']);

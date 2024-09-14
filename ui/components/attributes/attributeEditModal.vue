@@ -13,7 +13,7 @@
 </template>
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import { useAttributesStore } from '~/stores/attribute.js';
+import { useAttributesStore } from '~/stores/AttributeStore.js';
 const attributesStore = useAttributesStore();
 const emit = defineEmits(['submit-success']);
 const props = defineProps({

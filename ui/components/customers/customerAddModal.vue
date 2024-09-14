@@ -48,7 +48,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useCustomerStore } from '~/stores/customer.js';
+import { useCustomerStore } from '~/stores/CustomerStore.js';
 import { getNames } from 'country-list';
 
 const customerStore = useCustomerStore();

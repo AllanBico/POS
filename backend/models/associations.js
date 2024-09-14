@@ -1,26 +1,31 @@
-const Product = require('./Product');
-const Variant = require('./Variant');
-const Category = require("./category");
-const Subcategory = require("./subcategory");
-const Brand = require("./brand");
-const Unit = require("./unit");
-const Attribute = require("./attribute");
+const Product = require('./product/product');
+const Variant = require('./product/variant');
+const Category = require("./product/category");
+const Subcategory = require("./product/subcategory");
+const Brand = require("./product/brand");
+const Unit = require("./product/unit");
+const Attribute = require("./product/attribute");
 const Warehouse = require("./warehouse");
 const Store = require("./store");
-const AttributeValue = require("./attributeValue");
-const Inventory = require("./Inventory");
-const VariantAttributeValue = require("./variantAttributeValue");
+const AttributeValue = require("./product/attributeValue");
+const Inventory = require("./inventory/Inventory");
+const VariantAttributeValue = require("./product/variantAttributeValue");
 const ExpenseCategory = require('./ExpenseCategory');
 const Expense = require('./Expense');
 const PaymentMethod = require('./PaymentMethod');
-const Supplier = require('./Supplier'); // Assuming you have a Supplier model
-const User = require('./User'); // Assuming you have a User model
-const SerialNumber = require('./SerialNumber'); // SerialNumber model
-const StockMovement = require('./StockMovement'); // StockMovement model
+const Supplier = require('./product/supplier'); // Assuming you have a Supplier model
+const User = require('./users/user'); // Assuming you have a User model
+const SerialNumber = require('./inventory/SerialNumber'); // SerialNumber model
+const StockMovement = require('./inventory/StockMovement'); // StockMovement model
 const PurchaseOrder = require('./PurchaseOrder'); // PurchaseOrder model
 const PurchaseOrderLineItem = require('./PurchaseOrderLineItem'); // PurchaseOrderLineItem model
 const GoodsReceived = require('./goodsReceivedNote');
-const GoodsReceivedLineItem = require('./GoodsReceivedLineItem');
+const GoodsReceivedLineItem = require('./inventory/goodsReceivedLineItem');
+const Role = require('./users/Role');
+const Permission = require('./users/Permission');
+const RolePermission = require('./users/RolePermission');
+const UserRole  = require('./users/userRole');
+const Model = require('./Model'); // Import the Model
 // Define associations AFTER model initialization
 
 // Product <-> Variant
@@ -105,7 +110,18 @@ GoodsReceivedLineItem.belongsTo(GoodsReceived, { as: 'goodsReceived', foreignKey
 
 Variant.hasMany(GoodsReceivedLineItem, { as: 'goodsReceivedLineItems', foreignKey: 'variantId' });
 GoodsReceivedLineItem.belongsTo(Variant, { as: 'variant', foreignKey: 'variantId' });
+Permission.belongsTo(Model, { as: 'Model', foreignKey: 'modelId' });
+Model.hasMany(Permission, { as: 'Permission', foreignKey: 'modelId' });
 
+User.belongsToMany(Role, { through: UserRole });
+Role.belongsToMany(User, { through: UserRole });
+
+// Role <-> Permission association
+Role.belongsToMany(Permission, { through: RolePermission });
+Permission.belongsToMany(Role, { through: RolePermission });
+
+Role.belongsToMany(Permission, { through: RolePermission, foreignKey: 'RoleId' });
+Permission.belongsToMany(Role, { through: RolePermission, foreignKey: 'PermissionId' });
 
 
 module.exports = {
@@ -132,4 +148,9 @@ module.exports = {
     PurchaseOrder,
     GoodsReceived,
     GoodsReceivedLineItem,
+    Role,
+    Permission,
+    RolePermission,
+    UserRole,
+    Model
 };

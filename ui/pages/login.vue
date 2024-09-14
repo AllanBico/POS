@@ -38,7 +38,7 @@ definePageMeta({
   layout: 'custom'
 })
 import { reactive } from 'vue';
-import { useAuthStore } from '~/stores/useAuthStore.js';
+import { useAuthStore } from '~/stores/AuthStore.js';
 
 const authStore = useAuthStore();
 const formState = reactive({

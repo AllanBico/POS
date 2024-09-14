@@ -85,7 +85,7 @@
 <script setup>
 import {computed, reactive, ref} from 'vue';
 import {cloneDeep} from 'lodash-es';
-import {useExpenseStore} from '~/stores/expense.js';
+import {useExpenseStore} from '~/stores/expenseStore.js';
 import ExpenseAddModal from "~/components/expenses/expenseAddModal.vue";
 import ExpenseEditModal from "~/components/expenses/expenseEditModal.vue";
 import {DeleteOutlined, EditOutlined,PlusOutlined} from "@ant-design/icons-vue";

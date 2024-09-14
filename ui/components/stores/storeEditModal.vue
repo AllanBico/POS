@@ -16,7 +16,7 @@
 </template>
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import { useStoreStore } from '~/stores/store.js';
+import { useStoreStore } from '~/stores/storesStore.js';
 const storeStore = useStoreStore();
 const loading = ref(false);
 const emit = defineEmits(['submit-success']);

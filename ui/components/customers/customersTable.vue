@@ -91,7 +91,7 @@
 import {computed, reactive, ref} from 'vue';
 import {cloneDeep} from 'lodash-es';
 import {DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons-vue";
-import {useCustomerStore} from '~/stores/customer.js';
+import {useCustomerStore} from '~/stores/CustomerStore.js';
 import CustomerAddModal from "~/components/customers/customerAddModal.vue";
 import CustomerEditModal from "~/components/customers/customerEditModal.vue";
 

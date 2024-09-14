@@ -15,14 +15,14 @@
     </a-modal>
   </div>
   <a-button class="editable-add-btn" style="margin-bottom: 8px" @click="handleAdd">Add</a-button>
-  <a-table bordered :data-source="users" :columns="columns" @change="onChange">
+  <a-table bordered :data-source="userStore.users" :columns="columns" @change="onChange">
     <template #bodyCell="{ column, text, record }">
       <template v-if="column.dataIndex === 'operation'">
         <a-tooltip  title="Edit" placement="bottom">
           <a-button @click="onEdit(record.id)" style="margin-right: 3px"  :icon="h(EditOutlined)" />
         </a-tooltip>
         <a-popconfirm
-            v-if="users.length"
+            v-if="userStore.users.length"
             title="Sure to delete?"
             @confirm="onDelete(record.id)" >
           <a-tooltip title="Delete" placement="bottom">
@@ -38,19 +38,13 @@ import { computed, reactive, ref } from 'vue';
 import { cloneDeep } from 'lodash-es';
 import UserAddModal from "~/components/users/userAddModal.vue";
 import UserEditModal from "~/components/users/userEditModal.vue";
-import { useUserStore } from '~/stores/useUserStore.js';
+import { useUserStore } from '~/stores/UserStore.js';
 import {DeleteOutlined, EditOutlined} from "@ant-design/icons-vue";
 const userStore = useUserStore();
 const open = ref(false);
 const edit_open = ref(false);
 let user_id = ref(null)
-defineProps({
-  // Prop for an object
-  users: {
-    type: Object,
-    required: true, // Adjust as needed
-  },
-});
+
 
 const columns = [
   {

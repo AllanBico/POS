@@ -14,7 +14,7 @@
 </template>
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import {useCategoryStore} from '~/stores/category.js';
+import {useCategoryStore} from '~/stores/CategoryStore.js';
 const categoryStore = useCategoryStore();
 const emit = defineEmits(['submit-success']);
 const props = defineProps({

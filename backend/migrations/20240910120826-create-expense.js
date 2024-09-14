@@ -1,4 +1,4 @@
-// migrations/YYYYMMDDHHMMSS-create-expense.js
+// migrations/YYYYMMDDHHMMSS-create-expenseStore.js
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('expenses', {

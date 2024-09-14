@@ -182,12 +182,12 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useProductStore } from '~/stores/product.js';
-import { useCategoryStore } from '~/stores/category.js';
-import { useSubcategoryStore } from '~/stores/subcategory.js';
-import { useAttributesStore } from '~/stores/attribute.js';
-import { useBrandStore } from '~/stores/brand.js';
-import {useUnitStore} from "~/stores/unit.js";
+import { useProductStore } from '~/stores/ProductStore.js';
+import { useCategoryStore } from '~/stores/CategoryStore.js';
+import { useSubcategoryStore } from '~/stores/SubcategoryStore.js';
+import { useAttributesStore } from '~/stores/AttributeStore.js';
+import { useBrandStore } from '~/stores/BrandStore.js';
+import {useUnitStore} from "~/stores/UnitStore.js";
 import CategoryAddModal from "~/components/categories/categoryAddModal.vue";
 import {PlusOutlined} from "@ant-design/icons-vue";
 import SubCategoryAddModal from "~/components/subcategories/subCategoryAddModal.vue";

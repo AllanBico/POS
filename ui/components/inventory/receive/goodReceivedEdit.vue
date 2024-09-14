@@ -41,9 +41,9 @@
 
 <script setup>
 import { ref, watch, onMounted } from 'vue';
-import { useGoodsReceivingStore } from '~/stores/goodsReceivingStore';
-import {useWarehouseStore} from "~/stores/warehouse.js";
-import {useStoreStore} from "~/stores/store.js";
+import { useGoodsReceivingStore } from '~/stores/GoodsReceivingStore.js';
+import {useWarehouseStore} from "~/stores/WarehouseStore.js";
+import {useStoreStore} from "~/stores/storesStore.js";
 const warehouseStore = useWarehouseStore();
 const StoresStore = useStoreStore()
 const props = defineProps({

@@ -134,7 +134,7 @@
           <a-menu-item key="Users">
             <a @click="addTab('Users', usersTable)">Users</a>
           </a-menu-item>
-          <a-menu-item key="Users Roles">Users Roles</a-menu-item>
+          <a-menu-item key="Users Roles" @click="addTab('User Roles', rolesTable)">Users Roles</a-menu-item>
         </a-sub-menu>
         <a-menu-item key="Customers">
           <a @click="addTab('Customers', customersTable)">
@@ -257,7 +257,6 @@
 import { ref } from 'vue';
 import { useTabsStore } from '~/stores/tabsStore';
 const tabsStore = useTabsStore();
-import PageHeader from '~/components/layout/pageHeader.vue';
 import expensesTable from '~/components/expenses/expensesTable.vue';
 import productsTable from '~/components/products/productsTable.vue';
 import categoriesTable from '~/components/categories/categoriesTable.vue';
@@ -276,6 +275,7 @@ import warehousesTable from '~/components/warehouses/warehousesTable.vue'
 import paymentMethodsTable from '~/components/expenses/paymentMethodsTable.vue'
 import expensesCategoriesTable from '~/components/expenses/expensesCategoriesTable.vue'
 import GoodsReceivingTable from "~/components/inventory/receive/GoodsReceivingTable.vue";
+import rolesTable from "~/components/users/roleandpermission/rolesTable.vue";
 import {BellOutlined, SettingOutlined, UserOutlined} from "@ant-design/icons-vue";
 
 const collapsed = ref(false);

@@ -85,7 +85,7 @@
 <script setup>
 import {computed, reactive, ref} from 'vue';
 import {cloneDeep} from 'lodash-es';
-import {useWarehouseStore} from '~/stores/warehouse.js';
+import {useWarehouseStore} from '~/stores/WarehouseStore.js';
 const warehouseStore = useWarehouseStore();
 import {DeleteOutlined, EditOutlined,PlusOutlined} from "@ant-design/icons-vue";
 import WarehouseAddModal from "~/components/warehouses/warehouseAddModal.vue";

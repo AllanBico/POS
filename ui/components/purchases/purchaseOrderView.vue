@@ -2,13 +2,13 @@
   <a-card title="Purchase Order Details" bordered>
     <!-- Basic Purchase Order Information -->
     <a-descriptions  bordered>
-      <a-descriptions-item label="Supplier">
+      <a-descriptions-item v-if="purchaseOrder.supplier" label="Supplier">
         {{ purchaseOrder.supplier.name }}
       </a-descriptions-item>
-      <a-descriptions-item label="Warehouse">
+      <a-descriptions-item v-if="purchaseOrder.warehouse" label="Warehouse">
         {{ purchaseOrder.warehouse.name }}
       </a-descriptions-item>
-      <a-descriptions-item label="Store">
+      <a-descriptions-item v-if="purchaseOrder.store" label="Store">
         {{ purchaseOrder.store.name }}
       </a-descriptions-item>
       <a-descriptions-item label="Order Date">
@@ -41,7 +41,7 @@
 
 <script setup>
 import {ref, computed, onMounted, watch} from 'vue';
-import { usePurchaseOrderStore } from '@/stores/purchaseOrder.js';
+import { usePurchaseOrderStore } from '~/stores/PurchaseOrderStore.js';
 import GoodsReceivingForm from "~/components/inventory/receive/GoodsReceivingAdd.vue";
 import {useTabsStore} from "~/stores/tabsStore.js";
 const tabsStore = useTabsStore();

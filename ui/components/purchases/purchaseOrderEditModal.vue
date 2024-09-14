@@ -110,11 +110,11 @@
 
 <script setup>
 import { ref, reactive, computed } from 'vue';
-import { usePurchaseOrderStore } from '@/stores/purchaseOrder';
-import { useSupplierStore } from '@/stores/supplier';
-import { useWarehouseStore } from '@/stores/warehouse';
-import { useProductStore } from '@/stores/product';
-import { useStoreStore } from '@/stores/store';
+import { usePurchaseOrderStore } from '~/stores/PurchaseOrderStore.js';
+import { useSupplierStore } from '~/stores/SupplierStore.js';
+import { useWarehouseStore } from '~/stores/WarehouseStore.js';
+import { useProductStore } from '~/stores/ProductStore.js';
+import { useStoreStore } from '~/stores/storesStore.js';
 
 const props = defineProps({
   visible: Boolean,

@@ -1,4 +1,4 @@
-// migrations/YYYYMMDDHHMMSS-create-expense-category.js
+// migrations/YYYYMMDDHHMMSS-create-expense-CategoryStore.js
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('expense_categories', {

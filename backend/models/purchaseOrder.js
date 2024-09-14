@@ -1,7 +1,7 @@
 // models/PurchaseOrder.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
-const Supplier = require('./Supplier');
+const Supplier = require('./product/supplier');
 const Warehouse = require('./Warehouse');
 const Store = require('./Store');
 

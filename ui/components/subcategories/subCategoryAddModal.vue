@@ -31,10 +31,10 @@
 
 <script setup>
 import {ref} from 'vue';
-import {useSubcategoryStore} from '~/stores/subcategory.js';
+import {useSubcategoryStore} from '~/stores/SubcategoryStore.js';
 
 const subCategoryStore = useSubcategoryStore();
-import {useCategoryStore} from '~/stores/category.js';
+import {useCategoryStore} from '~/stores/CategoryStore.js';
 
 const categoryStore = useCategoryStore();
 const emit = defineEmits(['submit-success']);

@@ -16,7 +16,7 @@
 </template>
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import {useWarehouseStore} from '~/stores/warehouse.js';
+import {useWarehouseStore} from '~/stores/WarehouseStore.js';
 const warehouseStore = useWarehouseStore();
 const emit = defineEmits(['submit-success']);
 const props = defineProps({

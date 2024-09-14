@@ -52,10 +52,10 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import { useExpenseStore } from '@/stores/expense';
+import { useExpenseStore } from '~/stores/expenseStore.js';
 import { useExpenseCategoryStore } from '@/stores/expenseCategory';
-import { usePaymentMethodStore } from '@/stores/paymentMethod';
-import { useSupplierStore } from '@/stores/supplier';
+import { usePaymentMethodStore } from '~/stores/PaymentMethodStore.js';
+import { useSupplierStore } from '~/stores/SupplierStore.js';
 import dayjs from 'dayjs';
 const props = defineProps({
   expenseId: {

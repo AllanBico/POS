@@ -15,7 +15,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useBrandStore } from '~/stores/brand.js';
+import { useBrandStore } from '~/stores/BrandStore.js';
 const brandStore = useBrandStore();
 const emit = defineEmits(['submit-success']);
 

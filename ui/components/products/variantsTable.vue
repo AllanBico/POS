@@ -114,7 +114,7 @@
 <script setup>
 import {ref} from 'vue';
 import {DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons-vue";
-import {useProductStore} from '~/stores/product.js';
+import {useProductStore} from '~/stores/ProductStore.js';
 
 const productStore = useProductStore();
 import AttributeAddModal from "~/components/attributes/attributeAddModal.vue";

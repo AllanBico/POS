@@ -1,5 +1,5 @@
-import { useCategoryStore } from '~/stores/category';
-import {useSubcategoryStore} from '~/stores/subcategory.js'
+import { useCategoryStore } from '~/stores/CategoryStore.js';
+import {useSubcategoryStore} from '~/stores/SubcategoryStore.js'
 export const setupCategoryHandlers = (socket) => {
     const categoryStore = useCategoryStore();
     const subCategoryStore = useSubcategoryStore();

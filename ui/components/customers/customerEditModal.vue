@@ -46,7 +46,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import { useCustomerStore } from '~/stores/customer.js';
+import { useCustomerStore } from '~/stores/CustomerStore.js';
 import { getNames } from 'country-list';
 
 // Set up customer store and country list

@@ -11,31 +11,37 @@ const cookieParser = require('cookie-parser');
 const Log = require('./models/log');
 
 // Import routes
-const userRoutes = require('./routes/users');
-const productRoutes = require('./routes/products');
-const variantsRoutes = require('./routes/variants');
+const userRoutes = require('./routes/users/users');
+const productRoutes = require('./routes/product/products');
+const variantsRoutes = require('./routes/product/variants');
 const authRoutes = require('./routes/auth');
-const categoryRoutes = require('./routes/category');
-const subCategoryRoutes = require('./routes/subcategory');
-const brandRoutes = require('./routes/brand');
-const unitsRouter = require('./routes/units');
-const warrantyRoutes = require('./routes/warranty');
-const suppliersRoutes = require('./routes/suppliers');
+const categoryRoutes = require('./routes/product/category');
+const subCategoryRoutes = require('./routes/product/subcategory');
+const brandRoutes = require('./routes/product/brand');
+const unitsRouter = require('./routes/product/units');
+const warrantyRoutes = require('./routes/product/warranty');
+const suppliersRoutes = require('./routes/product/suppliers');
 const customersRoutes = require('./routes/customer');
 const warehousesRoutes = require('./routes/warehouse');
 const storesRoutes = require('./routes/store');
-const attributesRoutes = require('./routes/attributes');
-const attributeValuesRoutes = require('./routes/attributeValues');
-const variantAttributeRoutes = require('./routes/variantAttributeValues');
-const productVariantsRoutes = require('./routes/productVariants');
-const serialNumbersRoutes = require('./routes/serialNumbers');
-const inventoryRouter = require('./routes/inventory');
-const paymentMethodRoutes = require('./routes/paymentMethod');
-const expenseCategoryRoutes = require('./routes/expenseCategory');
-const expensesRoutes = require('./routes/expenses');
+const attributesRoutes = require('./routes/product/attributes');
+const attributeValuesRoutes = require('./routes/product/attributeValues');
+const variantAttributeRoutes = require('./routes/product/variantAttributeValues');
+const productVariantsRoutes = require('./routes/product/productVariants');
+const serialNumbersRoutes = require('./routes/inventory/serialNumbers');
+const inventoryRouter = require('./routes/inventory/inventory');
+const paymentMethodRoutes = require('./routes/expenses/paymentMethod');
+const expenseCategoryRoutes = require('./routes/expenses/expenseCategory');
+const expensesRoutes = require('./routes/expenses/expenses');
 const purchaseOrderRoutes = require('./routes/purchaseOrder');
-const goodsReceivedRoutes = require('./routes/goodsReceived');
-
+const goodsReceivedRoutes = require('./routes/inventory/goodsReceived');
+const rolesRoutes = require('./routes/users/role');
+const permissionsRoutes = require('./routes/users/permissions');
+const rolePermissionsRoutes = require('./routes/users/rolePermissions');
+const userRolesRoutes = require('./routes/users/userRoles');
+const rolesPermissionsRoutes = require('./routes/users/rolePermissions');
+const stockMovementRoutes = require('./routes/inventory/stockMovement');
+const authenticateToken = require('./middleware/auth');
 
 dotenv.config();
 
@@ -73,6 +79,7 @@ const logger = winston.createLogger({
 });
 
 // Middleware to log user actions and save to the database
+app.use(authenticateToken);
 app.use(async (req, res, next) => {
     const logEntry = {
         method: req.method,
@@ -125,6 +132,14 @@ app.use('/api/expense-categories', expenseCategoryRoutes);
 app.use('/api/expenses', expensesRoutes);
 app.use('/api/purchase-orders', purchaseOrderRoutes);
 app.use('/api/goods-received', goodsReceivedRoutes);
+app.use('/api/roles', rolesRoutes);
+app.use('/api/permissions', permissionsRoutes);
+app.use('/api/role-permissions', rolePermissionsRoutes);
+app.use('/api/user-roles', userRolesRoutes);
+app.use('/api/stock-movements', stockMovementRoutes);
+
+
+
 
 // Listen for Socket.IO connections
 io.use((socket, next) => {

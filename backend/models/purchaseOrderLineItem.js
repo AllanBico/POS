@@ -2,7 +2,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 const PurchaseOrder = require('./PurchaseOrder');
-const Variant = require('./Variant');
+const Variant = require('./product/variant');
 
 const PurchaseOrderLineItem = sequelize.define('PurchaseOrderLineItem', {
     id: {

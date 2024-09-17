@@ -1,12 +1,12 @@
 <template>
   <div>
-    <a-modal v-model:open="open" title="Add Product" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
+    <a-modal v-model:open="open" title="Add Attribute" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
              cancel-text="Cancel">
       <attribute-add-modal @submit-success="handleSubmitSuccess"></attribute-add-modal>
       <template #footer>
       </template>
     </a-modal>
-    <a-modal v-model:open="edit_open" title="Edit Product" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
+    <a-modal v-model:open="edit_open" title="Edit Attribute" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
              cancel-text="Cancel">
       <attribute-edit-modal @submit-success="handleSubmitSuccess" :attribute_id="attribute_id"></attribute-edit-modal>
       <template #footer>
@@ -31,7 +31,7 @@
 
       <a-table
           :columns="columns"
-          :data-source="productStore.products"
+          :data-source="attributesStore.attributes"
           :pagination="pagination"
           :rowKey="id"
           bordered
@@ -80,11 +80,14 @@
         </span>
           </template>
           <template v-if="column.dataIndex === 'operation'">
+            <a-tooltip title="Values" placement="bottom">
+              <a-button @click="onValues(record.id)" style="margin-right: 3px" :icon="h(OrderedListOutlined)"/>
+            </a-tooltip>
             <a-tooltip title="Edit" placement="bottom">
               <a-button @click="onEdit(record.id)" style="margin-right: 3px" :icon="h(EditOutlined)"/>
             </a-tooltip>
             <a-popconfirm
-                v-if="productStore.products.length"
+                v-if="attributesStore.attributes.length"
                 title="Sure to delete?"
                 @confirm="onDelete(record.id)">
               <a-tooltip title="Delete" placement="bottom">
@@ -101,45 +104,54 @@
 
 <script setup>
 import { ref} from 'vue';
-import {DeleteOutlined, EditOutlined,PlusOutlined} from "@ant-design/icons-vue";
-import { useProductStore } from '~/stores/ProductStore.js';
-const productStore = useProductStore();
-import AttributeAddModal from "~/components/attributes/attributeAddModal.vue";
-import AttributeEditModal from "~/components/attributes/attributeEditModal.vue";
-const loading = ref(false);
+import {DeleteOutlined, EditOutlined,PlusOutlined,OrderedListOutlined} from "@ant-design/icons-vue";
+import { useAttributesStore } from '~/stores/AttributeStore.js';
+const attributesStore = useAttributesStore();
+import AttributeAddModal from "~/components/product/attributes/attributeAddModal.vue";
+import AttributeEditModal from "~/components/product/attributes/attributeEditModal.vue";
+import { useTabsStore } from '~/stores/tabsStore.js';
+import attributesValuesTable from '~/components/product/attributes/attributesValuesTable.vue';
+const tabsStore = useTabsStore();
+const router = useRouter();
 const open = ref(false);
 const edit_open = ref(false);
 let attribute_id = ref(null)
-productStore.fetchProducts()
-console.log("productStore.attributes", productStore.products)
+attributesStore.fetchAttributes()
+console.log("attributesStore.attributes", attributesStore.attributes)
 const columns = [
   {
     title: 'Name',
     dataIndex: 'name',
     key: 'name',
-  },
+    width: '30%',
+    sorter: (a, b) => a.name.localeCompare(b.name),
+    sortDirections: ['descend', 'ascend'],
+    customFilterDropdown: true,
+    onFilter: (value, record) => record.name.toString().toLowerCase().includes(value.toLowerCase()),
+    onFilterDropdownOpenChange: visible => {
+      if (visible) {
+        setTimeout(() => {
+          searchInput.value.focus();
+        }, 100);
+      }
+    },
+  }
+  ,
   {
     title: 'Description',
     dataIndex: 'description',
     key: 'description',
-  },
-  {
-    title: 'Category',
-    dataIndex: 'categoryId',
-    key: 'categoryId',
-    scopedSlots: { customRender: 'category' },
-  },
-  {
-    title: 'Subcategory',
-    dataIndex: 'subcategoryId',
-    key: 'subcategoryId',
-    scopedSlots: { customRender: 'subcategory' },
-  },
-  {
-    title: 'VAT',
-    dataIndex: 'VATType',
-    key: 'VATType',
-    scopedSlots: { customRender: 'VATType' },
+    sorter: (a, b) => a.description.localeCompare(b.description),
+    sortDirections: ['descend', 'ascend'],
+    customFilterDropdown: true,
+    onFilter: (value, record) => record.description.toString().toLowerCase().includes(value.toLowerCase()),
+    onFilterDropdownOpenChange: visible => {
+      if (visible) {
+        setTimeout(() => {
+          searchInput.value.focus();
+        }, 100);
+      }
+    },
   },
   {
     title: 'operation',
@@ -154,7 +166,7 @@ const edit = key => {
 const save = key => {
 };
 const onDelete = async key => {
-  await productStore.deleteProduct(key)
+  await attributesStore.deleteAttribute(key)
   console.log("deleted", key)
 };
 const onEdit = async key => {
@@ -166,7 +178,7 @@ const onEdit = async key => {
 };
 
 const onValues = async key => {
-  await router.push({name: 'attribute-values-id', params: {id: key}});
+  tabsStore.addTab('Attribute Values', attributesValuesTable, { id: key });
 };
 
 const handleAdd = () => {

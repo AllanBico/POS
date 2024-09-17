@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import SubCategoriesTable from "~/components/subcategories/subCategoriesTable.vue";
+import SubCategoriesTable from "~/components/product/subcategories/subCategoriesTable.vue";
 </script>
 
 <template>

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Unit = require('../../models/product/unit');
+const {Unit} = require('../../models/associations');
 const asyncHandler = fn => (req, res, next) =>
     Promise.resolve(fn(req, res, next)).catch(next);
 const authenticateToken = require('../../middleware/auth');
@@ -23,9 +23,8 @@ router.post('/', authenticateToken, asyncHandler(async (req, res) => {
 }));
 
 // Get all units (requires authentication)
-router.get('/',  asyncHandler(async (req, res) => {
+router.get('/', authenticateToken, asyncHandler(async (req, res) => {
     const units = await Unit.findAll();
-    console.log("req.user.id",req.user.id);
     res.status(200).json(units);
 }));
 

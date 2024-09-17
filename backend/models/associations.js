@@ -25,6 +25,8 @@ const Role = require('./users/Role');
 const Permission = require('./users/Permission');
 const RolePermission = require('./users/RolePermission');
 const UserRole  = require('./users/userRole');
+const Warranty  = require('./product/warranty');
+const Taxes  = require('./Taxes');
 const Model = require('./Model'); // Import the Model
 // Define associations AFTER model initialization
 
@@ -152,5 +154,7 @@ module.exports = {
     Permission,
     RolePermission,
     UserRole,
-    Model
+    Model,
+    Warranty,
+    Taxes
 };

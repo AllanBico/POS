@@ -71,8 +71,8 @@ router.get('/',authenticateToken, async (req, res) => {
 
             // Add current inventory entry (warehouse/store/quantity/etc.) to the group
             variantGroup.inventories.push({
-                warehouse: inventory.Warehouse,
-                store: inventory.Store,
+                warehouse: inventory.warehouse,
+                store: inventory.store,
                 quantity: inventory.quantity,
                 minimumStock: inventory.minimumStock,
                 reorderPoint: inventory.reorderPoint,

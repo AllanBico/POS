@@ -1,14 +1,14 @@
 <template>
   <div>
-    <a-modal v-model:open="open" title="Add Attribute" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
+    <a-modal v-model:open="open" title="Add User" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
              cancel-text="Cancel">
-      <attribute-add-modal @submit-success="handleSubmitSuccess"></attribute-add-modal>
+      <category-add-modal @submit-success="handleSubmitSuccess"></category-add-modal>
       <template #footer>
       </template>
     </a-modal>
-    <a-modal v-model:open="edit_open" title="Edit Attribute" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
+    <a-modal v-model:open="edit_open" title="Edit User" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
              cancel-text="Cancel">
-      <attribute-edit-modal @submit-success="handleSubmitSuccess" :attribute_id="attribute_id"></attribute-edit-modal>
+      <category-edit-modal @submit-success="handleSubmitSuccess" :category_id="category_id"></category-edit-modal>
       <template #footer>
       </template>
     </a-modal>
@@ -16,22 +16,16 @@
   <div>
   </div>
   <div class="coupons-container">
-    <a-card  bordered={false}>
+    <a-card title="Categories" bordered={false}>
       <div class="header-controls">
-        <a-input-search
-            placeholder="Search"
-            style="width: 200px;"
-        />
-
         <div class="actions">
           <a-button type="primary" @click="handleAdd" :icon="h(PlusOutlined)">Add New</a-button>
-
         </div>
       </div>
 
       <a-table
           :columns="columns"
-          :data-source="attributesStore.attributes"
+          :data-source="categoryStore.categories"
           :pagination="pagination"
           :rowKey="id"
           bordered
@@ -68,26 +62,12 @@
           <search-outlined :style="{ color: filtered ? '#108ee9' : undefined }" />
         </template>
         <template #bodyCell="{ column, text, record }">
-          <template v-if="column.dataIndex === 'status'">
-        <span>
-          <a-tag
-              :key="record.id"
-              :color="record.status ? 'success' : 'error'"
-          >
-          {{ record.status ? 'Active' : 'Inactive' }} {{record.status}}
-        </a-tag>
-
-        </span>
-          </template>
           <template v-if="column.dataIndex === 'operation'">
-            <a-tooltip title="Values" placement="bottom">
-              <a-button @click="onValues(record.id)" style="margin-right: 3px" :icon="h(OrderedListOutlined)"/>
-            </a-tooltip>
             <a-tooltip title="Edit" placement="bottom">
               <a-button @click="onEdit(record.id)" style="margin-right: 3px" :icon="h(EditOutlined)"/>
             </a-tooltip>
             <a-popconfirm
-                v-if="attributesStore.attributes.length"
+                v-if="categoryStore.categories.length"
                 title="Sure to delete?"
                 @confirm="onDelete(record.id)">
               <a-tooltip title="Delete" placement="bottom">
@@ -103,21 +83,18 @@
 </template>
 
 <script setup>
-import { ref} from 'vue';
-import {DeleteOutlined, EditOutlined,PlusOutlined,OrderedListOutlined} from "@ant-design/icons-vue";
-import { useAttributesStore } from '~/stores/AttributeStore.js';
-const attributesStore = useAttributesStore();
-import AttributeAddModal from "~/components/attributes/attributeAddModal.vue";
-import AttributeEditModal from "~/components/attributes/attributeEditModal.vue";
-import { useTabsStore } from '~/stores/tabsStore';
-import attributesValuesTable from '~/components/attributes/attributesValuesTable.vue';
-const tabsStore = useTabsStore();
-const router = useRouter();
+import {computed, reactive, ref} from 'vue';
+import {cloneDeep} from 'lodash-es';
+import {useCategoryStore} from '~/stores/CategoryStore.js';
+import CategoryAddModal from "~/components/product/categories/categoryAddModal.vue";
+import CategoryEditModal from "~/components/product/categories/categoryEditModal.vue";
+import {DeleteOutlined, EditOutlined,PlusOutlined} from "@ant-design/icons-vue";
+const categoryStore = useCategoryStore();
 const open = ref(false);
 const edit_open = ref(false);
-let attribute_id = ref(null)
-attributesStore.fetchAttributes()
-console.log("attributesStore.attributes", attributesStore.attributes)
+let category_id = ref(null)
+categoryStore.fetchCategories()
+console.log("categoryStore.categories", categoryStore.categories)
 const columns = [
   {
     title: 'Name',
@@ -166,19 +143,15 @@ const edit = key => {
 const save = key => {
 };
 const onDelete = async key => {
-  await attributesStore.deleteAttribute(key)
+  await categoryStore.deleteCategory(key)
   console.log("deleted", key)
 };
 const onEdit = async key => {
   console.log("edit", key)
-  attribute_id = parseInt(key)
-  console.log("attribute_id", attribute_id)
+  category_id = parseInt(key)
+  console.log("user_id", category_id)
   edit_open.value = true
   console.log("done")
-};
-
-const onValues = async key => {
-  tabsStore.addTab('Attribute Values', attributesValuesTable, { id: key });
 };
 
 const handleAdd = () => {
@@ -212,23 +185,4 @@ const handleReset = clearFilters => {
 };
 </script>
 
-<style scoped>
-.coupons-container {
-  padding: 20px;
-}
 
-.header-controls {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-
-.actions {
-  display: flex;
-  align-items: end;
-}
-
-.actions a-button {
-  margin-left: 2px;
-}
-</style>

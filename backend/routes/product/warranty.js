@@ -1,5 +1,5 @@
 const express = require('express');
-const Warranty = require('../../models/product/warranty');
+const {Warranty} = require('../../models/associations');
 const authenticateToken = require("../../middleware/auth");
 
 const router = express.Router();
@@ -33,16 +33,23 @@ router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
 // Create a new warranty
 router.post('/', authenticateToken, asyncHandler(async (req, res) => {
     const {name, duration, periods, description, status} = req.body;
+    console.log("name, duration, periods, description, status",name, duration, periods, description, status)
     if (!name || !duration || !periods || !description || status === undefined) {
         return res.status(400).json({error: 'Missing required fields'});
     }
 
-    const warranty = await Warranty.create({name, duration, periods, description, status});
-    if (!warranty) {
-        return res.status(500).json({error: 'Failed to create warranty'});
+    try {
+        const warranty = await Warranty.create({name, duration, periods, description, status});
+        if (!warranty) {
+            throw new Error('Failed to create warranty');
+        }
+        res.status(201).json(warranty);
+        req.io.emit('newWarranty', warranty);
+        console.log('newWarranty', warranty);
+    } catch (err) {
+        console.error('Error creating warranty:', err);
+        res.status(500).json({error: 'Internal server error'});
     }
-    res.status(201).json(warranty);
-    req.io.emit('newWarranty', warranty);
 }));
 
 // Update a warranty

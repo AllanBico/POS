@@ -14,8 +14,8 @@
 
 <script setup>
 import { ref } from 'vue';
-import BrandAddModal from "~/components/brands/brandAddModal.vue";
-import UnitsAddModal from "~/components/units/unitsAddModal.vue";
+import BrandAddModal from "~/components/product/brands/brandAddModal.vue";
+import UnitsAddModal from "~/components/product/units/unitsAddModal.vue";
 import SupplierAddModal from "~/components/Suppliers/SupplierAddModal.vue";
 
 const current = ref(0);

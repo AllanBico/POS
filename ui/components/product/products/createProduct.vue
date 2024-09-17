@@ -157,8 +157,8 @@
         <p><strong>Description:</strong> {{ product.description }}</p>
         <p><strong>Category:</strong> {{ getCategoryName(product.categoryId) }}</p>
         <p><strong>Subcategory:</strong> {{ getSubcategoryName(product.subcategoryId) }}</p>
-        <p><strong>Brand:</strong> {{  brandStore.BrandById(product.brandId).name }}</p>
-        <p><strong>Unit:</strong> {{  unitStore.UnitById(product.brandId).name }}</p>
+        <p><strong>Brand:</strong> {{  brandStore.BrandById(product.brandId) }}</p>
+        <p><strong>Unit:</strong> {{  unitStore.UnitById(product.brandId) }}</p>
         <p><strong>Low Stock Alert:</strong> {{ product.lowStockAlert }}</p>
         <p><strong>VAT Type:</strong> {{ product.vatType }}</p>
 

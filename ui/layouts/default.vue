@@ -1,5 +1,5 @@
 <template>
-  <a-layout :theme="{ colorPrimary: 'blue' }">
+  <a-layout :theme="{ colorPrimary: 'red' }">
     <a-layout-sider
         theme="light"
         breakpoint="lg"
@@ -64,7 +64,7 @@
           </a>
         </a-menu-item>
         <a-menu-item key="Variants">
-          <a to="/variants">
+          <a @click="addTab('Variants', variantsTable)">
             <pie-chart-outlined/>
             <span>Variants</span>
           </a>
@@ -93,6 +93,12 @@
           <a @click="addTab('Goods Received', GoodsReceivingTable)">
             <pie-chart-outlined/>
             <span>Received</span>
+          </a>
+        </a-menu-item>
+        <a-menu-item key="Received">
+          <a @click="addTab('Stock Transfer', stockTransfer)">
+            <pie-chart-outlined/>
+            <span>Stock Transfer</span>
           </a>
         </a-menu-item>
         <a-divider style="border-color: black;color: black;">Purchases</a-divider>
@@ -160,6 +166,12 @@
             <span>Stores</span>
           </a>
         </a-menu-item>
+        <a-menu-item key="Taxes">
+          <a @click="addTab('Taxes', taxesTable)">
+            <pie-chart-outlined/>
+            <span>Taxes</span>
+          </a>
+        </a-menu-item>
         <a-sub-menu key="Settings">
           <template #title>
             <span>
@@ -167,8 +179,8 @@
               <span>Settings</span>
             </span>
           </template>
-          <a-menu-item key="setttings1">
-            <a to="/settings">Barcode Settings</a>
+          <a-menu-item key="settings">
+            <a @click="addTab('Settings', settings)">Barcode Settings</a>
           </a-menu-item>
           <a-menu-item key="Users Roles">Users Roles</a-menu-item>
         </a-sub-menu>
@@ -258,14 +270,14 @@ import { ref } from 'vue';
 import { useTabsStore } from '~/stores/tabsStore';
 const tabsStore = useTabsStore();
 import expensesTable from '~/components/expenses/expensesTable.vue';
-import productsTable from '~/components/products/productsTable.vue';
-import categoriesTable from '~/components/categories/categoriesTable.vue';
-import brandsTable from '~/components/brands/brandsTable.vue';
-import unitsTable from '~/components/units/unitsTable.vue';
+import productsTable from '~/components/product/products/productsTable.vue';
+import categoriesTable from '~/components/product/categories/categoriesTable.vue';
+import brandsTable from '~/components/product/brands/brandsTable.vue';
+import unitsTable from '~/components/product/units/unitsTable.vue';
 import purchasesTable from '~/components/purchases/purchasesTable.vue';
 import usersTable from '~/components/users/usersTable.vue';
-import subCategoriesTable from '~/components/subcategories/subCategoriesTable.vue';
-import attributesTable from '~/components/attributes/attributesTable.vue'
+import subCategoriesTable from '~/components/product/subcategories/subCategoriesTable.vue';
+import attributesTable from '~/components/product/attributes/attributesTable.vue'
 import warrantiesTable from '~/components/warranties/warrantiesTable.vue'
 import customersTable from '~/components/customers/customersTable.vue'
 import inventoriesTable from '~/components/inventory/inventoriesTable.vue'
@@ -277,7 +289,10 @@ import expensesCategoriesTable from '~/components/expenses/expensesCategoriesTab
 import GoodsReceivingTable from "~/components/inventory/receive/GoodsReceivingTable.vue";
 import rolesTable from "~/components/users/roleandpermission/rolesTable.vue";
 import {BellOutlined, SettingOutlined, UserOutlined} from "@ant-design/icons-vue";
-
+import variantsTable from '~/components/product/products/variantsTable.vue';
+import settings from '~/components/settings/settings.vue';
+import stockTransfer from '~/components/inventory/stockTransfer.vue';
+import taxesTable from "~/components/taxes/taxesTable.vue";
 const collapsed = ref(false);
 
 
@@ -358,5 +373,27 @@ a {
 
 a:hover {
   color: #40a9ff;
+}
+/* 3D floating effect for active tab */
+.ant-tabs-card .ant-tabs-tab-active {
+  position: relative;
+  background-color: blue;
+  z-index: 1;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1),
+  0 6px 6px rgba(0, 0, 0, 0.12); /* Add a subtle shadow */
+  transform: translateY(-5px); /* Slight lift to create the 3D effect */
+  transition: all 0.3s ease; /* Smooth transition effect */
+  border-radius: 8px; /* Give it a more modern look with rounded corners */
+}
+
+/* Optional: Add subtle shadow to all other tabs for depth */
+.ant-tabs-tab {
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.06);
+}
+
+/* Hover effect for non-active tabs */
+.ant-tabs-tab:hover {
+  transform: translateY(-2px);
 }
 </style>

@@ -65,7 +65,7 @@ export const useAttributesStore = defineStore('attributes', {
             }
         },
         async createAttributeValue(attributeValue) {
-            console.log("createAttributeValue")
+            console.log("createAttributeValue",attributeValue)
             try {
                 const { $toast } = useNuxtApp()
                 const config = useRuntimeConfig();

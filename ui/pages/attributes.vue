@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import AttributesTable from "~/components/attributes/attributesTable.vue";
+import AttributesTable from "~/components/product/attributes/attributesTable.vue";
 </script>
 
 <template>

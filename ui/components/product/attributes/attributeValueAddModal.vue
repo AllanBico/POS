@@ -14,8 +14,16 @@ import { useAttributesStore } from '~/stores/AttributeStore.js';
 const attributesStore = useAttributesStore();
 const emit = defineEmits(['submit-success']);
 const { $toast } = useNuxtApp()
-const route = useRoute();
-const  attribute_id = route.params.id
+
+
+const props = defineProps({
+  attribute_id: {
+    type: Number,
+    required: true,
+  },
+});
+const  attribute_id = props.attribute_id
+console.log("attribute_id",attribute_id.value)
 const form = ref({
   value: '',
   attributeId: attribute_id,
@@ -29,7 +37,7 @@ const handleSubmit = async () => {
     // Call the store method to add the user
     await attributesStore.createAttributeValue(form.value);
     // Reset form
-    form.value = { value: '',attributeId: attribute_id};
+    form.value = { value: '',attributeId: attribute_id.value};
     // Emit event to close the modal if needed
     emit('submit-success');
   } catch (error) {

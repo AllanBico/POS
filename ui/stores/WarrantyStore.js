@@ -26,13 +26,17 @@ export const useWarrantyStore = defineStore('warranty', {
         },
 
         async createWarranty(warranty) {
+            console.log("store warranty",warranty)
             const config = useRuntimeConfig();
             const { data, error } = await useFetch(`${config.public.baseURL}/api/warranties`, {
                 method: 'POST',
                 body: warranty,
                 credentials: 'include',
             });
-            if (error.value) throw error.value;
+            if (error.value) {
+                console.log("error.value",error)
+                throw error.value
+            }
             this.warranties.push(data.value);
         },
 

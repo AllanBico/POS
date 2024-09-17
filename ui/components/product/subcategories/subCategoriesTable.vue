@@ -37,8 +37,8 @@
 import {computed, reactive, ref} from 'vue';
 import {cloneDeep} from 'lodash-es';
 import {useSubcategoryStore} from '~/stores/SubcategoryStore.js';
-import SubCategoryAddModal from "~/components/subcategories/subCategoryAddModal.vue";
-import SubCategoryEditModal from "~/components/subcategories/subCategoryEditModal.vue";
+import SubCategoryAddModal from "~/components/product/subcategories/subCategoryAddModal.vue";
+import SubCategoryEditModal from "~/components/product/subcategories/subCategoryEditModal.vue";
 
 const subCategoryStore = useSubcategoryStore();
 const open = ref(false);

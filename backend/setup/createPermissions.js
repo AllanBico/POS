@@ -1,5 +1,5 @@
-const {Permission, Model} = require('./models/associations');
-const sequelize = require('./config/db');
+const {Permission, Model} = require('../models/associations');
+const sequelize = require('../config/db');
 async function insertModelsAndPermissions() {
     const modelNames = [
         'attribute',

@@ -25,7 +25,7 @@
 
         <div class="actions">
           <a-button type="primary" :icon="h(PlusOutlined)">
-            <nuxt-link to="/product/create-product">Add New</nuxt-link>
+            <a @click="onCreate">Add New</a>
           </a-button>
 
         </div>
@@ -78,7 +78,7 @@
           <template v-if="column.dataIndex === 'variantAttributeValues'">
             <span v-for="(attribute, index) in record.variantAttributeValues">
               <a-tag color="blue"
-                     style="margin-bottom: 1px;">{{ attribute.AttributeValue.Attribute.name }} : {{ attribute.AttributeValue.value }}</a-tag>
+                     style="margin-bottom: 1px;">{{ attribute?.attributeValue?.attribute?.name }} : {{ attribute?.attributeValue?.value }}</a-tag>
             </span>
           </template>
           <template v-if="column.dataIndex === 'operation'">
@@ -117,9 +117,12 @@ import {DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons-vue"
 import {useProductStore} from '~/stores/ProductStore.js';
 
 const productStore = useProductStore();
-import AttributeAddModal from "~/components/attributes/attributeAddModal.vue";
-import AttributeEditModal from "~/components/attributes/attributeEditModal.vue";
-
+import AttributeAddModal from "~/components/product/attributes/attributeAddModal.vue";
+import AttributeEditModal from "~/components/product/attributes/attributeEditModal.vue";
+import attributesValuesTable from "~/components/product/attributes/attributesValuesTable.vue";
+import createProduct from "~/components/product/products/createProduct.vue";
+import { useTabsStore } from '~/stores/tabsStore.js';
+const tabsStore = useTabsStore();
 const loading = ref(false);
 const open = ref(false);
 const edit_open = ref(false);
@@ -175,6 +178,9 @@ const columns = [
     key: 'operation',
   },
 ];
+const onCreate = async ( )=> {
+  tabsStore.addTab('Create Product', createProduct);
+};
 
 const pagination = ref({pageSize: 10});
 const edit = key => {

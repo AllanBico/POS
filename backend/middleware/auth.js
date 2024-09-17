@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const authenticateToken = (req, res, next) => {
     // Access the token from req.cookies.token
     const token = req.cookies.token;
-    console.log("token",token)
+    //console.log("token",token)
 
     if (!token) {
         return res.status(401).json({ error: 'No token provided' });
@@ -15,7 +15,7 @@ const authenticateToken = (req, res, next) => {
         }
 
         req.user = user; // Attach user info to request
-        console.log("user",req.user)
+        //console.log("user",req.user)
         next();
     });
 

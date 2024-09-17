@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import VariantsTable from "~/components/products/variantsTable.vue";
+import VariantsTable from "~/components/product/products/variantsTable.vue";
 </script>
 
 <template>

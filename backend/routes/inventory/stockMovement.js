@@ -1,8 +1,83 @@
 const express = require('express');
 const router = express.Router();
-const { StockMovement } = require('../../models/associations'); // Ensure correct path to StockMovement model
+const { StockMovement,Inventory } = require('../../models/associations'); // Ensure correct path to StockMovement model
 const authenticateToken = require('../../middleware/auth');
+const sequelize = require('../../config/db');
 
+router.post('/transfer', authenticateToken, async (req, res) => {
+    const transaction = await sequelize.transaction();
+    try {
+        console.log('Request body:', req.body);
+        const { variantId, quantity, sourceType, sourceId, destinationType, destinationId, createdBy } = req.body;
+
+        // Decrease stock from the source location
+        console.log('Querying source inventory');
+        const sourceInventory = await Inventory.findOne({
+            where: {
+                variantId,
+                [`${sourceType}Id`]: sourceId,
+            },
+        });
+
+        console.log('Source inventory:', sourceInventory);
+
+        if (!sourceInventory || sourceInventory.quantity < quantity) {
+            console.log('Insufficient stock in source location');
+            return res.status(400).json({ error: 'Insufficient stock in source location' });
+        }
+
+        sourceInventory.quantity -= quantity;
+        console.log('Updating source inventory');
+        await sourceInventory.save({ transaction });
+
+        // Increase stock in the destination location
+        console.log('Querying destination inventory');
+        let destinationInventory = await Inventory.findOne({
+            where: {
+                variantId,
+                [`${destinationType}Id`]: destinationId,
+            },
+        });
+
+        console.log('Destination inventory:', destinationInventory);
+
+        if (!destinationInventory) {
+            console.log('Creating destination inventory');
+            destinationInventory = await Inventory.create({
+                variantId,
+                [`${destinationType}Id`]: destinationId,
+                quantity: 0,
+            }, { transaction });
+        }
+
+        destinationInventory.quantity += quantity;
+        console.log('Updating destination inventory');
+        await destinationInventory.save({ transaction });
+
+        // Create StockMovement record
+        console.log('Creating stock movement record');
+        console.log('User ID:', req.user.id);
+        await StockMovement.create({
+            variantId,
+            quantity,
+            transactionType: 'transfer',
+            sourceType,
+            sourceId,
+            destinationType,
+            destinationId,
+            createdBy:req.user.id,
+        }, { transaction });
+
+        console.log('Committing transaction');
+        await transaction.commit();
+        res.status(200).json({ message: 'Stock transfer completed successfully' });
+    } catch (error) {
+        console.log('Error:', error.message);
+        console.log('Rolling back transaction');
+        await transaction.rollback();
+        res.status(500).json({ error: error.message });
+    }
+});
 // CREATE StockMovement
 router.post('/', authenticateToken, async (req, res) => {
     try {

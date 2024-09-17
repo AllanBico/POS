@@ -72,9 +72,12 @@
           <search-outlined :style="{ color: filtered ? '#108ee9' : undefined }"/>
         </template>
         <template #bodyCell="{ column, text, record }">
-<!--          <template v-if="column.dataIndex === 'variantAttributeValues'">-->
-<!--            {{record.variantAttributeValues}}-->
-<!--          </template>-->
+          <template v-if="column.dataIndex === 'inventories'">
+            <span v-for="(inventory, index) in record.inventories">
+              <a-tag color="blue"
+                     style="margin-bottom: 1px;">{{ inventory?.warehouse?.name || inventory?.store?.name}} : {{inventory.quantity}} </a-tag>
+            </span>
+          </template>
           <template v-if="column.dataIndex === 'operation'">
             <a-dropdown :trigger="['click']">
               <a class="ant-dropdown-link" @click.prevent>
@@ -109,11 +112,9 @@
 import {ref} from 'vue';
 import {DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons-vue";
 import {useInventoryStore} from '~/stores/InventoryStore.js';
-
 const inventoryStore = useInventoryStore();
-import AttributeAddModal from "~/components/attributes/attributeAddModal.vue";
-import AttributeEditModal from "~/components/attributes/attributeEditModal.vue";
-
+import AttributeAddModal from "~/components/product/attributes/attributeAddModal.vue";
+import AttributeEditModal from "~/components/product/attributes/attributeEditModal.vue";
 const loading = ref(false);
 const open = ref(false);
 const edit_open = ref(false);
@@ -159,6 +160,10 @@ const columns = [
   //   key: 'VATType',
   // },
   {
+    title: 'inventories',
+    dataIndex: 'inventories',
+    key: 'inventories',
+  },{
     title: 'operation',
     dataIndex: 'operation',
     key: 'operation',

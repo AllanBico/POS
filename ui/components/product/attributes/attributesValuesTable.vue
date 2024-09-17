@@ -2,7 +2,7 @@
   <div>
     <a-modal v-model:open="open" title="Add Attribute" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
              cancel-text="Cancel">
-      <attribute-value-add-modal  @submit-success="handleSubmitSuccess"></attribute-value-add-modal>
+      <attribute-value-add-modal :attribute_id="attribute_id"  @submit-success="handleSubmitSuccess"></attribute-value-add-modal>
       <template #footer>
       </template>
     </a-modal>
@@ -104,8 +104,8 @@ import {ref, watch} from 'vue';
 import {DeleteOutlined, EditOutlined,PlusOutlined} from "@ant-design/icons-vue";
 import { useAttributesStore } from '~/stores/AttributeStore.js';
 const attributesStore = useAttributesStore();
-import AttributeValueAddModal from "~/components/attributes/AttributeValueAddModal.vue";
-import AttributeValueEditModal from "~/components/attributes/AttributeValueEditModal.vue";
+import AttributeValueAddModal from "~/components/product/attributes/attributeValueAddModal.vue";
+import AttributeValueEditModal from "~/components/product/attributes/attributeValueEditModal.vue";
 
 const open = ref(false);
 const edit_open = ref(false);

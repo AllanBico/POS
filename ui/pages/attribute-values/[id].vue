@@ -1,5 +1,5 @@
 <script setup>
-import AttributesValuesTable from "~/components/attributes/attributesValuesTable.vue";
+import AttributesValuesTable from "~/components/product/attributes/attributesValuesTable.vue";
 
 </script>
 <template>

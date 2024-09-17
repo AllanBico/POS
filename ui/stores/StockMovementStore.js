@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { useFetch } from '#app'; // Assuming Nuxt 3
+import {useFetch, useRuntimeConfig} from '#app'; // Assuming Nuxt 3
 
 export const useStockMovementStore = defineStore('stockMovement', {
     state: () => ({
@@ -18,7 +18,23 @@ export const useStockMovementStore = defineStore('stockMovement', {
                 this.error = err.message;
             }
         },
+        async stockTransfer(formData) {
+            console.log("formData",formData)
+            try {
+                const config = useRuntimeConfig();
+                const apiUrl = `${config.public.baseURL}/api/stock-movements/transfer`;
+                const { data, error } = await useFetch(apiUrl, {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'include',
+                });
+                this.stockMovements.push(data.value);
+                console.log('Stock transfer successful');
 
+            } catch (error) {
+                console.error('Error during stock transfer');
+            }
+        },
         async fetchStockMovementById(id) {
             try {
                 const { data, error } = await useFetch(`/api/stockMovement/${id}`);

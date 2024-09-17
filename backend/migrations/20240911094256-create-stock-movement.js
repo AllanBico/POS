@@ -27,7 +27,7 @@ module.exports = {
         allowNull: false,
       },
       source_type: {
-        type: Sequelize.ENUM('supplier', 'warehouse', 'client'),
+        type: Sequelize.ENUM('warehouse', 'client', 'supplier','store'),
         allowNull: false,
       },
       source_id: {
@@ -35,7 +35,7 @@ module.exports = {
         allowNull: true,
       },
       destination_type: {
-        type: Sequelize.ENUM('warehouse', 'client'),
+        type: Sequelize.ENUM('warehouse', 'client', 'supplier','store'),
         allowNull: false,
       },
       destination_id: {

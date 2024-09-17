@@ -41,7 +41,9 @@ const rolePermissionsRoutes = require('./routes/users/rolePermissions');
 const userRolesRoutes = require('./routes/users/userRoles');
 const rolesPermissionsRoutes = require('./routes/users/rolePermissions');
 const stockMovementRoutes = require('./routes/inventory/stockMovement');
-const authenticateToken = require('./middleware/auth');
+const settingsRoutes = require('./routes/settings');
+const taxRoutes = require('./routes/tax');
+//const authenticateToken = require('./middleware/auth');
 
 dotenv.config();
 
@@ -79,7 +81,7 @@ const logger = winston.createLogger({
 });
 
 // Middleware to log user actions and save to the database
-app.use(authenticateToken);
+//app.use(authenticateToken);
 app.use(async (req, res, next) => {
     const logEntry = {
         method: req.method,
@@ -137,6 +139,8 @@ app.use('/api/permissions', permissionsRoutes);
 app.use('/api/role-permissions', rolePermissionsRoutes);
 app.use('/api/user-roles', userRolesRoutes);
 app.use('/api/stock-movements', stockMovementRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/taxes', taxRoutes);
 
 
 

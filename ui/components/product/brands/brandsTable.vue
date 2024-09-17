@@ -1,12 +1,14 @@
 <template>
   <div>
-      <a-modal v-model:open="open" title="Add User" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"  cancel-text="Cancel">
-      <UnitsAddModal @submit-success="handleSubmitSuccess"></UnitsAddModal>
+    <a-modal v-model:open="open" title="Add User" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
+             cancel-text="Cancel">
+      <brand-add-modal @submit-success="handleSubmitSuccess"></brand-add-modal>
       <template #footer>
       </template>
     </a-modal>
-    <a-modal v-model:open="edit_open" title="Edit User" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"  cancel-text="Cancel">
-      <units-edit-modal @submit-success="handleSubmitSuccess" :unit_id="unit_id"></units-edit-modal>
+    <a-modal v-model:open="edit_open" title="Edit User" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
+             cancel-text="Cancel">
+      <brand-edit-modal @submit-success="handleSubmitSuccess" :brand_id="brand_id"></brand-edit-modal>
       <template #footer>
       </template>
     </a-modal>
@@ -14,15 +16,14 @@
   <div>
   </div>
   <a-button class="editable-add-btn" style="margin-bottom: 1px ;margin-top: 1px ;" @click="handleAdd">Add</a-button>
-  <a-table bordered :data-source="unitStore.units" :columns="columns">
+  <a-table bordered :data-source="brandStore.brands" :columns="columns">
     <template #bodyCell="{ column, text, record }">
       <template v-if="column.dataIndex === 'operation'">
-
         <a-tooltip  title="Edit" placement="bottom">
           <a-button @click="onEdit(record.id)" style="margin-right: 3px"  :icon="h(EditOutlined)" />
         </a-tooltip>
         <a-popconfirm
-            v-if="unitStore.units.length"
+            v-if="brandStore.brands.length"
             title="Sure to delete?"
             @confirm="onDelete(record.id)" >
           <a-tooltip title="Delete" placement="bottom">
@@ -34,27 +35,24 @@
   </a-table>
 </template>
 <script setup>
-import { computed, reactive, ref } from 'vue';
-import { cloneDeep } from 'lodash-es';
+import {computed, reactive, ref} from 'vue';
+import {cloneDeep} from 'lodash-es';
+import {useBrandStore} from '~/stores/BrandStore.js';
+import BrandAddModal from "~/components/product/brands/brandAddModal.vue";
+import BrandEditModal from "~/components/product/brands/brandEditModal.vue";
+import {DeleteOutlined, EditOutlined} from "@ant-design/icons-vue";
 
+const brandStore = useBrandStore();
 const open = ref(false);
 const edit_open = ref(false);
-let unit_id = ref(null)
-import { useUnitStore } from '~/stores/UnitStore.js';
-import UnitsAddModal from "~/components/units/unitsAddModal.vue";
-import UnitsEditModal from "~/components/units/unitsEditModal.vue";
-import {DeleteOutlined, EditOutlined} from "@ant-design/icons-vue";
-const unitStore = useUnitStore();
-unitStore.fetchUnits()
+let brand_id = ref(null)
+brandStore.fetchBrands()
+console.log("brandStore.brands", brandStore.brands)
 const columns = [
   {
     title: 'Name',
     dataIndex: 'name',
     width: '30%',
-  },
-  {
-    title: 'Abbreviation',
-    dataIndex: 'abbreviation',
   },
   {
     title: 'Description',
@@ -72,13 +70,13 @@ const edit = key => {
 const save = key => {
 };
 const onDelete = async key => {
-  await unitStore.deleteUnit(key)
-  console.log("deleted",key)
+  await brandStore.deleteBrand(key)
+  console.log("deleted", key)
 };
 const onEdit = async key => {
-  console.log("edit",key)
-  unit_id =parseInt(key)
-  console.log("user_id",unit_id)
+  console.log("edit", key)
+  brand_id = parseInt(key)
+  console.log("user_id", brand_id)
   edit_open.value = true
   console.log("done")
 };
@@ -102,6 +100,7 @@ const handleSubmitSuccess = () => {
 <style lang="less" scoped>
 .editable-cell {
   position: relative;
+
   .editable-cell-input-wrapper,
   .editable-cell-text-wrapper {
     padding-right: 24px;
@@ -137,6 +136,7 @@ const handleSubmitSuccess = () => {
     margin-bottom: 8px;
   }
 }
+
 .editable-cell:hover .editable-cell-icon {
   display: inline-block;
 }

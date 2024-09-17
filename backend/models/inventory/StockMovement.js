@@ -28,7 +28,7 @@ const StockMovement = sequelize.define('StockMovement', {
         // e.g., 'Stock In (From Supplier)', 'Return from Client', etc.
     },
     sourceType: {
-        type: DataTypes.STRING,
+        type: DataTypes.ENUM('warehouse', 'client', 'supplier', 'store'),
         allowNull: true,
     },
     sourceId: {
@@ -36,7 +36,7 @@ const StockMovement = sequelize.define('StockMovement', {
         allowNull: true,
     },
     destinationType: {
-        type: DataTypes.STRING,
+        type: DataTypes.ENUM('warehouse', 'client', 'supplier', 'store'),
         allowNull: true,
     },
     destinationId: {
@@ -88,7 +88,7 @@ const StockMovement = sequelize.define('StockMovement', {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: 'users', // Name of your users table
+            model: 'users',
             key: 'id'
         },
         onUpdate: 'CASCADE',

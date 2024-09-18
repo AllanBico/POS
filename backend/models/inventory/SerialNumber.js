@@ -35,6 +35,7 @@ const SerialNumber = sequelize.define('SerialNumber', {
 }, {
     timestamps: true,
     underscored: true,
+    softDelete: true,
 });
 
 module.exports = SerialNumber;

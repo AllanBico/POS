@@ -95,10 +95,22 @@
             <span>Received</span>
           </a>
         </a-menu-item>
-        <a-menu-item key="Received">
+        <a-menu-item key="stockTransfer">
           <a @click="addTab('Stock Transfer', stockTransfer)">
             <pie-chart-outlined/>
             <span>Stock Transfer</span>
+          </a>
+        </a-menu-item>
+        <a-menu-item key="stockTakes">
+          <a @click="addTab('Stock Takes', stockTakesTable)">
+            <pie-chart-outlined/>
+            <span>Stock Take</span>
+          </a>
+        </a-menu-item>
+        <a-menu-item key="stockAdjustments">
+          <a @click="addTab('Stock Adjustments', stockAdjustmentsTable)">
+            <pie-chart-outlined/>
+            <span>Stock Adjustments</span>
           </a>
         </a-menu-item>
         <a-divider style="border-color: black;color: black;">Purchases</a-divider>
@@ -293,6 +305,9 @@ import variantsTable from '~/components/product/products/variantsTable.vue';
 import settings from '~/components/settings/settings.vue';
 import stockTransfer from '~/components/inventory/stockTransfer.vue';
 import taxesTable from "~/components/taxes/taxesTable.vue";
+import stockTake from "~/components/inventory/stockTake/stockTake.vue";
+import stockTakesTable from "~/components/inventory/stockTake/stockTakesTable.vue";
+import stockAdjustmentsTable from "~/components/inventory/stockTake/stock adjustment/stockAdjustmentsTable.vue";
 const collapsed = ref(false);
 
 

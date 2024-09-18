@@ -43,6 +43,9 @@ const rolesPermissionsRoutes = require('./routes/users/rolePermissions');
 const stockMovementRoutes = require('./routes/inventory/stockMovement');
 const settingsRoutes = require('./routes/settings');
 const taxRoutes = require('./routes/tax');
+const stockTakeRoutes = require('./routes/stockTakeRoutes');
+const stockAdjustmentRoutes = require('./routes/inventory/stockAdjustments');
+
 //const authenticateToken = require('./middleware/auth');
 
 dotenv.config();
@@ -141,6 +144,8 @@ app.use('/api/user-roles', userRolesRoutes);
 app.use('/api/stock-movements', stockMovementRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/taxes', taxRoutes);
+app.use('/api/stock-takes', stockTakeRoutes);
+app.use('/api/stock-adjustments', stockAdjustmentRoutes);
 
 
 

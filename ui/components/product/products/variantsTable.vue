@@ -73,13 +73,26 @@
         </template>
         <template #bodyCell="{ column, text, record }">
           <template v-if="column.dataIndex === 'stockQuantity'">
-            {{record.stockQuantity}} <span v-if="record.Product.unitId">{{record.Product.Unit.abbreviation}}</span>
+            {{ record.stockQuantity }} <span v-if="record.Product.unitId">{{ record.Product.Unit.abbreviation }}</span>
           </template>
           <template v-if="column.dataIndex === 'variantAttributeValues'">
             <span v-for="(attribute, index) in record.variantAttributeValues">
               <a-tag color="blue"
-                     style="margin-bottom: 1px;">{{ attribute?.attributeValue?.attribute?.name }} : {{ attribute?.attributeValue?.value }}</a-tag>
+                     style="margin-bottom: 1px;">{{
+                  attribute?.attributeValue?.attribute?.name
+                }} : {{ attribute?.attributeValue?.value }}</a-tag>
             </span>
+          </template>
+          <template v-if="column.dataIndex === 'status'">
+        <span>
+          <a-tag
+              :key="record.id"
+              :color="record.status ? 'success' : 'error'"
+          >
+          {{ record.status ? 'Active' : 'Inactive' }}
+        </a-tag>
+
+        </span>
           </template>
           <template v-if="column.dataIndex === 'operation'">
             <a-dropdown :trigger="['click']">
@@ -121,7 +134,8 @@ import AttributeAddModal from "~/components/product/attributes/attributeAddModal
 import AttributeEditModal from "~/components/product/attributes/attributeEditModal.vue";
 import attributesValuesTable from "~/components/product/attributes/attributesValuesTable.vue";
 import createProduct from "~/components/product/products/createProduct.vue";
-import { useTabsStore } from '~/stores/tabsStore.js';
+import {useTabsStore} from '~/stores/tabsStore.js';
+
 const tabsStore = useTabsStore();
 const loading = ref(false);
 const open = ref(false);
@@ -178,7 +192,7 @@ const columns = [
     key: 'operation',
   },
 ];
-const onCreate = async ( )=> {
+const onCreate = async () => {
   tabsStore.addTab('Create Product', createProduct);
 };
 

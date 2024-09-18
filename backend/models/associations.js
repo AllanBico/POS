@@ -27,7 +27,9 @@ const RolePermission = require('./users/RolePermission');
 const UserRole  = require('./users/userRole');
 const Warranty  = require('./product/warranty');
 const Taxes  = require('./Taxes');
+const StockTake  = require('./inventory/StockTake');
 const Model = require('./Model'); // Import the Model
+const StockAdjustment = require('./inventory/stockAdjustment');
 // Define associations AFTER model initialization
 
 // Product <-> Variant
@@ -125,6 +127,28 @@ Permission.belongsToMany(Role, { through: RolePermission });
 Role.belongsToMany(Permission, { through: RolePermission, foreignKey: 'RoleId' });
 Permission.belongsToMany(Role, { through: RolePermission, foreignKey: 'PermissionId' });
 
+// StockTake <-> Product (each stock take is associated with a product)
+StockTake.belongsTo(Variant, { foreignKey: 'variant_id', as: 'variant' });
+Variant.hasMany(StockTake, { foreignKey: 'variant_id', as: 'stockTakes' });
+
+// StockTake <-> Store (optional association, stock take can happen in a store)
+StockTake.belongsTo(Store, { foreignKey: 'store_id', as: 'store' });
+Store.hasMany(StockTake, { foreignKey: 'store_id', as: 'stockTakes' });
+
+// StockTake <-> Store (optional association, stock take can happen in a store)
+StockTake.belongsTo(Warehouse, { foreignKey: 'warehouse_id', as: 'warehouse' });
+Warehouse.hasMany(StockTake, { foreignKey: 'warehouse_id', as: 'stockTakes' });
+
+StockTake.belongsTo(User, { foreignKey: 'created_by', as: 'user' });
+User.hasMany(StockTake, { foreignKey: 'created_by', as: 'stockTakes' });
+
+StockAdjustment.belongsTo(Variant, {foreignKey: 'variantId', as: 'variant'});
+StockAdjustment.belongsTo(Store, {foreignKey: 'storeId', as: 'store'});
+StockAdjustment.belongsTo(Warehouse, {foreignKey: 'warehouseId', as: 'warehouse'});
+StockAdjustment.belongsTo(User, { as: 'createdByUser', foreignKey: 'createdBy' });
+StockAdjustment.belongsTo(User, { as: 'approvedByUser', foreignKey: 'approvedBy' });
+StockAdjustment.belongsTo(StockTake, { foreignKey: 'stockTakeId', as: 'stockTake' });
+StockTake.hasMany(StockAdjustment, { foreignKey: 'stockTakeId', as: 'stockAdjustments' });
 
 module.exports = {
     Product,
@@ -156,5 +180,7 @@ module.exports = {
     UserRole,
     Model,
     Warranty,
-    Taxes
+    Taxes,
+    StockTake,
+    StockAdjustment
 };

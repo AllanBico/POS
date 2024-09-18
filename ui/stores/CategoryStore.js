@@ -68,6 +68,7 @@ export const useCategoryStore = defineStore('category', {
         },
         async updateCategory(id, category) {
             this.setLoading(true);
+            console.log("category",category)
             const { $toast } = useNuxtApp();
             const config = useRuntimeConfig();
             const apiUrl = `${config.public.baseURL}/api/categories/${id}`;

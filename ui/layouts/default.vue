@@ -81,7 +81,12 @@
             <span>Warranties</span>
           </a>
         </a-menu-item>
-
+        <a-menu-item key="coupons">
+          <a @click="addTab('Coupons', couponsTable)">
+            <pie-chart-outlined/>
+            <span>Coupons</span>
+          </a>
+        </a-menu-item>
         <a-divider style="border-color: black;color: black;">Stock</a-divider>
         <a-menu-item key="inventories">
           <a @click="addTab('Inventory', inventoriesTable)">
@@ -305,9 +310,9 @@ import variantsTable from '~/components/product/products/variantsTable.vue';
 import settings from '~/components/settings/settings.vue';
 import stockTransfer from '~/components/inventory/stockTransfer.vue';
 import taxesTable from "~/components/taxes/taxesTable.vue";
-import stockTake from "~/components/inventory/stockTake/stockTake.vue";
 import stockTakesTable from "~/components/inventory/stockTake/stockTakesTable.vue";
 import stockAdjustmentsTable from "~/components/inventory/stockTake/stock adjustment/stockAdjustmentsTable.vue";
+import couponsTable from "~/components/coupons/couponsTable.vue";
 const collapsed = ref(false);
 
 

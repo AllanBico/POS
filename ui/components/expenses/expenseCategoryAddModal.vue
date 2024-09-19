@@ -15,7 +15,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useExpenseCategoryStore } from '@/stores/expenseCategory'; // Assuming the store for categories
+import { useExpenseCategoryStore } from '~/stores/expenses/ExpenseCategory.js'; // Assuming the store for categories
 const categoryStore = useExpenseCategoryStore();
 const emit = defineEmits(['submit-success']);
 const { $toast } = useNuxtApp()

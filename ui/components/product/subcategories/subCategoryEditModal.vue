@@ -29,8 +29,8 @@
 
 <script setup>
 import { ref, watch, onMounted } from 'vue';
-import { useSubcategoryStore } from '~/stores/SubcategoryStore.js';
-import { useCategoryStore } from '~/stores/CategoryStore.js';
+import { useSubcategoryStore } from '~/stores/product/SubcategoryStore.js';
+import { useCategoryStore } from '~/stores/product/CategoryStore.js';
 const subcategoryStore = useSubcategoryStore();
 const categoryStore = useCategoryStore();
 const router = useRouter();

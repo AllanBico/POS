@@ -1,6 +1,6 @@
 import { defineNuxtPlugin } from '#app'
-import { useProductStore } from "~/stores/ProductStore"
-import { useCategoryStore } from "~/stores/CategoryStore"
+import { useProductStore } from "~/stores/product/ProductStore"
+import { useCategoryStore } from "~/stores/product/CategoryStore"
 import { useAuthStore } from "~/stores/AuthStore" // Assuming you have an auth store
 
 export default defineNuxtPlugin(async (nuxtApp) => {

@@ -80,8 +80,8 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { useStockMovementStore } from '~/stores/StockMovementStore.js';
-import { useProductStore } from '~/stores/ProductStore.js';
+import { useStockMovementStore } from '~/stores/invetory/StockMovementStore.js';
+import { useProductStore } from '~/stores/product/ProductStore.js';
 import { useStoreStore } from '~/stores/storesStore.js';
 import {useWarehouseStore} from '~/stores/WarehouseStore.js';
 const warehouseStore = useWarehouseStore();

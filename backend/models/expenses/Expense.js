@@ -1,10 +1,10 @@
 // models/Expense.js
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const sequelize = require('../../config/db');
 const ExpenseCategory = require('./ExpenseCategory');
-const PaymentMethod = require('./PaymentMethod');
-const User = require('./users/user'); // Assuming you have a User model
-const Supplier = require('./product/supplier'); // Assuming you have a Supplier model
+const PaymentMethod = require('../PaymentMethod');
+const User = require('../users/user'); // Assuming you have a User model
+const Supplier = require('../product/supplier'); // Assuming you have a Supplier model
 
 const Expense = sequelize.define('Expense', {
     id: {

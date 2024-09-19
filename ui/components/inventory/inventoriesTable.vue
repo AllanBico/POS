@@ -111,7 +111,7 @@
 <script setup>
 import {ref} from 'vue';
 import {DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons-vue";
-import {useInventoryStore} from '~/stores/InventoryStore.js';
+import {useInventoryStore} from '~/stores/invetory/InventoryStore.js';
 const inventoryStore = useInventoryStore();
 import AttributeAddModal from "~/components/product/attributes/attributeAddModal.vue";
 import AttributeEditModal from "~/components/product/attributes/attributeEditModal.vue";

@@ -15,7 +15,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import {useCategoryStore} from '~/stores/CategoryStore.js';
+import {useCategoryStore} from '~/stores/product/CategoryStore.js';
 const categoryStore = useCategoryStore();
 const emit = defineEmits(['submit-success']);
 const { $toast } = useNuxtApp()

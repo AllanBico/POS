@@ -26,7 +26,7 @@
 </template>
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import { useSupplierStore } from '~/stores/SupplierStore.js';
+import { useSupplierStore } from '~/stores/product/SupplierStore.js';
 
 const supplierStore = useSupplierStore();
 const emit = defineEmits(['submit-success']);

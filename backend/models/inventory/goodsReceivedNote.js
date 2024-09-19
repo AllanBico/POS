@@ -1,20 +1,20 @@
-// models/PurchaseOrder.js
+// models/GoodsReceivedNote.js
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
-const Supplier = require('./product/supplier');
-const Warehouse = require('./Warehouse');
-const Store = require('./Store');
+const sequelize = require('../../config/db');
+const PurchaseOrder = require('../purchases/purchaseOrder');
+const Warehouse = require('../warehouse');
+const Store = require('../store');
 
-const PurchaseOrder = sequelize.define('PurchaseOrder', {
+const GoodsReceivedNote = sequelize.define('GoodsReceivedNote', {
     id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
     },
-    supplierId: {
+    purchaseOrderId: {
         type: DataTypes.INTEGER,
         references: {
-            model: Supplier,
+            model: PurchaseOrder,
             key: 'id',
         },
         allowNull: false,
@@ -35,25 +35,17 @@ const PurchaseOrder = sequelize.define('PurchaseOrder', {
         },
         allowNull: true,
     },
-    orderDate: {
+    receivedDate: {
         type: DataTypes.DATE,
         allowNull: false,
     },
-    expectedDeliveryDate: {
-        type: DataTypes.DATE,
-        allowNull: true,
-    },
     status: {
-        type: DataTypes.ENUM('pending', 'received', 'cancelled','ordered'),
+        type: DataTypes.ENUM('pending', 'complete', 'partial'),
         defaultValue: 'pending',
-    },
-    totalAmount: {
-        type: DataTypes.FLOAT,
-        allowNull: true,
     },
 }, {
     timestamps: true,
     underscored: true,
 });
 
-module.exports = PurchaseOrder;
+module.exports = GoodsReceivedNote;

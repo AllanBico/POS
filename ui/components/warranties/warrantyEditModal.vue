@@ -32,7 +32,7 @@
 
 <script setup>
 import {ref, onMounted, watch} from 'vue';
-import {useWarrantyStore} from '~/stores/WarrantyStore.js';
+import {useWarrantyStore} from '~/stores/product/WarrantyStore.js';
 
 const emit = defineEmits(['submit-success']);
 const props = defineProps({

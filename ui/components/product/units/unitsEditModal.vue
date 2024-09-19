@@ -17,7 +17,7 @@
 </template>
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import {useUnitStore} from '~/stores/UnitStore.js';
+import {useUnitStore} from '~/stores/product/UnitStore.js';
 const UnitStore = useUnitStore();
 const emit = defineEmits(['submit-success']);
 const props = defineProps({

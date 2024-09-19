@@ -13,7 +13,7 @@
 </template>
 <script setup>
 import {ref, onMounted, watch} from 'vue';
-import {useExpenseCategoryStore} from '@/stores/expenseCategory';
+import {useExpenseCategoryStore} from '~/stores/expenses/ExpenseCategory.js';
 
 const categoryStore = useExpenseCategoryStore();
 const emit = defineEmits(['submit-success']);

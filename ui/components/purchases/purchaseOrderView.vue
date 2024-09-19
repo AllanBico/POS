@@ -41,7 +41,7 @@
 
 <script setup>
 import {ref, computed, onMounted, watch} from 'vue';
-import { usePurchaseOrderStore } from '~/stores/PurchaseOrderStore.js';
+import { usePurchaseOrderStore } from '~/stores/purchases/PurchaseOrderStore.js';
 import GoodsReceivingForm from "~/components/inventory/receive/GoodsReceivingAdd.vue";
 import {useTabsStore} from "~/stores/tabsStore.js";
 const tabsStore = useTabsStore();

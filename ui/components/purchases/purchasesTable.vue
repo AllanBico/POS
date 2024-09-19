@@ -94,7 +94,7 @@
 
 <script setup>
 import {computed, reactive, ref} from 'vue';
-import {usePurchaseOrderStore} from '~/stores/PurchaseOrderStore.js';
+import {usePurchaseOrderStore} from '~/stores/purchases/PurchaseOrderStore.js';
 import {DeleteOutlined, EditOutlined, OrderedListOutlined, PlusOutlined,EyeOutlined} from "@ant-design/icons-vue";
 import PurchaseOrderAddModal from "~/components/purchases/purchaseOrderAddModal.vue";
 import PurchaseOrderEditModal from "~/components/purchases/purchaseOrderEditModal.vue";

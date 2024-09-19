@@ -36,7 +36,7 @@
 <script setup>
 import {computed, reactive, ref} from 'vue';
 import {cloneDeep} from 'lodash-es';
-import {useSubcategoryStore} from '~/stores/SubcategoryStore.js';
+import {useSubcategoryStore} from '~/stores/product/SubcategoryStore.js';
 import SubCategoryAddModal from "~/components/product/subcategories/subCategoryAddModal.vue";
 import SubCategoryEditModal from "~/components/product/subcategories/subCategoryEditModal.vue";
 

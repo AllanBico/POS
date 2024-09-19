@@ -53,7 +53,7 @@ import {cloneDeep} from 'lodash-es';
 const open = ref(false);
 const edit_open = ref(false);
 let warranty_id = ref(null)
-import {useWarrantyStore} from '~/stores/WarrantyStore.js';
+import {useWarrantyStore} from '~/stores/product/WarrantyStore.js';
 import WarrantyAddModal from '~/components/warranties/warrantyAddModal.vue'
 import WarrantyEditModal from '~/components/warranties/WarrantyEditModal.vue'
 import {DeleteOutlined, EditOutlined} from "@ant-design/icons-vue";

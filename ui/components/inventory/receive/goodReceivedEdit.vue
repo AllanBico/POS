@@ -41,7 +41,7 @@
 
 <script setup>
 import { ref, watch, onMounted } from 'vue';
-import { useGoodsReceivingStore } from '~/stores/GoodsReceivingStore.js';
+import { useGoodsReceivingStore } from '~/stores/invetory/GoodsReceivingStore.js';
 import {useWarehouseStore} from "~/stores/WarehouseStore.js";
 import {useStoreStore} from "~/stores/storesStore.js";
 const warehouseStore = useWarehouseStore();

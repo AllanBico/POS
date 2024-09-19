@@ -1,8 +1,8 @@
-import {useAttributesStore} from '~/stores/AttributeStore.js';
-import {useBrandStore} from '~/stores/BrandStore.js';
-import {useUnitStore} from '~/stores/UnitStore.js';
-import {useWarrantyStore} from '~/stores/WarrantyStore.js';
-import {useSupplierStore} from '~/stores/SupplierStore.js';
+import {useAttributesStore} from '~/stores/product/AttributeStore.js';
+import {useBrandStore} from '~/stores/product/BrandStore.js';
+import {useUnitStore} from '~/stores/product/UnitStore.js';
+import {useWarrantyStore} from '~/stores/product/WarrantyStore.js';
+import {useSupplierStore} from '~/stores/product/SupplierStore.js';
 
 export const setupAttributesHandlers = (socket) => {
     const attributesStore = useAttributesStore();

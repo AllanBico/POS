@@ -132,7 +132,7 @@
 <script setup>
 import {ref} from 'vue';
 import { PlusOutlined} from "@ant-design/icons-vue";
-import {useProductStore} from '~/stores/ProductStore.js';
+import {useProductStore} from '~/stores/product/ProductStore.js';
 
 const productStore = useProductStore();
 import AttributeAddModal from "~/components/product/attributes/attributeAddModal.vue";

@@ -10,7 +10,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import {useProductStore} from "~/stores/ProductStore.js";
+import {useProductStore} from "~/stores/product/ProductStore.js";
 const productStore = useProductStore();
 const props = defineProps({
   variant_id: {

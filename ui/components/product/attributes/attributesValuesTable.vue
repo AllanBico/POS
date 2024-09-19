@@ -102,7 +102,7 @@
 <script setup>
 import {ref, watch} from 'vue';
 import {DeleteOutlined, EditOutlined,PlusOutlined} from "@ant-design/icons-vue";
-import { useAttributesStore } from '~/stores/AttributeStore.js';
+import { useAttributesStore } from '~/stores/product/AttributeStore.js';
 const attributesStore = useAttributesStore();
 import AttributeValueAddModal from "~/components/product/attributes/attributeValueAddModal.vue";
 import AttributeValueEditModal from "~/components/product/attributes/attributeValueEditModal.vue";

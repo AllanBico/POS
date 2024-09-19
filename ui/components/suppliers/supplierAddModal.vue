@@ -27,7 +27,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useSupplierStore } from '~/stores/SupplierStore.js';
+import { useSupplierStore } from '~/stores/product/SupplierStore.js';
 
 const supplierStore = useSupplierStore();
 const emit = defineEmits(['submit-success']);

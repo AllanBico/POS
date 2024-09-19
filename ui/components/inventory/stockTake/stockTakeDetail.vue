@@ -62,7 +62,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useStockTakeStore } from '~/stores/StockTakeStore.js';
+import { useStockTakeStore } from '~/stores/invetory/StockTakeStore.js';
 import StockAdjustmentForm from "~/components/inventory/stockTake/stock adjustment/StockAdjustmentForm.vue";
 
 

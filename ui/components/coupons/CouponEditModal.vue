@@ -52,9 +52,9 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { useCouponStore } from '~/stores/CouponStore'; // Assuming a store for managing coupons
-import { useProductStore } from '~/stores/ProductStore';  // Example store for products
-import { useCategoryStore } from '~/stores/CategoryStore';
-import {useSubcategoryStore} from "~/stores/SubcategoryStore.js"; // Example store for categories
+import { useProductStore } from '~/stores/product/ProductStore.js';  // Example store for products
+import { useCategoryStore } from '~/stores/product/CategoryStore.js';
+import {useSubcategoryStore} from "~/stores/product/SubcategoryStore.js"; // Example store for categories
 
 const props = defineProps({
   couponId: {

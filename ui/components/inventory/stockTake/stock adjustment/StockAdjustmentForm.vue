@@ -50,8 +50,8 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
-import { useStockTakeStore } from '~/stores/StockTakeStore.js'; // Adjust the path if necessary
-import { useStockAdjustmentStore } from '~/stores/stockAdjustmentStore.js'; // Adjust the path if necessary
+import { useStockTakeStore } from '~/stores/invetory/StockTakeStore.js'; // Adjust the path if necessary
+import { useStockAdjustmentStore } from '~/stores/invetory/stockAdjustmentStore.js'; // Adjust the path if necessary
 
 const emit = defineEmits(['submit-success']);
 const props = defineProps({

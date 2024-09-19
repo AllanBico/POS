@@ -1,7 +1,7 @@
 // models/GoodsReceivedLineItem.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../../config/db');
-const GoodsReceivedNote = require('../goodsReceivedNote');
+const GoodsReceivedNote = require('./goodsReceivedNote');
 const Variant = require('../product/variant');
 
 const GoodsReceivedLineItem = sequelize.define('GoodsReceivedLineItem', {

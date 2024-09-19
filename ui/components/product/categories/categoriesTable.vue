@@ -85,7 +85,7 @@
 <script setup>
 import {computed, reactive, ref} from 'vue';
 import {cloneDeep} from 'lodash-es';
-import {useCategoryStore} from '~/stores/CategoryStore.js';
+import {useCategoryStore} from '~/stores/product/CategoryStore.js';
 import CategoryAddModal from "~/components/product/categories/categoryAddModal.vue";
 import CategoryEditModal from "~/components/product/categories/categoryEditModal.vue";
 import {DeleteOutlined, EditOutlined,PlusOutlined} from "@ant-design/icons-vue";

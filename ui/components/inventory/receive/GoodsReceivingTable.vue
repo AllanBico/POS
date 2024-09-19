@@ -25,7 +25,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useGoodsReceivingStore } from '~/stores/GoodsReceivingStore.js';
+import { useGoodsReceivingStore } from '~/stores/invetory/GoodsReceivingStore.js';
 import {DeleteOutlined, EditOutlined,EyeOutlined} from "@ant-design/icons-vue";
 import purchaseOrderView from "~/components/purchases/purchaseOrderView.vue";
 import GoodsReceivingForm from "~/components/inventory/receive/GoodsReceivingAdd.vue";

@@ -28,7 +28,7 @@
 
 <script setup>
 import { ref, reactive } from 'vue';
-import { useProductStore } from '@/stores/ProductStore.js'; // Update path as needed
+import { useProductStore } from '~/stores/product/ProductStore.js'; // Update path as needed
 
 const productStore = useProductStore();
 productStore.fetchVariants()

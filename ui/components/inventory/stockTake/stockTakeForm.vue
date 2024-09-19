@@ -39,7 +39,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import {useStockTakeStore} from "~/stores/StockTakeStore.js";
+import {useStockTakeStore} from "~/stores/invetory/StockTakeStore.js";
 const StockTakeStore = useStockTakeStore();
 // Accept products as a prop
 const props = defineProps({

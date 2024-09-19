@@ -31,10 +31,10 @@
 
 <script setup>
 import { ref } from 'vue';
-import {useStockTakeStore} from "~/stores/StockTakeStore";
+import {useStockTakeStore} from "~/stores/invetory/StockTakeStore.js";
 import {PlusOutlined} from "@ant-design/icons-vue";
-import {useCategoryStore} from "~/stores/CategoryStore.js";
-import {useSubcategoryStore} from "~/stores/SubcategoryStore.js";
+import {useCategoryStore} from "~/stores/product/CategoryStore.js";
+import {useSubcategoryStore} from "~/stores/product/SubcategoryStore.js";
 import StockTakeForm from "~/components/inventory/stockTake/stockTakeForm.vue";
 const StockTakeStore = useStockTakeStore();
 const categoryStore = useCategoryStore();

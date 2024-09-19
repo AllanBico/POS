@@ -88,7 +88,7 @@
 </template>
 <script setup>
 import { computed, ref, onMounted } from 'vue';
-import { useStockTakeStore } from '~/stores/StockTakeStore.js';
+import { useStockTakeStore } from '~/stores/invetory/StockTakeStore.js';
 import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined } from "@ant-design/icons-vue";
 import {useTabsStore} from "~/stores/tabsStore.js";
 import stockTakeDetail from "~/components/inventory/stockTake/stockTakeDetail.vue";

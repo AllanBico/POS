@@ -74,7 +74,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useCouponStore } from '~/stores/CouponStore.js';
-import {useSubcategoryStore} from "~/stores/SubcategoryStore.js"; // Adjust path to your store
+import {useSubcategoryStore} from "~/stores/product/SubcategoryStore.js"; // Adjust path to your store
 const couponStore = useCouponStore();
 const emit = defineEmits(['submit-success']);
 const { $toast } = useNuxtApp();

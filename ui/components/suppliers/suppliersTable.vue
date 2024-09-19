@@ -106,7 +106,7 @@ import {cloneDeep} from 'lodash-es';
 import SupplierAddModal from "~/components/Suppliers/SupplierAddModal.vue";
 import SupplierEditModal from "~/components/Suppliers/SupplierEditModal.vue";
 import {DeleteOutlined, EditOutlined,PlusOutlined} from "@ant-design/icons-vue";
-import { useSupplierStore } from '~/stores/SupplierStore.js';
+import { useSupplierStore } from '~/stores/product/SupplierStore.js';
 
 const supplierStore = useSupplierStore();
 const open = ref(false);

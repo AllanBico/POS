@@ -118,11 +118,11 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
-import { useGoodsReceivingStore } from '~/stores/GoodsReceivingStore.js';
+import { useGoodsReceivingStore } from '~/stores/invetory/GoodsReceivingStore.js';
 import { useWarehouseStore } from '~/stores/WarehouseStore.js';
-import { useProductStore } from '~/stores/ProductStore.js';
+import { useProductStore } from '~/stores/product/ProductStore.js';
 import { useStoreStore } from '~/stores/storesStore.js';
-import { usePurchaseOrderStore } from '~/stores/PurchaseOrderStore.js';
+import { usePurchaseOrderStore } from '~/stores/purchases/PurchaseOrderStore.js';
 
 const props = defineProps({
   purchaseOrderId: {

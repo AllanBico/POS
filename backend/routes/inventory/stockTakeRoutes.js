@@ -1,7 +1,7 @@
 // routes/stockTakeRoutes.js
 const express = require('express');
-const { User,Warehouse,Store,StockTake,Variant,Inventory, Product, VariantAttributeValue, AttributeValue, Attribute, Category, Subcategory, Unit} = require('../models/associations');
-const authenticateToken = require("../middleware/auth");
+const { User,Warehouse,Store,StockTake,Variant,Inventory, Product, VariantAttributeValue, AttributeValue, Attribute, Category, Subcategory, Unit} = require('../../models/associations');
+const authenticateToken = require("../../middleware/auth");
 
 const router = express.Router();
 

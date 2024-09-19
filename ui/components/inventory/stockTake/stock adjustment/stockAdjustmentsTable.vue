@@ -78,7 +78,7 @@
 
 <script setup>
 import { computed, ref, onMounted } from 'vue';
-import { useStockAdjustmentStore } from '~/stores/stockAdjustmentStore.js'; // Adjust the path if necessary
+import { useStockAdjustmentStore } from '~/stores/invetory/stockAdjustmentStore.js'; // Adjust the path if necessary
 import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined } from "@ant-design/icons-vue";
 import { useTabsStore } from "~/stores/tabsStore.js";
 

@@ -14,7 +14,7 @@
 </template>
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import { useBrandStore } from '~/stores/BrandStore.js';
+import { useBrandStore } from '~/stores/product/BrandStore.js';
 const brandStore = useBrandStore();
 const emit = defineEmits(['submit-success']);
 const props = defineProps({

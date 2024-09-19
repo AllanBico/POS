@@ -40,7 +40,7 @@ import { cloneDeep } from 'lodash-es';
 const open = ref(false);
 const edit_open = ref(false);
 let unit_id = ref(null)
-import { useUnitStore } from '~/stores/UnitStore.js';
+import { useUnitStore } from '~/stores/product/UnitStore.js';
 import UnitsAddModal from "~/components/product/units/unitsAddModal.vue";
 import UnitsEditModal from "~/components/product/units/unitsEditModal.vue";
 import {DeleteOutlined, EditOutlined} from "@ant-design/icons-vue";

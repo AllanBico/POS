@@ -30,7 +30,7 @@
 <script setup>
 import { ref, watch, onMounted } from "vue";
 import { useBarcode } from '@/composables/useBarcode';
-import { useProductStore } from "~/stores/ProductStore.js";
+import { useProductStore } from "~/stores/product/ProductStore.js";
 
 const barcodeContainer = ref(null);
 const selectedBarcodeType = ref('serialNumber');

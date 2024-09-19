@@ -32,7 +32,43 @@ const Model = require('./Model'); // Import the Model
 const StockAdjustment = require('./inventory/stockAdjustment');
 const Coupon = require('./Coupon');
 const Composition =require('./product/Composition')
+const SalesOrder = require('./sales/salesOrder')
+const Customer = require('./customer')
+const SalesOrderLineItem = require('./sales/salesOrderLineItem')
+const Payment = require('./sales/Payment')
 // Define associations AFTER model initialization
+
+// SalesOrder <-> Customer
+SalesOrder.belongsTo(Customer, { foreignKey: 'customerId', as: 'customer' });
+Customer.hasMany(SalesOrder, { foreignKey: 'customerId', as: 'salesOrders' });
+
+// SalesOrder <-> User (who created the sales order)
+SalesOrder.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+User.hasMany(SalesOrder, { foreignKey: 'userId', as: 'salesOrders' });
+
+// SalesOrder <-> PaymentMethod
+SalesOrder.belongsTo(PaymentMethod, { foreignKey: 'paymentMethodId', as: 'paymentMethod' });
+PaymentMethod.hasMany(SalesOrder, { foreignKey: 'paymentMethodId', as: 'salesOrders' });
+
+// SalesOrder <-> SalesOrderLineItem
+SalesOrder.hasMany(SalesOrderLineItem, { foreignKey: 'salesOrderId', as: 'lineItems' });
+SalesOrderLineItem.belongsTo(SalesOrder, { foreignKey: 'salesOrderId', as: 'salesOrder' });
+
+// SalesOrderLineItem <-> Variant
+SalesOrderLineItem.belongsTo(Variant, { foreignKey: 'variantId', as: 'variant' });
+Variant.hasMany(SalesOrderLineItem, { foreignKey: 'variantId', as: 'lineItems' });
+
+// Payment <-> SalesOrder
+Payment.belongsTo(SalesOrder, { foreignKey: 'salesOrderId', as: 'salesOrder' });
+SalesOrder.hasMany(Payment, { foreignKey: 'salesOrderId', as: 'payments' });
+
+// Payment <-> PaymentMethod
+Payment.belongsTo(PaymentMethod, { foreignKey: 'paymentMethodId', as: 'paymentMethod' });
+PaymentMethod.hasMany(Payment, { foreignKey: 'paymentMethodId', as: 'payments' });
+
+// Payment <-> User (who created the payment)
+Payment.belongsTo(User, { foreignKey: 'createdBy', as: 'createdByUser' });
+User.hasMany(Payment, { foreignKey: 'createdBy', as: 'createdPayments' });
 
 // Product <-> Variant
 Product.hasMany(Variant, {foreignKey: 'productId', as: 'variants'});
@@ -191,5 +227,9 @@ module.exports = {
     StockTake,
     StockAdjustment,
     Coupon,
-    Composition
+    Composition,
+    SalesOrder,
+    Customer,
+    SalesOrderLineItem,
+    Payment
 };

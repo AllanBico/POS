@@ -47,6 +47,8 @@ const stockTakeRoutes = require('./routes/stockTakeRoutes');
 const stockAdjustmentRoutes = require('./routes/inventory/stockAdjustments');
 const couponRoutes = require('./routes/couponRoutes');
 const compositionsRoutes = require('./routes/composition');
+const paymentRoutes = require('./routes/sales/paymentRoutes');
+const orderRoutes = require('./routes/sales/salesOrderRoutes');
 //const authenticateToken = require('./middleware/auth');
 
 dotenv.config();
@@ -149,6 +151,8 @@ app.use('/api/stock-takes', stockTakeRoutes);
 app.use('/api/stock-adjustments', stockAdjustmentRoutes);
 app.use('/api/coupons', couponRoutes);
 app.use('/api/compositions', compositionsRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/orders', orderRoutes);
 
 
 

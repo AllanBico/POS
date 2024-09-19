@@ -22,7 +22,7 @@ const Product = sequelize.define('Product', {
     categoryId: {
         type: DataTypes.INTEGER,
         references: {
-            model: 'categories',
+            model: Category,
             key: 'id',
         },
         onDelete: 'SET NULL',
@@ -30,7 +30,7 @@ const Product = sequelize.define('Product', {
     subcategoryId: {
         type: DataTypes.INTEGER,
         references: {
-            model: 'subcategories',
+            model: Subcategory,
             key: 'id',
         },
         onDelete: 'SET NULL',
@@ -38,7 +38,7 @@ const Product = sequelize.define('Product', {
     brandId: {
         type: DataTypes.INTEGER,
         references: {
-            model: 'brands', // Assuming the table name is 'brands'
+            model: Brand, // Assuming the table name is 'brands'
             key: 'id',
         },
         onDelete: 'SET NULL',
@@ -46,7 +46,7 @@ const Product = sequelize.define('Product', {
     unitId: {
         type: DataTypes.INTEGER,
         references: {
-            model: 'units',
+            model: Unit,
             key: 'id',
         },
         onDelete: 'SET NULL',
@@ -57,7 +57,7 @@ const Product = sequelize.define('Product', {
         defaultValue: 0,
     },
     VATType: {
-        type: DataTypes.ENUM('inclusive', 'exclusive', 'exempted'),
+        type: DataTypes.ENUM('inclusive', 'exclusive', 'exempted','zero rated'),
         allowNull: false,
         defaultValue: 'exclusive',
     },

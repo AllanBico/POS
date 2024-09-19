@@ -15,10 +15,10 @@ export function useBarcode() {
 
         // Default options for barcode generation
         const defaultOptions = {
-            format: 'CODE128', // Common barcode format
+            format: '#itf-14', // Common barcode format
             width: 2,
             height: 100,
-            displayValue: true,
+            displayValue: false,
             ...options, // Merge with user-provided options
         };
 

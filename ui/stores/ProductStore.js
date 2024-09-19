@@ -19,6 +19,13 @@ export const useProductStore = defineStore('product', {
          * @return {Object|null} The product with the given ID, or null if not found.
          */
         productById: (state) => (id) => state.products.find(product => product.id === id) || null,
+        variantById: (state) => (id) => {
+            console.log('state.variants:', state.variants);
+            const variant = state.variants.find(variant => variant.id === id) || null;
+            console.log('variant Id:', id);
+            console.log('variantById:', variant);
+            return variant;
+        },
         attributesByProductId: (state) => (productId) => state.attributes.filter(attr => attr.productId === productId),
         variantsByProductId: (state) => (productId) => state.variants.filter(variant => variant.productId === productId),
         attributeValuesByAttributeId: (state) => (attributeId) => state.attributeValues.filter(value => value.attributeId === attributeId),

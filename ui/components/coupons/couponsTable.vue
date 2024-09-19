@@ -2,19 +2,18 @@
   <div>
     <a-modal v-model:open="open" title="Add Coupon" @ok="handleOk" @cancel="handleCancel" ok-text="Submit" cancel-text="Cancel">
       <coupon-add-modal @submit-success="handleSubmitSuccess"></coupon-add-modal>
-      <template #footer>
-      </template>
+      <template #footer></template>
     </a-modal>
+
     <a-modal v-model:open="edit_open" title="Edit Coupon" @ok="handleOk" @cancel="handleCancel" ok-text="Submit" cancel-text="Cancel">
       <coupon-edit-modal @submit-success="handleSubmitSuccess" :coupon-id="coupon_id"></coupon-edit-modal>
-      <template #footer>
-      </template>
+      <template #footer></template>
     </a-modal>
 
     <a-card title="Coupons" bordered={false}>
       <div class="header-controls">
         <div class="actions">
-          <a-button type="primary" @click="handleAdd" :icon="h(PlusOutlined)">Add New</a-button>
+          <a-button ref="addButton" type="primary" @click="handleAdd" :icon="h(PlusOutlined)">Add New</a-button>
         </div>
       </div>
 
@@ -46,13 +45,8 @@
               <template #icon><SearchOutlined /></template>
               Search
             </a-button>
-            <a-button size="small" style="width: 90px" @click="handleReset(clearFilters)">
-              Reset
-            </a-button>
+            <a-button size="small" style="width: 90px" @click="handleReset(clearFilters)">Reset</a-button>
           </div>
-        </template>
-        <template #customFilterIcon="{ filtered }">
-          <search-outlined :style="{ color: filtered ? '#108ee9' : undefined }" />
         </template>
         <template #bodyCell="{ column, text, record }">
           <template v-if="column.dataIndex === 'operation'">
@@ -72,20 +66,25 @@
         </template>
       </a-table>
     </a-card>
+
+    <!-- Tour Component -->
+    <a-tour :steps="steps" v-model:open="tourOpen" />
   </div>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import { useCouponStore } from '~/stores/CouponStore.js';
 import CouponAddModal from '~/components/coupons/CouponAddModal.vue';
 import CouponEditModal from '~/components/coupons/CouponEditModal.vue';
 import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons-vue';
+import { Tour } from 'ant-design-vue';
 
 const couponStore = useCouponStore();
 const open = ref(false);
 const edit_open = ref(false);
 const coupon_id = ref(null);
+const tourOpen = ref(false);
 
 couponStore.fetchCoupons();
 
@@ -141,6 +140,28 @@ const columns = [
 
 const pagination = ref({ pageSize: 10 });
 
+// Tour steps definition
+const steps = [
+  {
+    title: 'Add Coupon',
+    description: 'Click here to add a new coupon.',
+    target: () => document.querySelector('.header-controls .actions .ant-btn'),
+    placement: 'bottom'
+  },
+  {
+    title: 'Search Coupons',
+    description: 'Use this search bar to filter coupons by code.',
+    target: () => document.querySelector('.ant-input'),
+    placement: 'bottom'
+  },
+  {
+    title: 'Coupon Table',
+    description: 'This table shows all coupons, with options to edit or delete.',
+    target: () => document.querySelector('.ant-table'),
+    placement: 'top'
+  }
+];
+
 const onDelete = async (key) => {
   await couponStore.deleteCoupon(key);
   console.log('deleted', key);
@@ -185,6 +206,16 @@ const handleReset = (clearFilters) => {
   });
   state.searchText = '';
 };
+
+// Start tour
+const startTour = () => {
+  tourOpen.value = true;
+};
+
+// Optional: start the tour on component mount or after a specific action
+//  onMounted(() => {
+//    startTour();
+//  });
 </script>
 
 <style scoped>

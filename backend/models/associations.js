@@ -31,6 +31,7 @@ const StockTake  = require('./inventory/StockTake');
 const Model = require('./Model'); // Import the Model
 const StockAdjustment = require('./inventory/stockAdjustment');
 const Coupon = require('./Coupon');
+const Composition =require('./product/Composition')
 // Define associations AFTER model initialization
 
 // Product <-> Variant
@@ -152,6 +153,10 @@ StockAdjustment.belongsTo(StockTake, { foreignKey: 'stockTakeId', as: 'stockTake
 StockTake.hasMany(StockAdjustment, { foreignKey: 'stockTakeId', as: 'stockAdjustments' });
 
 Coupon.belongsTo(User, { as: 'createdByUser', foreignKey: 'createdBy' });
+
+Composition.belongsTo(Variant, { as: 'productVariant', foreignKey: 'productVariantId' });
+Composition.belongsTo(Variant, { as: 'ingredientVariant', foreignKey: 'ingredientVariantId' });
+
 module.exports = {
     Product,
     Variant,
@@ -185,5 +190,6 @@ module.exports = {
     Taxes,
     StockTake,
     StockAdjustment,
-    Coupon
+    Coupon,
+    Composition
 };

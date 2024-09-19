@@ -61,6 +61,10 @@ const Product = sequelize.define('Product', {
         allowNull: false,
         defaultValue: 'exclusive',
     },
+    isComposition: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false, // False for regular products, true for recipes
+    },
 }, {
     timestamps: true,
     paranoid: false,

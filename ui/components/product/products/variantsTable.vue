@@ -102,7 +102,12 @@
               </a>
               <template #overlay>
                 <a-menu>
-
+                  <a-menu-item>
+                    <a href="javascript:;" @click="onCompositionView(record.id)">Composition View</a>
+                  </a-menu-item>
+                  <a-menu-item>
+                    <a href="javascript:;" @click="onComposition(record.id)">Composition</a>
+                  </a-menu-item>
                   <a-menu-item>
                     <a href="javascript:;" @click="onEdit(record.id)">edit</a>
                   </a-menu-item>
@@ -126,15 +131,16 @@
 
 <script setup>
 import {ref} from 'vue';
-import {DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons-vue";
+import { PlusOutlined} from "@ant-design/icons-vue";
 import {useProductStore} from '~/stores/ProductStore.js';
 
 const productStore = useProductStore();
 import AttributeAddModal from "~/components/product/attributes/attributeAddModal.vue";
 import AttributeEditModal from "~/components/product/attributes/attributeEditModal.vue";
-import attributesValuesTable from "~/components/product/attributes/attributesValuesTable.vue";
 import createProduct from "~/components/product/products/createProduct.vue";
 import {useTabsStore} from '~/stores/tabsStore.js';
+import compositionForm from "~/components/product/products/compositionForm.vue";
+import compositionView from "~/components/product/products/compositionView.vue";
 
 const tabsStore = useTabsStore();
 const loading = ref(false);
@@ -180,12 +186,11 @@ const columns = [
     key: 'subcategoryId',
     scopedSlots: {customRender: 'subcategory'},
   },
-  //
-  // {
-  //   title: 'VAT',
-  //   customRender: ({record}) => record.Product ? record.Product.VATType : 'N/A',
-  //   key: 'VATType',
-  // },
+  {
+    title: 'Composition',
+    customRender: ({record}) =>  record?.Product?.isComposition ,
+    key: 'Composition',
+  },
   {
     title: 'operation',
     dataIndex: 'operation',
@@ -194,6 +199,12 @@ const columns = [
 ];
 const onCreate = async () => {
   tabsStore.addTab('Create Product', createProduct);
+};
+const onComposition = key => {
+  tabsStore.addTab('Product Composition', compositionForm, { variant_id: key });
+};
+const onCompositionView = key => {
+  tabsStore.addTab('Product Composition', compositionView, { variant_id: key });
 };
 
 const pagination = ref({pageSize: 10});

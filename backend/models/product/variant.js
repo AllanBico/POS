@@ -25,6 +25,7 @@ const Variant = sequelize.define('Variant', {
         type: DataTypes.STRING,
         allowNull: true,
     },
+
     partNumber: {
         type: DataTypes.STRING,
         allowNull: true,

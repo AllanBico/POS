@@ -50,7 +50,9 @@
           <a-form-item label="Description">
             <a-textarea v-model:value="product.description" placeholder="Enter product description" />
           </a-form-item>
-
+          <a-form-item label="Is Composition?">
+            <a-switch v-model:checked="product.isComposition" />
+          </a-form-item>
           <a-form-item label="Category">
             <a-button type="link" @click="handleAddCategory" :icon="h(PlusOutlined)">Add New</a-button>
             <a-select v-model:value="product.categoryId" placeholder="Select category" show-search :filter-option="filterOption">
@@ -161,6 +163,7 @@
         <p><strong>Unit:</strong> {{  unitStore.UnitById(product.brandId) }}</p>
         <p><strong>Low Stock Alert:</strong> {{ product.lowStockAlert }}</p>
         <p><strong>VAT Type:</strong> {{ product.vatType }}</p>
+        <p><strong>Is Composition?:</strong> {{ product.isComposition }}</p>
 
         <h4>Variants</h4>
         <div v-for="(variant, index) in variants" :key="index" class="variant-item">
@@ -218,6 +221,7 @@ const product = ref({
   brandId: null, // Add brandId to the product object
   unitId: null,
   lowStockAlert: 0, // Add lowStockAlert to the product object
+  isComposition:false,
 
 });
 

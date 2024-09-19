@@ -8,7 +8,7 @@ const authenticateToken = require("../../middleware/auth");
 // Create a Product
 router.post('/',authenticateToken, async (req, res) => {
     try {
-        const { name, description, categoryId, subcategoryId, vatType,brandId,lowStockAlert,unitId } = req.body;
+        const { name, description, categoryId, subcategoryId, vatType,brandId,lowStockAlert,unitId,isComposition } = req.body;
         const errors = [];
         if (!name) errors.push({ field: 'name', message: 'Name is required' });
         if (!description) errors.push({ field: 'description', message: 'Description is required' });
@@ -22,7 +22,7 @@ router.post('/',authenticateToken, async (req, res) => {
         if (errors.length > 0) {
             return res.status(400).json({ errors });
         }
-        const product = await Product.create({ name, description, categoryId, subcategoryId, vatType,brandId,lowStockAlert,unitId });
+        const product = await Product.create({ name, description, categoryId, subcategoryId, vatType,brandId,lowStockAlert,unitId,isComposition });
         res.status(201).json(product);
     } catch (error) {
         res.status(500).json({ error: error.message });

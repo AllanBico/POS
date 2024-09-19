@@ -10,6 +10,7 @@ export const useProductStore = defineStore('product', {
         variants: [],
         variantAttributeValues: [],
         error: null,
+        compositions:[]
     }),
     getters: {
         /**
@@ -336,6 +337,63 @@ export const useProductStore = defineStore('product', {
                 this.error = err;
                 console.error('Error deleting variant attribute value:', err);
                 $toast.error('Error deleting variant attribute value');
+            }
+        },
+        async fetchCompositionsByVariantId(variantId) {
+            const {$toast} = useNuxtApp();
+            try {
+                const config = useRuntimeConfig();
+                const apiUrl = `${config.public.baseURL}/api/compositions/variant/${variantId}`;
+                const {data, error} = await useFetch(apiUrl, { credentials: 'include' });
+                if (error.value) throw error.value;
+                // Assuming you want to store the compositions somewhere in the store
+                // You may need to define a `compositions` array in the state if not already present
+                this.compositions = data.value;
+                return data.value;
+            } catch (err) {
+                this.error = err;
+                console.error('Error fetching compositions:', err);
+                $toast.error('Error fetching compositions');
+            }
+        },
+        async createComposition(productVariantId, ingredientRows) {
+            try {
+                const config = useRuntimeConfig();
+                const apiUrl = `${config.public.baseURL}/api/compositions`; // Adjust URL as needed
+                const {data, error} = await useFetch(apiUrl, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        productVariantId,
+                        ingredients: ingredientRows,
+                    }),
+                    credentials: 'include',
+                });
+                if(error.value){
+                    console.log("error.value",error)
+                }
+                this.compositions.push(data.value)
+            } catch (err) {
+                console.error('Error creating composition:', err);
+            }
+        },
+
+        async deleteComposition(compositionId) {
+            const {$toast} = useNuxtApp();
+            try {
+                const config = useRuntimeConfig();
+                const apiUrl = `${config.public.baseURL}/api/compositions/${compositionId}`;
+                const {data, error} = await useFetch(apiUrl, {
+                    method: 'DELETE',
+                    credentials: 'include',
+                });
+                if (error.value) throw error.value;
+                // Assuming you want to remove the deleted composition from the `compositions` array
+                this.compositions = this.compositions.filter(comp => comp.id !== compositionId);
+                $toast.warning('Composition deleted successfully');
+            } catch (err) {
+                this.error = err;
+                console.error('Error deleting composition:', err);
+                $toast.error('Error deleting composition');
             }
         },
     },

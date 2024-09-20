@@ -1,36 +1,135 @@
 const express = require('express');
 const router = express.Router();
-const { SalesOrder, SalesOrderLineItem, Payment } = require('../../models/associations');
+const { SalesOrder, SalesOrderLineItem, Payment, Customer,Variant,Product,User} = require('../../models/associations');
 const authenticateToken = require("../../middleware/auth"); // Adjust path as needed
 
 // Create a new Sales Order
-router.post('/',authenticateToken, async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
     try {
-        const salesOrder = await SalesOrder.create(req.body);
-        res.status(201).json(salesOrder);
+        console.log('Received request body:', JSON.stringify(req.body, null, 2));
+
+        // Validate request body
+        if (!isValidSalesOrderRequest(req.body)) {
+            return res.status(400).json({ message: 'Invalid request. Customer ID and at least one valid line item are required.' });
+        }
+
+        // Create the sales order
+        const salesOrder = await createSalesOrder(req.body, req.user.id);
+        console.log('Sales order created:', salesOrder.id);
+
+        // Create line items
+        await createLineItems(salesOrder.id, req.body.lineItems);
+        console.log('Line items created');
+
+        // Fetch the created order with its line items
+        const createdOrder = await fetchCreatedOrder(salesOrder.id);
+        console.log('Created order fetched');
+
+        res.status(201).json(createdOrder);
     } catch (error) {
-        res.status(500).json({ message: 'Error creating sales order', error });
+        console.error('Error creating sales order:', error);
+        res.status(500).json({ message: 'Error creating sales order', error: error.message });
     }
 });
 
+// Helper functions
+
+function isValidSalesOrderRequest(body) {
+    return body.lineItems && 
+           Array.isArray(body.lineItems) && 
+           body.lineItems.length > 0 &&
+           body.lineItems.every(isValidLineItem);
+}
+
+function isValidLineItem(item) {
+    return item.variantId && 
+           item.quantity && 
+           item.quantity > 0;
+}
+
+async function createSalesOrder(body, userId) {
+    const { customer_id, total, status } = body;
+    return await SalesOrder.create({
+        customerId: customer_id,
+        total,
+        status,
+        createdBy: userId,
+        totalAmount: total,
+        netTotal: total,
+        userId: userId,
+    });
+}
+
+async function createLineItems(salesOrderId, lineItems) {
+    await Promise.all(lineItems.map(item => 
+        SalesOrderLineItem.create({
+            salesOrderId: salesOrderId,
+            variantId: item.variantId,
+            quantity: item.quantity,
+            price: item.price,
+            total: item.price * item.quantity
+        })
+    ));
+}
+
+async function fetchCreatedOrder(salesOrderId) {
+    return await SalesOrder.findByPk(salesOrderId, {
+        include: [
+            { model: SalesOrderLineItem, as: 'lineItems' },
+            { model: Customer, as: 'customer' }
+        ]
+    });
+}
+
 // Get all Sales Orders
-router.get('/',authenticateToken, async (req, res) => {
+router.get('/', authenticateToken, async (req, res) => {
     try {
-        const salesOrders = await SalesOrder.findAll({ include: ['lineItems', 'customer', 'user', 'payments'] });
+        console.log('Fetching sales orders...');
+        const salesOrders = await SalesOrder.findAll({
+            include: [
+                { model: Customer, as: 'customer' }
+            ]
+        });
+        console.log(`Found ${salesOrders.length} sales orders`);
         res.status(200).json(salesOrders);
     } catch (error) {
+        console.error('Error fetching sales orders:', error);
         res.status(500).json({ message: 'Error fetching sales orders', error });
     }
 });
 
 // Get a specific Sales Order by ID
-router.get('/:id', authenticateToken,async (req, res) => {
+router.get('/:id', authenticateToken, async (req, res) => {
     try {
-        const salesOrder = await SalesOrder.findByPk(req.params.id, { include: ['lineItems', 'customer', 'user', 'payments'] });
-        if (!salesOrder) return res.status(404).json({ message: 'Sales order not found' });
+        console.log(`Fetching sales order with id: ${req.params.id}`);
+        const salesOrder = await SalesOrder.findByPk(req.params.id, {
+            include: [
+                {
+                    model: SalesOrderLineItem,
+                    as: 'lineItems',
+                    include: [{
+                        model: Variant,
+                        as: 'variant',
+                        include: [{
+                            model: Product,
+                            as: 'Product'
+                        }]
+                    }]
+                },
+                { model: Customer, as: 'customer' },
+                { model: User, as: 'user' },
+                { model: Payment, as: 'payments' }
+            ]
+        });
+        if (!salesOrder) {
+            console.log(`Sales order with id ${req.params.id} not found`);
+            return res.status(404).json({ message: 'Sales order not found' });
+        }
+        console.log(`Successfully fetched sales order with id: ${req.params.id}`);
         res.status(200).json(salesOrder);
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching sales order', error });
+        console.error('Error fetching sales order:', error);
+        res.status(500).json({ message: 'Error fetching sales order', error: error.message });
     }
 });
 

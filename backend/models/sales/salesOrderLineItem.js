@@ -50,7 +50,8 @@ const SalesOrderLineItem = sequelize.define('SalesOrderLineItem', {
         defaultValue: 0,
     },
 }, {
-    tableName: 'sales_order_lineItems',
+    tableName: 'sales_order_line_items',
+    underscored: true,
 });
 
 module.exports = SalesOrderLineItem;

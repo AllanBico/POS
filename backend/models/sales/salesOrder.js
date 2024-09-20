@@ -66,6 +66,7 @@ const SalesOrder = sequelize.define('SalesOrder', {
 }, {
     tableName: 'sales_orders',
     timestamps: true,
+    underscored: true,
 });
 
 module.exports = SalesOrder;

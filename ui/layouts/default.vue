@@ -1,213 +1,34 @@
 <template>
-  <a-layout :theme="{ colorPrimary: 'red' }">
+  <a-layout>
     <a-layout-sider
-        theme="light"
-        breakpoint="lg"
-        collapsed-width="0"
-        @collapse="onCollapse"
-        @breakpoint="onBreakpoint"
-        :style="{boxShadow: '2px 0 5px rgba(0,0,0,0.1)',overflow: 'auto', height: '100vh',}"
+      v-model:collapsed="state.collapsed"
+      :trigger="null"
+      collapsible
+      theme="light"
+      :style="{boxShadow: '2px 0 5px rgba(0,0,0,0.1)', overflow: 'auto', height: '100vh'}"
     >
       <div class="logo">
         <img src="https://its.intellitech.co.ke/static/logo.png" alt="Vue Antd Admin"/>
       </div>
 
+      <a-button type="primary" style="margin: 16px" @click="toggleCollapsed">
+        <MenuUnfoldOutlined v-if="state.collapsed" />
+        <MenuFoldOutlined v-else />
+      </a-button>
+
       <a-menu
-          theme="light"
-          mode="inline"
-          :style="{borderRight: 'none'}"
-      >
-        <!-- Dashboard Menu Item -->
-        <a-menu-item key="dashboard">
-          <a to="/">
-            <bar-chart-outlined/>
-            <span>Dashboard</span>
-          </a>
-        </a-menu-item>
-        <a-divider style="border-color: black;color: black;">Inventory</a-divider>
-        <a-sub-menu key="Products">
-          <template #title>
-            <span>
-              <team-outlined/>
-              <span>Products</span>
-            </span>
-          </template>
-          <a-menu-item key="ProductsList"><a @click="addTab('Products', productsTable)">Products</a></a-menu-item>
-          <a-menu-item key="Expired Products">Expired Products</a-menu-item>
-          <a-menu-item key="Low Stocks">Low Stocks</a-menu-item>
-          <a-menu-item key="Print Barcode">Print Barcode</a-menu-item>
-        </a-sub-menu>
-        <a-sub-menu key="Categories">
-          <template #title>
-            <span>
-              <apartment-outlined/>
-              <span>Categories</span>
-            </span>
-          </template>
-          <a-menu-item key="Category">
-            <a @click="addTab('Categories', categoriesTable)">Category</a>
-          </a-menu-item>
-          <a-menu-item key="Sub Category">
-            <a @click="addTab('SubCategories', subCategoriesTable)">Sub Category</a>
-          </a-menu-item>
-        </a-sub-menu>
-        <a-menu-item key="Brands">
-          <a @click="addTab('Brands', brandsTable)">
-            <pie-chart-outlined/>
-            <span>Brands</span>
-          </a>
-        </a-menu-item>
-        <a-menu-item key="Units">
-          <a @click="addTab('Units', unitsTable)">
-            <pie-chart-outlined/>
-            <span>Units</span>
-          </a>
-        </a-menu-item>
-        <a-menu-item key="Variants">
-          <a @click="addTab('Variants', variantsTable)">
-            <pie-chart-outlined/>
-            <span>Variants</span>
-          </a>
-        </a-menu-item>
-        <a-menu-item key="Attributes">
-          <a @click="addTab('Attributes', attributesTable)">
-            <pie-chart-outlined/>
-            <span>Attributes</span>
-          </a>
-        </a-menu-item>
-        <a-menu-item key="Warranties">
-          <a @click="addTab('Warranties', warrantiesTable)">
-            <pie-chart-outlined/>
-            <span>Warranties</span>
-          </a>
-        </a-menu-item>
-        <a-menu-item key="coupons">
-          <a @click="addTab('Coupons', couponsTable)">
-            <pie-chart-outlined/>
-            <span>Coupons</span>
-          </a>
-        </a-menu-item>
-        <a-divider style="border-color: black;color: black;">Stock</a-divider>
-        <a-menu-item key="inventories">
-          <a @click="addTab('Inventory', inventoriesTable)">
-            <pie-chart-outlined/>
-            <span>Inventories</span>
-          </a>
-        </a-menu-item>
-        <a-menu-item key="Received">
-          <a @click="addTab('Goods Received', GoodsReceivingTable)">
-            <pie-chart-outlined/>
-            <span>Received</span>
-          </a>
-        </a-menu-item>
-        <a-menu-item key="stockTransfer">
-          <a @click="addTab('Stock Transfer', stockTransfer)">
-            <pie-chart-outlined/>
-            <span>Stock Transfer</span>
-          </a>
-        </a-menu-item>
-        <a-menu-item key="stockTakes">
-          <a @click="addTab('Stock Takes', stockTakesTable)">
-            <pie-chart-outlined/>
-            <span>Stock Take</span>
-          </a>
-        </a-menu-item>
-        <a-menu-item key="stockAdjustments">
-          <a @click="addTab('Stock Adjustments', stockAdjustmentsTable)">
-            <pie-chart-outlined/>
-            <span>Stock Adjustments</span>
-          </a>
-        </a-menu-item>
-        <a-divider style="border-color: black;color: black;">Purchases</a-divider>
-        <a-menu-item key="purchases">
-          <a @click="addTab('Purchases', purchasesTable)">
-            <pie-chart-outlined/>
-            <span>Purchases</span>
-          </a>
-        </a-menu-item>
-        <a-divider style="border-color: black;color: black;">Finance & Accounts</a-divider>
-        <a-menu-item key="expenses">
-          <a @click="addTab('Expenses', expensesTable)">
-            <pie-chart-outlined/>
-            <span>Expenses</span>
-          </a>
-        </a-menu-item>
-        <a-menu-item key="expenses_categories">
-          <a @click="addTab('Expenses Categories', expensesCategoriesTable)">
-            <pie-chart-outlined/>
-            <span>Expenses Categories</span>
-          </a>
-        </a-menu-item>
-        <a-menu-item key="payment_method">
-          <a @click="addTab('Payment Methods', paymentMethodsTable)">
-            <pie-chart-outlined/>
-            <span>Payment Method</span>
-          </a>
-        </a-menu-item>
-        <a-divider style="border-color: black;color: black;">Sales</a-divider>
-        <a-divider style="border-color: black;color: black;">Reports</a-divider>
-        <a-divider style="border-color: black;color: black;">People</a-divider>
-        <a-sub-menu key="Users">
-          <template #title>
-            <span>
-              <team-outlined/>
-              <span>Users</span>
-            </span>
-          </template>
-          <a-menu-item key="Users">
-            <a @click="addTab('Users', usersTable)">Users</a>
-          </a-menu-item>
-          <a-menu-item key="Users Roles" @click="addTab('User Roles', rolesTable)">Users Roles</a-menu-item>
-        </a-sub-menu>
-        <a-menu-item key="Customers">
-          <a @click="addTab('Customers', customersTable)">
-            <contacts-outlined/>
-            <span>Customers</span>
-          </a>
-        </a-menu-item>
-        <a-menu-item key="Suppliers">
-          <a @click="addTab('Suppliers', suppliersTable)">
-            <pie-chart-outlined/>
-            <span>Suppliers</span>
-          </a>
-        </a-menu-item>
-        <a-menu-item key="Warehouses">
-          <a @click="addTab('Warehouses', warehousesTable)">
-            <pie-chart-outlined/>
-            <span>Warehouses</span>
-          </a>
-        </a-menu-item>
-        <a-menu-item key="Stores">
-          <a @click="addTab('Stores', storesTable)">
-            <pie-chart-outlined/>
-            <span>Stores</span>
-          </a>
-        </a-menu-item>
-        <a-menu-item key="Taxes">
-          <a @click="addTab('Taxes', taxesTable)">
-            <pie-chart-outlined/>
-            <span>Taxes</span>
-          </a>
-        </a-menu-item>
-        <a-sub-menu key="Settings">
-          <template #title>
-            <span>
-              <setting-outlined/>
-              <span>Settings</span>
-            </span>
-          </template>
-          <a-menu-item key="settings">
-            <a @click="addTab('Settings', settings)">Barcode Settings</a>
-          </a-menu-item>
-          <a-menu-item key="Users Roles">Users Roles</a-menu-item>
-        </a-sub-menu>
-      </a-menu>
+        v-model:openKeys="state.openKeys"
+        v-model:selectedKeys="state.selectedKeys"
+        mode="inline"
+        theme="light"
+        :inline-collapsed="state.collapsed"
+        :items="menuItems"
+      ></a-menu>
     </a-layout-sider>
 
     <!-- Main Layout -->
-    <a-layout theme="dark" style="min-height: 100vh; background-image: linear-gradient(to top, #a18cd1 0%, #fbc2eb 100%);">
+    <a-layout>
       <a-layout-content :style="{padding: '5px'}">
-<!--        <page-header :style="{ background: '#fff', padding: '20px', marginBottom: '10px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'}" />-->
         <a-float-button-group trigger="click" type="primary" :style="{ right: '24px' }">
           <template #icon1>
             <PlusOutlined />
@@ -254,23 +75,23 @@
             </keep-alive>
           </a-tab-pane>
           <template #rightExtra>
-
-            <div >
-              <a-badge count="4" dot>
-                <a-button type="link" :icon="h(BellOutlined)" />
-
-              </a-badge>
-              <a-button type="link" :icon="h(SettingOutlined)" />
-              <a-dropdown>
-                <template #overlay>
-                  <a-menu>
-                    <a-menu-item key="settings">Settings</a-menu-item>
-                    <a-menu-item key="logout">Logout</a-menu-item>
-                  </a-menu>
-                </template>
-                <a-avatar style="background-color: #87d068" class="header-avatar" :icon="h(UserOutlined)" />
-              </a-dropdown>
-            </div>
+            <a-card class="control-area" :bodyStyle="{ padding: '3px' }">
+              <a-space>
+                <a-badge count="4" dot>
+                  <a-button type="link" :icon="h(BellOutlined)" />
+                </a-badge>
+                <a-button type="link" :icon="h(SettingOutlined)" />
+                <a-dropdown>
+                  <template #overlay>
+                    <a-menu>
+                      <a-menu-item key="settings">Settings</a-menu-item>
+                      <a-menu-item key="logout">Logout</a-menu-item>
+                    </a-menu>
+                  </template>
+                  <a-avatar style="background-color: prima" class="header-avatar" :icon="h(UserOutlined)" />
+                </a-dropdown>
+              </a-space>
+            </a-card>
           </template>
         </a-tabs>
       </a-layout-content>
@@ -283,9 +104,34 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, reactive, watch, h } from 'vue';
 import { useTabsStore } from '~/stores/tabsStore';
-const tabsStore = useTabsStore();
+import {
+  MenuUnfoldOutlined,
+  MenuFoldOutlined,
+  PieChartOutlined,
+  MailOutlined,
+  DesktopOutlined,
+  InboxOutlined,
+  AppstoreOutlined,
+  BellOutlined,
+  SettingOutlined,
+  UserOutlined,
+  PlusOutlined,
+  CommentOutlined,
+  BarChartOutlined,
+  TagOutlined,
+  GiftOutlined,
+  BarcodeOutlined,
+  StockOutlined,
+  ShoppingOutlined,
+  ShoppingCartOutlined,
+  DollarOutlined,
+  FileTextOutlined,
+  TeamOutlined,
+  EnvironmentOutlined,
+  PercentageOutlined, ApartmentOutlined, ContactsOutlined,
+} from '@ant-design/icons-vue';
 import expensesTable from '~/components/expenses/expensesTable.vue';
 import productsTable from '~/components/product/products/productsTable.vue';
 import categoriesTable from '~/components/product/categories/categoriesTable.vue';
@@ -305,7 +151,6 @@ import paymentMethodsTable from '~/components/expenses/paymentMethodsTable.vue'
 import expensesCategoriesTable from '~/components/expenses/expensesCategoriesTable.vue'
 import GoodsReceivingTable from "~/components/inventory/receive/GoodsReceivingTable.vue";
 import rolesTable from "~/components/users/roleandpermission/rolesTable.vue";
-import {BellOutlined, SettingOutlined, UserOutlined} from "@ant-design/icons-vue";
 import variantsTable from '~/components/product/products/variantsTable.vue';
 import settings from '~/components/settings/settings.vue';
 import stockTransfer from '~/components/inventory/stockTransfer.vue';
@@ -313,28 +158,265 @@ import taxesTable from "~/components/taxes/taxesTable.vue";
 import stockTakesTable from "~/components/inventory/stockTake/stockTakesTable.vue";
 import stockAdjustmentsTable from "~/components/inventory/stockTake/stock adjustment/stockAdjustmentsTable.vue";
 import couponsTable from "~/components/coupons/couponsTable.vue";
-const collapsed = ref(false);
+import serialNumbers from "~/components/inventory/serialNumber/serialNumber.vue";
+import OrderList from "~/components/sales/OrderList.vue";
 
+const tabsStore = useTabsStore();
 
+const state = reactive({
+  collapsed: false,
+  selectedKeys: ['1'],
+  openKeys: ['sub1'],
+  preOpenKeys: ['sub1'],
+});
 
 const size = ref('small');
-const activeKey = ref('1');  // Default active tab
-const tabs = ref([
-  { key: '1', title: 'Dashboard', component: expensesTable }
-]);
 
-// Function to add a new tab dynamically
+const menuItems = [
+  {
+    key: 'dashboard',
+    icon: () => h(BarChartOutlined),
+    label: 'Dashboard',
+    title: 'Dashboard',
+  },
+  {
+    type: 'divider',
+    label: 'Inventory',
+  },
+  {
+    key: 'Products',
+    icon: () => h(TeamOutlined),
+    label: 'Products',
+    children: [
+      {
+        key: 'ProductsList',
+        label: 'Products',
+        onClick: () => addTab('Products', productsTable),
+      },
+      {
+        key: 'Expired Products',
+        label: 'Expired Products',
+      },
+      {
+        key: 'Low Stocks',
+        label: 'Low Stocks',
+      },
+      {
+        key: 'Print Barcode',
+        label: 'Print Barcode',
+      },
+    ],
+  },
+  {
+    key: 'Categories',
+    icon: () => h(ApartmentOutlined),
+    label: 'Categories',
+    children: [
+      {
+        key: 'Category',
+        label: 'Category',
+        onClick: () => addTab('Categories', categoriesTable),
+      },
+      {
+        key: 'Sub Category',
+        label: 'Sub Category',
+        onClick: () => addTab('SubCategories', subCategoriesTable),
+      },
+    ],
+  },
+  {
+    key: 'Brands',
+    icon: () => h(PieChartOutlined),
+    label: 'Brands',
+    onClick: () => addTab('Brands', brandsTable),
+  },
+  {
+    key: 'Units',
+    icon: () => h(PieChartOutlined),
+    label: 'Units',
+    onClick: () => addTab('Units', unitsTable),
+  },
+  {
+    key: 'Variants',
+    icon: () => h(PieChartOutlined),
+    label: 'Variants',
+    onClick: () => addTab('Variants', variantsTable),
+  },
+  {
+    key: 'Attributes',
+    icon: () => h(PieChartOutlined),
+    label: 'Attributes',
+    onClick: () => addTab('Attributes', attributesTable),
+  },
+  {
+    key: 'Warranties',
+    icon: () => h(PieChartOutlined),
+    label: 'Warranties',
+    onClick: () => addTab('Warranties', warrantiesTable),
+  },
+  {
+    key: 'coupons',
+    icon: () => h(PieChartOutlined),
+    label: 'Coupons',
+    onClick: () => addTab('Coupons', couponsTable),
+  },
+  {
+    type: 'divider',
+    label: 'Stock',
+  },
+  {
+    key: 'inventories',
+    icon: () => h(PieChartOutlined),
+    label: 'Inventories',
+    onClick: () => addTab('Inventory', inventoriesTable),
+  },
+  {
+    key: 'Received',
+    icon: () => h(PieChartOutlined),
+    label: 'Received',
+    onClick: () => addTab('Goods Received', GoodsReceivingTable),
+  },
+  {
+    key: 'stockTransfer',
+    icon: () => h(PieChartOutlined),
+    label: 'Stock Transfer',
+    onClick: () => addTab('Stock Transfer', stockTransfer),
+  },
+  {
+    key: 'stockTakes',
+    icon: () => h(PieChartOutlined),
+    label: 'Stock Take',
+    onClick: () => addTab('Stock Takes', stockTakesTable),
+  },
+  {
+    key: 'stockAdjustments',
+    icon: () => h(PieChartOutlined),
+    label: 'Stock Adjustments',
+    onClick: () => addTab('Stock Adjustments', stockAdjustmentsTable),
+  },
+  {
+    type: 'divider',
+    label: 'Purchases',
+  },
+  {
+    key: 'purchases',
+    icon: () => h(PieChartOutlined),
+    label: 'Purchases',
+    onClick: () => addTab('Purchases', purchasesTable),
+  },
+  {
+    type: 'divider',
+    label: 'Finance & Accounts',
+  },
+  {
+    key: 'expenses',
+    icon: () => h(PieChartOutlined),
+    label: 'Expenses',
+    onClick: () => addTab('Expenses', expensesTable),
+  },
+  {
+    key: 'expenses_categories',
+    icon: () => h(PieChartOutlined),
+    label: 'Expenses Categories',
+    onClick: () => addTab('Expenses Categories', expensesCategoriesTable),
+  },
+  {
+    key: 'payment_method',
+    icon: () => h(PieChartOutlined),
+    label: 'Payment Method',
+    onClick: () => addTab('Payment Methods', paymentMethodsTable),
+  },
+  {
+    type: 'divider',
+    label: 'Sales',
+  },
+  {
+    type: 'divider',
+    label: 'Reports',
+  },
+  {
+    type: 'divider',
+    label: 'People',
+  },
+  {
+    key: 'Users',
+    icon: () => h(TeamOutlined),
+    label: 'Users',
+    children: [
+      {
+        key: 'Users',
+        label: 'Users',
+        onClick: () => addTab('Users', usersTable),
+      },
+      {
+        key: 'Users Roles',
+        label: 'Users Roles',
+        onClick: () => addTab('User Roles', rolesTable),
+      },
+    ],
+  },
+  {
+    key: 'Customers',
+    icon: () => h(ContactsOutlined),
+    label: 'Customers',
+    onClick: () => addTab('Customers', customersTable),
+  },
+  {
+    key: 'Suppliers',
+    icon: () => h(PieChartOutlined),
+    label: 'Suppliers',
+    onClick: () => addTab('Suppliers', suppliersTable),
+  },
+  {
+    key: 'Warehouses',
+    icon: () => h(PieChartOutlined),
+    label: 'Warehouses',
+    onClick: () => addTab('Warehouses', warehousesTable),
+  },
+  {
+    key: 'Stores',
+    icon: () => h(PieChartOutlined),
+    label: 'Stores',
+    onClick: () => addTab('Stores', storesTable),
+  },
+  {
+    key: 'Taxes',
+    icon: () => h(PieChartOutlined),
+    label: 'Taxes',
+    onClick: () => addTab('Taxes', taxesTable),
+  },
+  {
+    key: 'Settings',
+    icon: () => h(SettingOutlined),
+    label: 'Settings',
+    children: [
+      {
+        key: 'settings',
+        label: 'Barcode Settings',
+        onClick: () => addTab('Settings', settings),
+      },
+      {
+        key: 'Users Roles',
+        label: 'Users Roles',
+      },
+    ],
+  },
+];
+
+watch(
+  () => state.openKeys,
+  (_val, oldVal) => {
+    state.preOpenKeys = oldVal;
+  },
+);
+
+const toggleCollapsed = () => {
+  state.collapsed = !state.collapsed;
+  state.openKeys = state.collapsed ? [] : state.preOpenKeys;
+};
+
 const addTab = (title, component) => {
-  //const existingTab = tabs.value.find(tab => tab.title === title);
- // if (!existingTab && tabs.value.length < 4) {  // Max 4 tabs
- //  if (!existingTab) {  // Max 4 tabs
- //    const newKey = String(tabs.value.length + 1);
-
-    tabsStore.addTab(title, component);
-  //   activeKey.value = newKey;
-  // } else if (existingTab) {
-  //   activeKey.value = existingTab.key;  // If the tab already exists, just activate it
-  // }
+  tabsStore.addTab(title, component);
 };
 
 const onEdit = (targetKey, action) => {
@@ -342,15 +424,6 @@ const onEdit = (targetKey, action) => {
     tabsStore.removeTab(targetKey)
   }
 };
-
-const onCollapse = (collapsed, type) => {
-  console.log(collapsed, type);
-};
-
-const onBreakpoint = (broken) => {
-  console.log(broken);
-};
-
 </script>
 
 <style scoped>

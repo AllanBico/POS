@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Composition, Variant } = require('../models/associations');
+const { Composition, Variant,Product } = require('../models/associations');
 const authenticateToken = require("../middleware/auth"); // Ensure correct paths
 
 // Create Composition
@@ -38,12 +38,30 @@ router.post('/', authenticateToken, async (req, res) => {
 
 
 // Get All Compositions
-router.get('/',authenticateToken, async (req, res) => {
+router.get('/', authenticateToken, async (req, res) => {
     try {
         const compositions = await Composition.findAll({
             include: [
-                { model: Variant, as: 'productVariant' },
-                { model: Variant, as: 'ingredientVariant' }
+                { 
+                    model: Variant, 
+                    as: 'productVariant',
+                    include: [
+                        {
+                            model: Product,
+                            attributes: ['id', 'name', 'description']
+                        }
+                    ]
+                },
+                { 
+                    model: Variant, 
+                    as: 'ingredientVariant',
+                    include: [
+                        {
+                            model: Product,
+                            attributes: ['id', 'name', 'description']
+                        }
+                    ]
+                }
             ]
         });
         res.status(200).json(compositions);
@@ -100,17 +118,30 @@ router.delete('/:id',authenticateToken, async (req, res) => {
     }
 });
 // Get Compositions by Product Variant ID
-router.get('/variant/:productVariantId',authenticateToken, async (req, res) => {
+router.get('/variant/:productVariantId', authenticateToken, async (req, res) => {
+    console.log('Entering /variant/:productVariantId route');
     try {
         const { productVariantId } = req.params;
+
+        if (!productVariantId || isNaN(productVariantId)) {
+            return res.status(400).json({ error: 'Invalid product variant ID' });
+        }
 
         const compositions = await Composition.findAll({
             where: { productVariantId },
             include: [
-                { model: Variant, as: 'productVariant' },
-                { model: Variant, as: 'ingredientVariant' }
+                { 
+                    model: Variant, 
+                    as: 'productVariant'
+                },
+                { 
+                    model: Variant, 
+                    as: 'ingredientVariant',
+                    include: [{ model: Product, as: 'Product' }]
+                }
             ]
         });
+
 
         if (compositions.length === 0) {
             return res.status(404).json({ error: 'No compositions found for this product variant.' });
@@ -118,7 +149,7 @@ router.get('/variant/:productVariantId',authenticateToken, async (req, res) => {
 
         res.status(200).json(compositions);
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        res.status(500).json({ error: 'An unexpected error occurred' });
     }
 });
 

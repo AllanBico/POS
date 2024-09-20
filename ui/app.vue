@@ -6,93 +6,104 @@
   </NuxtLayout>
   </a-config-provider>
 </template>
-<script setup lang="ts">
+<script setup>
 import {Toaster} from "vue-sonner";
 definePageMeta({
   middleware: 'auth',
 });
 const theme = reactive({
   token: {
-    // Primary Colors
-    colorPrimary: "#ff4d4f", // Soft red for primary actions
-    colorSecondary: "#141414", // Darker tone for secondary actions
-    colorSuccess: "#28a745", // Green for success messages
-    colorWarning: "#ff9800", // Bright orange for warnings
-    colorError: "#f44336", // Softer red for error states
-    colorBackground: "#fafafa", // Bright background for a flat look
-    colorText: "#4a4a4a", // Softer grey for better readability
+    // --- Primary Colors ---
+    colorPrimary: "#ed5542", // Red color for the primary UI elements like buttons, icons, etc.
+    colorSecondary: "#14122e", // Dark color for text and secondary actions
+    colorSuccess: "#28a745", // Standard green for success states
+    colorWarning: "#ff9800", // Orange for warnings
+    colorError: "#e9ada4", // Soft pink for errors
+    colorBackground: "#ed5542", // Red background for the entire layout
+    colorText: "#14122e", // Dark text color for readability on white elements
+
+    // --- Background & Element Styling ---
+    // Global Background
+    layoutBodyBackground: "#ed5542", // Full-page background color (red)
+    bodyBackgroundColor: "#ed5542", // Red background across the entire application
+
+    // Element Backgrounds (White)
+    cardBackground: "#ffffff", // White background for cards
+    modalBackground: "#ffffff", // White background for modals
+    inputBackground: "#ffffff", // White background for form inputs
+    buttonBackground: "#ffffff", // White background for buttons
 
     // Typography
-    fontSize: 14, // Default font size for body text
-    fontSizeHeading1: 22, // Reduced size for H1 headings
-    fontSizeHeading2: 18, // Smaller H2
-    fontSizeHeading3: 16, // Compact H3
-    lineHeight: 1.5, // Compact line height for a more balanced layout
-    fontWeightNormal: 400, // Regular weight for text
-    fontWeightBold: 600, // Bold weight for headings
+    colorTextHeading: "#14122e", // Dark text for headings on white elements
+    colorTextBody: "#14122e", // Dark text for body content
+    fontSizeBase: 14, // Base font size
+    fontSizeHeading1: 24, // Slightly larger H1 font size
+    fontSizeHeading2: 20, // H2 font size
+    fontSizeHeading3: 16, // H3 font size
 
-    // Borders
-    borderRadius: 4, // Slightly rounded for a modern look
-    borderColor: "#e0e0e0", // Light border color for subtle definition
-    borderWidth: "1px", // Thinner borders for a minimal style
+    // --- Borders ---
+    borderColor: "#e9ada4", // Light pinkish border color for inputs, buttons, cards, etc.
+    borderRadiusBase: "6px", // Default border radius for smoother corners
+    borderWidth: "1px", // Consistent 1px border
 
-    // Buttons
-    controlHeight: 28, // Compact button height
-    controlPaddingHorizontal: 8, // Tighter padding for compact buttons
-    controlPaddingVertical: 4, // Reduce vertical padding to keep things compact
-    buttonTextTransform: "uppercase", // Stylish uppercase text for buttons
-    buttonFontWeight: "bold", // Bold text for emphasis in buttons
-    buttonBorderRadius: "3px", // Smooth cornered buttons for a modern feel
+    // --- Buttons ---
+    buttonPrimaryColor: "#ffffff", // White background for primary buttons
+    buttonTextColorPrimary: "#ed5542", // Red text on primary buttons (inverse)
+    buttonBorderRadius: "6px", // Rounded button corners
+    buttonPaddingHorizontal: "12px", // Padding for buttons
+    buttonPaddingVertical: "8px", // Vertical padding
+    buttonFontWeight: "bold", // Bold text for buttons
+    buttonHoverBackground: "#e9ada4", // Hover effect on buttons with the soft pink color
 
-    // Inputs
-    inputBorderColor: "#d9d9d9", // Softer border for inputs
-    inputBorderRadius: "4px", // Smooth border for inputs
-    inputPadding: "6px 8px", // Compact padding for input fields
-    inputFocusBorderColor: "#ff4d4f", // Primary red on focus for inputs
+    // --- Inputs ---
+    inputBorderColor: "#e9ada4", // Soft pink borders for inputs
+    inputBorderRadius: "6px", // Rounded input corners for consistency
+    inputPadding: "8px 12px", // Padding inside inputs for better spacing
+    inputTextColor: "#14122e", // Dark text inside inputs for readability
+    inputFocusBorderColor: "#ed5542", // Focus border color matching primary red
 
-    // Shadows and Spacing
-    boxShadow: "0px 2px 6px rgba(0, 0, 0, 0.05)", // Subtle shadow for a modern flat effect
-    padding: 6, // Compact padding for containers
+    // --- Cards ---
+    cardPadding: "16px", // Padding inside cards
+    cardShadow: "0px 4px 12px rgba(0, 0, 0, 0.05)", // Subtle shadow for depth
+    cardBorderRadius: "6px", // Rounded card corners
+    cardBorderColor: "#e9ada4", // Border color for cards matching the pink tone
+    cardHeaderBackgroundColor: "#ffffff", // White background for card headers
+    cardContentBackgroundColor: "#ffffff", // White content background
+    cardTextColor: "#14122e", // Dark text on cards
 
-    // Table
-    tableHeaderBackground: "#f0f0f0", // Light background for table headers
-    tableRowBackgroundHover: "#fafafa", // Slight hover effect on rows
-    tableBorderColor: "#d9d9d9", // Subtle borders around table cells
-    tablePadding: "8px 12px", // Compact padding for table cells
+    // --- Modals ---
+    modalPadding: "20px", // Internal modal padding
+    modalBorderRadius: "8px", // Smooth corners for modals
+    modalBorderColor: "#e9ada4", // Soft border for modals
+    modalShadow: "0px 6px 16px rgba(0, 0, 0, 0.1)", // Stronger shadow for modal depth
 
-    // Modals
-    modalBackground: "#ffffff", // Clean white for modal background
-    modalPadding: "16px", // Adequate padding inside modal
-    modalBorderRadius: "6px", // Smooth corners for modals
-    modalHeaderBorderBottom: "1px solid #e0e0e0", // Light border for modal header
-    modalShadow: "0px 4px 12px rgba(0, 0, 0, 0.15)", // Stronger shadow for modal depth
+    // --- Table ---
+    tableHeaderBackground: "#f0f0f0", // Light grey background for table headers
+    tableRowBackgroundHover: "#fafafa", // Light hover effect on table rows
+    tableBorderColor: "#e9ada4", // Border color for tables
+    tablePadding: "10px", // Padding for table cells
 
-    // Dropdowns
-    dropdownBackground: "#ffffff", // Clean background for dropdowns
-    dropdownBorder: "1px solid #e0e0e0", // Light border around dropdowns
-    dropdownPadding: "8px", // Compact padding inside dropdowns
+    // --- Tabs ---
+    tabBarBackground: "#ffffff", // White background for tabs
+    tabBarBorderColor: "#e9ada4", // Border under tab bar
+    tabPadding: "10px 16px", // Tab padding
+    tabFontSize: "14px", // Font size for tabs
 
-    // Cards
-    cardPadding: "12px", // Adequate padding inside cards
-    cardShadow: "0px 2px 8px rgba(0, 0, 0, 0.05)", // Light shadow for depth
-    cardBorderRadius: "4px", // Rounded corners for cards
-    cardBorderColor: "#f0f0f0", // Subtle border color for a polished look
+    // --- Dropdowns ---
+    dropdownBackground: "#ffffff", // White background for dropdowns
+    dropdownBorder: "1px solid #e9ada4", // Soft pink border for dropdowns
+    dropdownPadding: "8px", // Dropdown padding
 
-    // Tags
-    tagBorderRadius: "16px", // Pill-shaped tags for a modern look
-    tagFontSize: "12px", // Smaller font size for tags
-    tagPadding: "4px 12px", // Compact padding for tags
+    // --- Shadows and Spacing ---
+    boxShadowBase: "0px 2px 8px rgba(0, 0, 0, 0.05)", // Default box shadow
+    paddingBase: 8, // Standard padding across UI
 
-    // Tabs
-    tabBarBackground: "#ffffff", // Clean white for tab bar background
-    tabBarBorderColor: "#e0e0e0", // Light border under the tab bar
-    tabPadding: "8px 16px", // Compact padding for tab labels
-    tabFontSize: "14px", // Smaller font for tabs
-
-    // Other
-    wireframe: false, // Maintain the polished look, disable wireframe
+    // --- Other ---
+    wireframe: false, // Keep the polished look
   }
 });
+
+
 
 </script>
 <style>

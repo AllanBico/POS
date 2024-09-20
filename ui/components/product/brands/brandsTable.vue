@@ -1,143 +1,307 @@
 <template>
-  <div>
-    <a-modal v-model:open="open" title="Add User" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
-             cancel-text="Cancel">
+  <div class="brands-container">
+    <!-- Modals -->
+    <a-modal
+      v-model:open="isAddModalOpen"
+      title="Create Brand"
+      @ok="handleModalOk"
+      @cancel="handleModalCancel"
+      ok-text="Submit"
+      cancel-text="Cancel"
+      :maskClosable="false"
+    >
       <brand-add-modal @submit-success="handleSubmitSuccess"></brand-add-modal>
-      <template #footer>
-      </template>
+      <template #footer> </template>
     </a-modal>
-    <a-modal v-model:open="edit_open" title="Edit User" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
-             cancel-text="Cancel">
-      <brand-edit-modal @submit-success="handleSubmitSuccess" :brand_id="brand_id"></brand-edit-modal>
-      <template #footer>
-      </template>
+
+    <a-modal
+      v-model:open="isEditModalOpen"
+      title="Edit Brand"
+      @ok="handleModalOk"
+      @cancel="handleModalCancel"
+      ok-text="Submit"
+      cancel-text="Cancel"
+      :maskClosable="false"
+    >
+      <brand-edit-modal
+        @submit-success="handleSubmitSuccess"
+        :selectedBrandId="selectedBrandId"
+      ></brand-edit-modal>
+      <template #footer> </template>
     </a-modal>
+
+    <!-- Header -->
+    <a-card style="padding: 0px; margin-bottom: 10px" :bordered="false">
+      <a-page-header
+        style="padding: 0px"
+        title="Brands"
+        class="brands-header"
+        sub-title="Manage and organize your product brands"
+      >
+        <template #extra>
+          <a-button
+            class="add-brand-btn"
+            type="primary"
+            @click="handleAddBrand"
+            :icon="h(PlusOutlined)"
+          >
+            Create Brand
+          </a-button>
+          <a-dropdown>
+            <template #overlay>
+              <a-menu>
+                <a-menu-item key="1" @click="exportToExcel">
+                  <FileExcelOutlined /> Export to Excel
+                </a-menu-item>
+                <a-menu-item key="2" @click="exportToPDF">
+                  <FilePdfOutlined /> Export to PDF
+                </a-menu-item>
+              </a-menu>
+            </template>
+            <a-button>
+              Export <DownOutlined />
+            </a-button>
+          </a-dropdown>
+        </template>
+      </a-page-header>
+    </a-card>
+
+    <!-- Brands table -->
+    <div style="padding: 10px; background-color: #fff">
+      <a-table
+        :dataSource="brandStore.brands"
+        :columns="columns"
+        :pagination="{
+          pageSize: 10,
+          showSizeChanger: true,
+          showQuickJumper: true,
+        }"
+        :rowKey="(record) => record.id"
+        :loading="loading"
+        size="small"
+        @change="handleTableChange"
+      >
+        <!-- Custom filter dropdown template -->
+        <template
+          #customFilterDropdown="{
+            setSelectedKeys,
+            selectedKeys,
+            confirm,
+            clearFilters,
+            column,
+          }"
+        >
+          <div style="padding: 8px">
+            <a-input
+              ref="searchInput"
+              :placeholder="`Search ${column.title}`"
+              :value="selectedKeys[0]"
+              style="width: 188px; margin-bottom: 8px; display: block"
+              @change="
+                (e) => setSelectedKeys(e.target.value ? [e.target.value] : [])
+              "
+              @pressEnter="
+                handleSearch(selectedKeys, confirm, column.dataIndex)
+              "
+            />
+            <a-button
+              type="primary"
+              size="small"
+              style="width: 90px; margin-right: 8px"
+              @click="handleSearch(selectedKeys, confirm, column.dataIndex)"
+            >
+              <template #icon><SearchOutlined /></template>
+              Search
+            </a-button>
+            <a-button
+              size="small"
+              style="width: 90px"
+              @click="handleReset(clearFilters)"
+            >
+              Reset
+            </a-button>
+          </div>
+        </template>
+
+        <!-- Custom filter icon -->
+        <template #customFilterIcon="{ filtered }">
+          <search-outlined
+            :style="{ color: filtered ? '#1890ff' : undefined }"
+          />
+        </template>
+
+        <!-- Custom render for operation column -->
+        <template #bodyCell="{ column, record, index }">
+          <template v-if="column.dataIndex === 'operation'">
+            <a-dropdown :trigger="['click']">
+              <template #overlay>
+                <a-menu>
+                  <a-menu-item key="edit">
+                    <a @click="handleEditBrand(record.id)">
+                      <EditOutlined /> Edit
+                    </a>
+                  </a-menu-item>
+                  <a-menu-item key="delete">
+                    <a-popconfirm
+                      :title="`Are you sure you want to delete this brand: ${record.name}?`"
+                      ok-text="Yes"
+                      cancel-text="No"
+                      @confirm="handleDeleteBrand(record.id)"
+                    >
+                      <a><DeleteOutlined /> Delete</a>
+                    </a-popconfirm>
+                  </a-menu-item>
+                </a-menu>
+              </template>
+              <a-button> Actions <DownOutlined /> </a-button>
+            </a-dropdown>
+          </template>
+          <template v-else-if="column.dataIndex === 'index'">
+            {{ index + 1 }}
+          </template>
+        </template>
+      </a-table>
+    </div>
   </div>
-  <div>
-  </div>
-  <a-button class="editable-add-btn" style="margin-bottom: 1px ;margin-top: 1px ;" @click="handleAdd">Add</a-button>
-  <a-table bordered :data-source="brandStore.brands" :columns="columns">
-    <template #bodyCell="{ column, text, record }">
-      <template v-if="column.dataIndex === 'operation'">
-        <a-tooltip  title="Edit" placement="bottom">
-          <a-button @click="onEdit(record.id)" style="margin-right: 3px"  :icon="h(EditOutlined)" />
-        </a-tooltip>
-        <a-popconfirm
-            v-if="brandStore.brands.length"
-            title="Sure to delete?"
-            @confirm="onDelete(record.id)" >
-          <a-tooltip title="Delete" placement="bottom">
-            <a-button  :icon="h(DeleteOutlined)" />
-          </a-tooltip>
-        </a-popconfirm>
-      </template>
-    </template>
-  </a-table>
 </template>
+
 <script setup>
-import {computed, reactive, ref} from 'vue';
-import {cloneDeep} from 'lodash-es';
-import {useBrandStore} from '~/stores/product/BrandStore.js';
+import { ref } from "vue";
+import { useBrandStore } from "~/stores/product/BrandStore.js";
 import BrandAddModal from "~/components/product/brands/brandAddModal.vue";
 import BrandEditModal from "~/components/product/brands/brandEditModal.vue";
-import {DeleteOutlined, EditOutlined} from "@ant-design/icons-vue";
+import {
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+  SearchOutlined,
+  DownOutlined,
+  FileExcelOutlined,
+  FilePdfOutlined,
+} from "@ant-design/icons-vue";
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
+// Initialize brand store and fetch brands
 const brandStore = useBrandStore();
-const open = ref(false);
-const edit_open = ref(false);
-let brand_id = ref(null)
-brandStore.fetchBrands()
-console.log("brandStore.brands", brandStore.brands)
+brandStore.fetchBrands();
+
+// Reactive variables
+const isAddModalOpen = ref(false);
+const isEditModalOpen = ref(false);
+const selectedBrandId = ref(null);
+const searchInput = ref(null);
+
+// Table columns configuration
 const columns = [
   {
-    title: 'Name',
-    dataIndex: 'name',
-    width: '30%',
+    title: "Index",
+    dataIndex: "index",
+    sorter: (a, b) => a.index.localeCompare(b.index),
+    onFilter: (value, record) =>
+      record.index.toLowerCase().includes(value.toLowerCase()),
   },
   {
-    title: 'Description',
-    dataIndex: 'description',
+    title: "Name",
+    dataIndex: "name",
+    sorter: (a, b) => a.name.localeCompare(b.name),
+    customFilterDropdown: true,
+    onFilter: (value, record) =>
+      record.name.toLowerCase().includes(value.toLowerCase()),
+    onFilterDropdownOpenChange: (visible) => {
+      if (visible) {
+        setTimeout(() => {
+          searchInput.value?.focus();
+        }, 100);
+      }
+    },
   },
   {
-    title: 'operation',
-    dataIndex: 'operation',
+    title: "Description",
+    dataIndex: "description",
+    sorter: (a, b) => a.description.localeCompare(b.description),
+    customFilterDropdown: true,
+    onFilter: (value, record) =>
+      record.description.toLowerCase().includes(value.toLowerCase()),
+    onFilterDropdownOpenChange: (visible) => {
+      if (visible) {
+        setTimeout(() => {
+          searchInput.value?.focus();
+        }, 100);
+      }
+    },
+  },
+  {
+    title: "Operation",
+    dataIndex: "operation",
   },
 ];
 
-
-const edit = key => {
-};
-const save = key => {
-};
-const onDelete = async key => {
-  await brandStore.deleteBrand(key)
-  console.log("deleted", key)
-};
-const onEdit = async key => {
-  console.log("edit", key)
-  brand_id = parseInt(key)
-  console.log("user_id", brand_id)
-  edit_open.value = true
-  console.log("done")
+// Event handlers
+const handleAddBrand = () => {
+  isAddModalOpen.value = true;
 };
 
-const handleAdd = () => {
-  open.value = true;
+const handleEditBrand = (brandId) => {
+  selectedBrandId.value = brandId;
+  isEditModalOpen.value = true;
+  console.log("brandId", brandId);
+  console.log("selectedBrandId", selectedBrandId.value);
 };
-const handleOk = () => {
-  open.value = false;
-  // Optionally handle any additional logic here
+
+const handleDeleteBrand = async (brandId) => {
+  try {
+    await brandStore.deleteBrand(brandId);
+    console.log("Brand deleted successfully:", brandId);
+  } catch (error) {
+    console.error("Error deleting brand:", error);
+    // TODO: Implement user-friendly error handling
+  }
 };
-const handleCancel = () => {
-  open.value = false;
-  edit_open.value = false;
+
+const handleModalOk = () => {
+  isAddModalOpen.value = false;
+  isEditModalOpen.value = false;
 };
+
+const handleModalCancel = () => {
+  isAddModalOpen.value = false;
+  isEditModalOpen.value = false;
+};
+
 const handleSubmitSuccess = () => {
-  open.value = false;
-  edit_open.value = false;
+  isAddModalOpen.value = false;
+  isEditModalOpen.value = false;
+};
+
+const handleSearch = (selectedKeys, confirm, dataIndex) => {
+  confirm();
+  // TODO: Implement search functionality
+};
+
+const handleReset = (clearFilters) => {
+  clearFilters({ confirm: true });
+  // TODO: Reset search state
+};
+
+const exportToExcel = () => {
+  const data = brandStore.brands.map(brand => ({
+    Name: brand.name,
+    Description: brand.description
+  }));
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Brands");
+  XLSX.writeFile(wb, "brands.xlsx");
+};
+
+const exportToPDF = () => {
+  const doc = new jsPDF();
+  doc.autoTable({
+    head: [['Name', 'Description']],
+    body: brandStore.brands.map(brand => [brand.name, brand.description]),
+  });
+  doc.save('brands.pdf');
 };
 </script>
-<style lang="less" scoped>
-.editable-cell {
-  position: relative;
-
-  .editable-cell-input-wrapper,
-  .editable-cell-text-wrapper {
-    padding-right: 24px;
-  }
-
-  .editable-cell-text-wrapper {
-    padding: 5px 24px 5px 5px;
-  }
-
-  .editable-cell-icon,
-  .editable-cell-icon-check {
-    position: absolute;
-    right: 0;
-    width: 20px;
-    cursor: pointer;
-  }
-
-  .editable-cell-icon {
-    margin-top: 4px;
-    display: none;
-  }
-
-  .editable-cell-icon-check {
-    line-height: 28px;
-  }
-
-  .editable-cell-icon:hover,
-  .editable-cell-icon-check:hover {
-    color: #108ee9;
-  }
-
-  .editable-add-btn {
-    margin-bottom: 8px;
-  }
-}
-
-.editable-cell:hover .editable-cell-icon {
-  display: inline-block;
-}
-</style>

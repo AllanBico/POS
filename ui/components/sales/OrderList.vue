@@ -1,13 +1,8 @@
 <template>
   <div>
-    <a-modal v-model:open="open" title="Create Order" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
-             cancel-text="Cancel">
-      <order-Add-modal @submit-success="handleSubmitSuccess" :order_id="order_id"></order-Add-modal>
-      <template #footer></template>
-    </a-modal>
     <a-modal v-model:open="edit_open" title="Edit Order" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
              cancel-text="Cancel">
-      <order-edit-modal @submit-success="handleSubmitSuccess" :order_id="order_id"></order-edit-modal>
+      <order-edit-modal @submit-success="handleSubmitSuccess" :order-id="order_id"></order-edit-modal>
       <template #footer></template>
     </a-modal>
 
@@ -30,9 +25,15 @@
       >
         <!-- Operation Column for Edit/Delete -->
         <template #bodyCell="{ column, text, record }">
+          <template v-if="column.dataIndex === 'totalAmount'">
+            {{ record.totalAmount }} {{settingsStore.getSettingByKey("default_currency")?.code}}
+          </template>
           <template v-if="column.dataIndex === 'operation'">
             <a-tooltip title="Edit" placement="bottom">
               <a-button @click="onEdit(record.id)" style="margin-right: 3px" :icon="h(EditOutlined)"/>
+            </a-tooltip>
+            <a-tooltip title="View" placement="bottom">
+              <a-button @click="onView(record.id)" style="margin-right: 3px" :icon="h(EditOutlined)"/>
             </a-tooltip>
             <a-popconfirm title="Sure to delete?" @confirm="onDelete(record.id)">
               <a-tooltip title="Delete" placement="bottom">
@@ -49,39 +50,51 @@
 <script setup>
 import { ref } from 'vue';
 import { useSalesOrderStore } from '~/stores/sales/SalesOrderStore.js'; // Order store
-import OrderEditModal from '~/components/orders/OrderEditModal.vue';
+import OrderEditModal from '~/components/sales/OrderEditModal.vue';
 import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons-vue";
+import {useTabsStore} from "~/stores/tabsStore.js";
+import createOrder from "~/components/sales/createOrder.vue";
+import orderView from "~/components/sales/orderView.vue";
 const open = ref(false);
 // Store and modals
 const orderStore = useSalesOrderStore();
+const settingsStore = useSettingsStore();
 const edit_open = ref(false);
 let order_id = ref(null);
 orderStore.fetchOrders();
-
+const tabsStore = useTabsStore();
+settingsStore.fetchSettings()
+console.log("settingsStore",settingsStore.getSettingByKey("default_currency")?.code)
+console.log("orderStore.orders",orderStore.orders)
 // Table columns
 const columns = [
   {
     title: 'Order Number',
-    dataIndex: 'order_number',
+    dataIndex: 'id',
     key: 'order_number',
-    sorter: (a, b) => a.order_number.localeCompare(b.order_number),
+    sorter: (a, b) => a.id.localeCompare(b.id),
     sortDirections: ['descend', 'ascend'],
   },
   {
     title: 'Customer',
-    dataIndex: 'customer_name',
+    customRender: ({record}) => record.customer ? record.customer.name : 'N/A',
     key: 'customer_name',
   },
   {
-    title: 'Total Amount',
-    dataIndex: 'total_amount',
-    key: 'total_amount',
+    title: 'TotalAmount',
+    dataIndex: 'totalAmount',
+    key: 'totalAmount',
     sorter: (a, b) => a.total_amount - b.total_amount,
   },
   {
     title: 'Date',
     dataIndex: 'created_at',
     key: 'created_at',
+  },
+  {
+    title: 'Status',
+    dataIndex: 'status',
+    key: 'status',
   },
   {
     title: 'operation',
@@ -98,12 +111,16 @@ const onEdit = async (key) => {
   order_id = key;
   edit_open.value = true;
 };
+const onView = async (key) => {
+
+  tabsStore.addTab('Sales Order', orderView, { orderId: key });
+};
 
 const onDelete = async (key) => {
   await orderStore.deleteOrder(key);
 };
 const handleAdd = () => {
-  open.value = true;
+  tabsStore.addTab('Create Sales Order', createOrder);
 };
 // Modal actions
 const handleOk = () => {

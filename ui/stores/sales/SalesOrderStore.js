@@ -53,6 +53,7 @@ export const useSalesOrderStore = defineStore('salesOrder', {
                 const { data, error } = await useFetch(apiUrl, { credentials: 'include' });
                 if (error.value) throw error.value;
                 this.order = data.value;
+                return data.value;
             } catch (error) {
                 this.handleError(error, 'Failed to fetch order');
             } finally {

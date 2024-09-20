@@ -8,6 +8,7 @@ export const useBrandStore = defineStore('brand', {
     getters: {
         BrandById: (state) => (id) => {
             const brand = state.brands.find(brand => brand.id === id);
+            console.log("brand id",id)
             if (!brand) {
                 console.error(`Brand with id ${id} not found`);
                 return null;

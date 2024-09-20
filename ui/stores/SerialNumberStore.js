@@ -12,7 +12,25 @@ export const useSerialNumberStore = defineStore('serialNumber', {
 
     actions: {
         // Fetch all serial numbers by variantId
-        async fetchSerialNumbersByVariantId(variantId) {
+        async fetchSerialNumbers() {
+            this.loading = true;
+            this.error = null;
+            try {
+                const config = useRuntimeConfig();
+                const apiUrl = `${config.public.baseURL}/api/serial-numbers`;
+                const { data, error } = await useFetch(apiUrl, { credentials: 'include' });
+                console.log("data.value",data.value)
+                if (error) {
+                    this.error = error;
+                }
+                this.serialNumbers = data.value;
+            } catch (err) {
+                console.error(err);
+                this.error = 'Failed to fetch serial numbers';
+            } finally {
+                this.loading = false;
+            }
+        },async fetchSerialNumbersByVariantId(variantId) {
             this.loading = true;
             this.error = null;
             try {
@@ -22,7 +40,7 @@ export const useSerialNumberStore = defineStore('serialNumber', {
                 if (error) {
                     this.error = error;
                 } else {
-                    this.serialNumbers = data.value;
+                    this.serialNumber = data.value;
                 }
             } catch (err) {
                 console.error(err);

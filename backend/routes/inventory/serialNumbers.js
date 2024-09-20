@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { SerialNumber, Variant } = require('../../models/associations');
+const { SerialNumber, Variant, Product} = require('../../models/associations');
 
 // Create a new serial number
 router.post('/', async (req, res) => {
@@ -18,7 +18,11 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
     try {
         const serialNumbers = await SerialNumber.findAll({
-            include: [{ model: Variant }],
+            include: [{
+                model: Variant,
+                as: 'variant',
+                include: [{ model: Product, as: 'Product' }]
+            }],
         });
         res.status(200).json(serialNumbers);
     } catch (error) {

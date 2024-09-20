@@ -14,7 +14,7 @@ export const useSettingsStore = defineStore('settings', {
                 const { data } = await useFetch(apiUrl, {
                     credentials: 'include',
                 });
-                this.settings = data.value || []; // Ensure it's an array
+                this.settings = data.value; // Ensure it's an array
             } catch (error) {
                 this.error = error;
             }

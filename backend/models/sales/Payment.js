@@ -54,6 +54,7 @@ const Payment = sequelize.define('Payment', {
     },
 }, {
     tableName: 'payments',
+    underscored: true,
 });
 
 module.exports = Payment;

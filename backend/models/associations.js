@@ -35,7 +35,9 @@ const Composition =require('./product/Composition')
 const SalesOrder = require('./sales/salesOrder')
 const Customer = require('./customer')
 const SalesOrderLineItem = require('./sales/salesOrderLineItem')
+const VariantImage = require('./product/VariantImage')
 const Payment = require('./sales/Payment')
+const ProductTax = require('./ProductTax')
 // Define associations AFTER model initialization
 
 // SalesOrder <-> Customer
@@ -193,6 +195,12 @@ Coupon.belongsTo(User, { as: 'createdByUser', foreignKey: 'createdBy' });
 Composition.belongsTo(Variant, { as: 'productVariant', foreignKey: 'productVariantId' });
 Composition.belongsTo(Variant, { as: 'ingredientVariant', foreignKey: 'ingredientVariantId' });
 
+Variant.hasMany(VariantImage, { foreignKey: 'variantId', as: 'images' });
+VariantImage.belongsTo(Variant, { foreignKey: 'variantId' });
+
+Product.hasMany(ProductTax, { foreignKey: 'ProductId', as: 'taxes' });
+ProductTax.belongsTo(Product, { foreignKey: 'ProductId' });
+
 module.exports = {
     Product,
     Variant,
@@ -231,5 +239,7 @@ module.exports = {
     SalesOrder,
     Customer,
     SalesOrderLineItem,
-    Payment
+    Payment,
+    VariantImage,
+    ProductTax
 };

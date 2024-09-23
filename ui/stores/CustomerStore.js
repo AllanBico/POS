@@ -8,6 +8,13 @@ export const useCustomerStore = defineStore('customer', {
         CustomerById: (state) => (id) => state.customers.find(customer => customer.id === id) || null,
     },
     actions: {
+        search(term) {
+            if (!term) return []; // Return empty if no search term provided
+            const searchTerm = term.toLowerCase();
+            return this.customers.filter(customer =>
+                customer.name.toLowerCase().includes(searchTerm)
+            );
+        },
         async fetchCustomers() {
             const config = useRuntimeConfig();
             const { data, error } = await useFetch(`${config.public.baseURL}/api/customers`, {

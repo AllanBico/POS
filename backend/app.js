@@ -49,6 +49,7 @@ const couponRoutes = require('./routes/couponRoutes');
 const compositionsRoutes = require('./routes/composition');
 const paymentRoutes = require('./routes/sales/paymentRoutes');
 const orderRoutes = require('./routes/sales/salesOrderRoutes');
+const variantImageRoutes = require('./routes/product/variantImage');
 //const authenticateToken = require('./middleware/auth');
 
 dotenv.config();
@@ -153,6 +154,7 @@ app.use('/api/coupons', couponRoutes);
 app.use('/api/compositions', compositionsRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/variant-images', variantImageRoutes);
 
 
 

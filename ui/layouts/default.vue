@@ -4,23 +4,18 @@
       v-model:collapsed="state.collapsed"
       :trigger="null"
       collapsible
-      theme="light"
       :style="{boxShadow: '2px 0 5px rgba(0,0,0,0.1)', overflow: 'auto', height: '100vh'}"
     >
       <div class="logo">
         <img src="https://its.intellitech.co.ke/static/logo.png" alt="Vue Antd Admin"/>
       </div>
 
-      <a-button type="primary" style="margin: 16px" @click="toggleCollapsed">
-        <MenuUnfoldOutlined v-if="state.collapsed" />
-        <MenuFoldOutlined v-else />
-      </a-button>
+
 
       <a-menu
         v-model:openKeys="state.openKeys"
         v-model:selectedKeys="state.selectedKeys"
         mode="inline"
-        theme="light"
         :inline-collapsed="state.collapsed"
         :items="menuItems"
       ></a-menu>
@@ -29,44 +24,7 @@
     <!-- Main Layout -->
     <a-layout>
       <a-layout-content :style="{padding: '5px'}">
-        <a-float-button-group trigger="click" type="primary" :style="{ right: '24px' }">
-          <template #icon1>
-            <PlusOutlined />
-          </template>
-          <!-- Popover with submenu on the left side -->
-          <a-popover placement="left" trigger="click" style="margin: 1px;padding: 1px;">
-            <template #content>
-              <ul>
-                <li>order1</li>
-                <li>receive1</li>
-                <li>unit1</li>
-              </ul>
-            </template>
-            <a-float-button>
-              <template #icon1>
-                <CommentOutlined />
-              </template>
-            </a-float-button>
-          </a-popover>
-          <template #icon>
-            <PlusOutlined />
-          </template>
-          <!-- Popover with submenu on the left side -->
-          <a-popover placement="left" trigger="click" style="margin: 1px;padding: 1px;">
-            <template #content>
-              <ul>
-                <li>order</li>
-                <li>receive</li>
-                <li>unit</li>
-              </ul>
-            </template>
-            <a-float-button>
-              <template #icon>
-                <CommentOutlined />
-              </template>
-            </a-float-button>
-          </a-popover>
-        </a-float-button-group>
+      <QuickActions/>
         <!-- Tabs -->
         <a-tabs v-model:activeKey="tabsStore.activeKey" :size="size" hide-add @edit="onEdit" type="editable-card">
           <a-tab-pane v-for="tab in tabsStore.tabs" :key="tab.key" :tab="tab.title" closable>
@@ -76,21 +34,12 @@
           </a-tab-pane>
           <template #rightExtra>
             <a-card class="control-area" :bodyStyle="{ padding: '3px' }">
-              <a-space>
-                <a-badge count="4" dot>
-                  <a-button type="link" :icon="h(BellOutlined)" />
-                </a-badge>
-                <a-button type="link" :icon="h(SettingOutlined)" />
-                <a-dropdown>
-                  <template #overlay>
-                    <a-menu>
-                      <a-menu-item key="settings">Settings</a-menu-item>
-                      <a-menu-item key="logout">Logout</a-menu-item>
-                    </a-menu>
-                  </template>
-                  <a-avatar style="background-color: prima" class="header-avatar" :icon="h(UserOutlined)" />
-                </a-dropdown>
-              </a-space>
+              <!-- Collapse Button -->
+              <a-button type="primary" style="margin: 0px" @click="toggleCollapsed">
+                <MenuUnfoldOutlined v-if="state.collapsed" />
+                <MenuFoldOutlined v-else />
+              </a-button>
+            <ControlTab/>
             </a-card>
           </template>
         </a-tabs>
@@ -160,6 +109,8 @@ import stockAdjustmentsTable from "~/components/inventory/stockTake/stock adjust
 import couponsTable from "~/components/coupons/couponsTable.vue";
 import serialNumbers from "~/components/inventory/serialNumber/serialNumber.vue";
 import OrderList from "~/components/sales/OrderList.vue";
+import QuickActions from "~/components/layout/QuickActions.vue";
+import ControlTab from "~/components/layout/ControlTab.vue";
 
 const tabsStore = useTabsStore();
 
@@ -235,12 +186,22 @@ const menuItems = [
     icon: () => h(PieChartOutlined),
     label: 'Units',
     onClick: () => addTab('Units', unitsTable),
+  },{
+    key: 'Orders',
+    icon: () => h(PieChartOutlined),
+    label: 'Orders',
+    onClick: () => addTab('Orders', OrderList),
   },
   {
     key: 'Variants',
     icon: () => h(PieChartOutlined),
     label: 'Variants',
     onClick: () => addTab('Variants', variantsTable),
+  },{
+    key: 'Serials',
+    icon: () => h(PieChartOutlined),
+    label: 'Serials',
+    onClick: () => addTab('Serial Numbers', serialNumbers),
   },
   {
     key: 'Attributes',
@@ -424,6 +385,7 @@ const onEdit = (targetKey, action) => {
     tabsStore.removeTab(targetKey)
   }
 };
+
 </script>
 
 <style scoped>
@@ -489,4 +451,5 @@ a:hover {
 .ant-tabs-tab:hover {
   transform: translateY(-2px);
 }
+
 </style>

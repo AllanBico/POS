@@ -21,10 +21,7 @@ export const useProductStore = defineStore('product', {
          */
         productById: (state) => (id) => state.products.find(product => product.id === id) || null,
         variantById: (state) => (id) => {
-            console.log('state.variants:', state.variants);
             const variant = state.variants.find(variant => variant.id === id) || null;
-            console.log('variant Id:', id);
-            console.log('variantById:', variant);
             return variant;
         },
         attributesByProductId: (state) => (productId) => state.attributes.filter(attr => attr.productId === productId),
@@ -32,6 +29,54 @@ export const useProductStore = defineStore('product', {
         attributeValuesByAttributeId: (state) => (attributeId) => state.attributeValues.filter(value => value.attributeId === attributeId),
     },
     actions: {
+        search(term) {
+            if (!term) {
+                this.searchResults = [];
+                return;
+            }
+
+            const searchTerms = term.toLowerCase().split(/\s+/);
+
+            this.searchResults = this.variants?.filter((variant) => {
+                const product = this.products?.find(product => product.id === variant?.productId);
+                
+                const searchableFields = [
+                    variant?.sku,
+                    variant?.code,
+                    variant?.partNumber,
+                    variant?.description,
+                    product?.name
+                ].filter(Boolean).map(field => field.toLowerCase());
+
+                return searchTerms.every(term => 
+                    searchableFields.some(field => field.includes(term))
+                );
+            }) || [];
+
+            // Sort results by relevance
+            this.searchResults.sort((a, b) => {
+                const aRelevance = this.calculateRelevance(a, searchTerms);
+                const bRelevance = this.calculateRelevance(b, searchTerms);
+                return bRelevance - aRelevance;
+            });
+            return this.searchResults;
+        },
+
+        calculateRelevance(variant, searchTerms) {
+            const product = this.products?.find(product => product.id === variant?.productId);
+            const searchableFields = [
+                variant?.sku,
+                variant?.code,
+                variant?.partNumber,
+                variant?.description,
+                product?.name
+            ].filter(Boolean).map(field => field.toLowerCase());
+
+            return searchTerms.reduce((relevance, term) => {
+                const fieldMatches = searchableFields.filter(field => field.includes(term)).length;
+                return relevance + fieldMatches;
+            }, 0);
+        },
         /**
          * Fetches a list of products from the API.
          *
@@ -139,6 +184,30 @@ export const useProductStore = defineStore('product', {
                 this.error = err;
                 console.error('Error creating product:', err);
                 $toast.error('Error creating product');
+            }
+        },
+        async uploadImage(variantId, file) {
+            const {$toast} = useNuxtApp();
+            this.loading = true;
+            this.error = null;
+
+            try {
+                const config = useRuntimeConfig();
+                const apiUrl = `${config.public.baseURL}/api/variant-images/`;
+                const formData = new FormData();
+                formData.append('image', file);
+                formData.append('variantId', variantId);
+
+                const { data } = await $fetch(apiUrl, {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'include',
+                });
+            } catch (error) {
+                this.error = error.response?.data?.message || 'Error uploading image';
+                $toast.error(this.error);
+            } finally {
+                this.loading = false;
             }
         },
 

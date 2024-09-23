@@ -1,14 +1,15 @@
 import { defineStore } from 'pinia';
+import { useNuxtApp, useRuntimeConfig, useFetch } from '#app';
 
 export const useBrandStore = defineStore('brand', {
     state: () => ({
         brands: [],
         error: null,
+        loading: false,
     }),
     getters: {
-        BrandById: (state) => (id) => {
+        getBrandById: (state) => (id) => {
             const brand = state.brands.find(brand => brand.id === id);
-            console.log("brand id",id)
             if (!brand) {
                 console.error(`Brand with id ${id} not found`);
                 return null;
@@ -17,7 +18,19 @@ export const useBrandStore = defineStore('brand', {
         },
     },
     actions: {
+        setLoading(loading) {
+            this.loading = loading;
+        },
+
+        handleError(error, message = 'An error occurred') {
+            const { $toast } = useNuxtApp();
+            this.error = error;
+            $toast.error(message);
+            console.error(message, error);
+        },
+
         async fetchBrands() {
+            this.setLoading(true);
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/brands`;
@@ -29,13 +42,14 @@ export const useBrandStore = defineStore('brand', {
 
                 this.brands = data.value;
             } catch (error) {
-                console.error('Error fetching brands:', error);
-                const { $toast } = useNuxtApp();
-                $toast.error('Error fetching brands');
+                this.handleError(error, 'Error fetching brands');
+            } finally {
+                this.setLoading(false);
             }
         },
 
         async createBrand(brand) {
+            this.setLoading(true);
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/brands`;
@@ -48,16 +62,16 @@ export const useBrandStore = defineStore('brand', {
                 if (error.value) throw error.value;
 
                 this.brands.push(data.value);
-                const { $toast } = useNuxtApp();
-                $toast.success('Brand Created');
+                useNuxtApp().$toast.success('Brand Created');
             } catch (error) {
-                console.error('Error creating brand:', error);
-                const { $toast } = useNuxtApp();
-                $toast.error('Error creating brand');
+                this.handleError(error, 'Error creating brand');
+            } finally {
+                this.setLoading(false);
             }
         },
 
         async updateBrand(id, updatedBrand) {
+            this.setLoading(true);
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/brands/${id}`;
@@ -73,16 +87,16 @@ export const useBrandStore = defineStore('brand', {
                 if (index !== -1) {
                     this.brands[index] = data.value;
                 }
-                const { $toast } = useNuxtApp();
-                $toast.success('Brand Updated');
+                useNuxtApp().$toast.success('Brand Updated');
             } catch (error) {
-                console.error('Error updating brand:', error);
-                const { $toast } = useNuxtApp();
-                $toast.error('Error updating brand');
+                this.handleError(error, 'Error updating brand');
+            } finally {
+                this.setLoading(false);
             }
         },
 
         async deleteBrand(id) {
+            this.setLoading(true);
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/brands/${id}`;
@@ -94,27 +108,27 @@ export const useBrandStore = defineStore('brand', {
                 if (error.value) throw error.value;
 
                 this.brands = this.brands.filter((brand) => brand.id !== id);
-                const { $toast } = useNuxtApp();
-                $toast.success('Brand Deleted');
+                useNuxtApp().$toast.success('Brand Deleted');
             } catch (error) {
-                console.error('Error deleting brand:', error);
-                const { $toast } = useNuxtApp();
-                $toast.error('Error deleting brand');
+                this.handleError(error, 'Error deleting brand');
+            } finally {
+                this.setLoading(false);
             }
         },
+
         // Socket event handlers
-        async socketUpdateBrand(brand) {
+        socketUpdateBrand(brand) {
             const index = this.brands.findIndex(obj => obj.id === brand.id);
             if (index !== -1) this.brands[index] = brand;
         },
-        async socketCreateBrand(brand) {
-            const exists = this.brands.some(obj => obj.id === brand.id);
-            // Only add the brand if it doesn't already exist
-            if (!exists) {
+
+        socketCreateBrand(brand) {
+            if (!this.brands.some(obj => obj.id === brand.id)) {
                 this.brands.push(brand);
             }
         },
-        async socketDeleteBrand(id) {
+
+        socketDeleteBrand(id) {
             const index = this.brands.findIndex(brand => brand.id === id);
             if (index !== -1) this.brands.splice(index, 1);
         },

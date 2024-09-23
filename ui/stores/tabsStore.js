@@ -29,5 +29,13 @@ export const useTabsStore = defineStore('tabsStore', {
                 this.activeKey = this.tabs[0].key;  // Switch to first tab if any left
             }
         },
+        switchTab(key) {
+            const tab = this.tabs.find(tab => tab.key === key);
+            if (tab) {
+                this.activeKey = key;
+            } else {
+                console.warn(`Tab with key ${key} not found`);
+            }
+        },
     },
 });

@@ -1,5 +1,5 @@
 <template>
-  <div class="brands-container">
+  <div class="div-container">
     <!-- Modals -->
     <a-modal
       v-model:open="isAddModalOpen"
@@ -31,11 +31,10 @@
     </a-modal>
 
     <!-- Header -->
-    <a-card style="padding: 0px; margin-bottom: 10px" :bordered="false">
+    <a-card class="div-header-card" :bordered="false">
       <a-page-header
-        style="padding: 0px"
+        class="div-header"
         title="Brands"
-        class="brands-header"
         sub-title="Manage and organize your product brands"
       >
         <template #extra>
@@ -51,14 +50,14 @@
             <template #overlay>
               <a-menu>
                 <a-menu-item key="1" @click="exportToExcel">
-                  <FileExcelOutlined /> Export to Excel
+                  <FileExcelOutlined />  Excel
                 </a-menu-item>
                 <a-menu-item key="2" @click="exportToPDF">
-                  <FilePdfOutlined /> Export to PDF
+                  <FilePdfOutlined />  PDF
                 </a-menu-item>
               </a-menu>
             </template>
-            <a-button>
+            <a-button class="export-btn">
               Export <DownOutlined />
             </a-button>
           </a-dropdown>
@@ -67,7 +66,7 @@
     </a-card>
 
     <!-- Brands table -->
-    <div style="padding: 10px; background-color: #fff">
+    <div class="div-table-container">
       <a-table
         :dataSource="brandStore.brands"
         :columns="columns"
@@ -78,7 +77,7 @@
         }"
         :rowKey="(record) => record.id"
         :loading="loading"
-        size="small"
+        size="middle"
         @change="handleTableChange"
       >
         <!-- Custom filter dropdown template -->
@@ -91,12 +90,11 @@
             column,
           }"
         >
-          <div style="padding: 8px">
+          <div class="custom-filter-dropdown">
             <a-input
               ref="searchInput"
               :placeholder="`Search ${column.title}`"
               :value="selectedKeys[0]"
-              style="width: 188px; margin-bottom: 8px; display: block"
               @change="
                 (e) => setSelectedKeys(e.target.value ? [e.target.value] : [])
               "
@@ -106,18 +104,12 @@
             />
             <a-button
               type="primary"
-              size="small"
-              style="width: 90px; margin-right: 8px"
               @click="handleSearch(selectedKeys, confirm, column.dataIndex)"
             >
               <template #icon><SearchOutlined /></template>
               Search
             </a-button>
-            <a-button
-              size="small"
-              style="width: 90px"
-              @click="handleReset(clearFilters)"
-            >
+            <a-button @click="handleReset(clearFilters)">
               Reset
             </a-button>
           </div>
@@ -126,7 +118,7 @@
         <!-- Custom filter icon -->
         <template #customFilterIcon="{ filtered }">
           <search-outlined
-            :style="{ color: filtered ? '#1890ff' : undefined }"
+            :class="{ 'text-primary': filtered }"
           />
         </template>
 
@@ -137,7 +129,7 @@
               <template #overlay>
                 <a-menu>
                   <a-menu-item key="edit">
-                    <a @click="handleEditBrand(record.id)">
+                    <a @click="handleEditBrand(record.id)" class="edit-link">
                       <EditOutlined /> Edit
                     </a>
                   </a-menu-item>
@@ -148,12 +140,12 @@
                       cancel-text="No"
                       @confirm="handleDeleteBrand(record.id)"
                     >
-                      <a><DeleteOutlined /> Delete</a>
+                      <a class="delete-link"><DeleteOutlined /> Delete</a>
                     </a-popconfirm>
                   </a-menu-item>
                 </a-menu>
               </template>
-              <a-button> Actions <DownOutlined /> </a-button>
+              <a-button class="actions-btn"> Actions <DownOutlined /> </a-button>
             </a-dropdown>
           </template>
           <template v-else-if="column.dataIndex === 'index'">
@@ -305,3 +297,101 @@ const exportToPDF = () => {
   doc.save('brands.pdf');
 };
 </script>
+
+<style scoped>
+.div-container {
+  background-color: #f0f2f5;
+  padding: 24px;
+  border-radius: 8px;
+}
+
+.div-header-card {
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.div-header {
+  padding: 16px;
+}
+
+.div-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #001529;
+}
+
+.add-brand-btn {
+  font-size: 14px;
+  height: 36px;
+  margin-right: 8px;
+}
+
+.export-btn {
+  height: 36px;
+}
+
+.div-table-container {
+  background-color: #ffffff;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+:deep(.ant-table) {
+  font-size: 14px;
+}
+
+:deep(.ant-table-thead > tr > th) {
+  background-color: #fafafa;
+  color: #001529;
+  font-weight: 600;
+}
+
+:deep(.ant-table-tbody > tr > td) {
+  padding: 12px 16px;
+}
+
+:deep(.ant-table-tbody > tr:hover > td) {
+  background-color: #f5f5f5;
+}
+
+.custom-filter-dropdown {
+  padding: 8px;
+  border-radius: 4px;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.custom-filter-dropdown input {
+  width: 200px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.custom-filter-dropdown button {
+  width: 100px;
+  margin-right: 8px;
+}
+
+.actions-btn {
+  background-color: #f0f0f0;
+  border-color: #d9d9d9;
+}
+
+.actions-btn:hover {
+  background-color: #e6e6e6;
+  border-color: #d9d9d9;
+}
+
+.edit-link, .delete-link {
+  color: #001529;
+}
+
+.edit-link:hover, .delete-link:hover {
+  color: #ff4d4f;
+}
+
+.text-primary {
+  color: #1890ff;
+}
+</style>

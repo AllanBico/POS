@@ -96,6 +96,15 @@
               <a-select-option value="exempted">Exempted</a-select-option>
             </a-select>
           </a-form-item>
+          <a-form-item label="Select Taxes">
+            <a-select
+                v-model:value="product.selectedTaxes"
+                mode="multiple"
+                placeholder="Select Taxes"
+                labelInValue
+                :options="taxStore.taxes.map(tax => ({ label: tax.name, value: tax.id }))"
+            />
+          </a-form-item>
           <a-button type="primary" html-type="submit">Next</a-button>
         </form>
       </template>
@@ -133,6 +142,15 @@
           <a-form-item label="Stock Quantity">
             <a-input-number v-model:value="newVariant.stockQuantity" placeholder="Enter stock quantity" />
           </a-form-item>
+          <a-form-item label="Image">
+            <a-upload
+                name="file"
+                :customRequest="handleImageUpload"
+                :showUploadList="false"
+            >
+              <a-button icon="upload">Upload Image</a-button>
+            </a-upload>
+          </a-form-item>
           <a-button type="primary" html-type="submit">Add Variant</a-button>
           <a-button @click="prevStep" style="margin-left: 8px;">Previous</a-button>
         </form>
@@ -146,6 +164,7 @@
           <p><strong>SKU:</strong> {{ variant.sku }}</p>
           <p><strong>Price:</strong> {{ variant.price }}</p>
           <p><strong>Stock Quantity:</strong> {{ variant.stockQuantity }}</p>
+          <p><strong>Image:</strong> {{ variant.image ? 'Uploaded' : 'Not uploaded' }}</p>
           <a-button type="danger" @click="removeVariant(index)">Remove</a-button>
         </div>
 
@@ -159,17 +178,19 @@
         <p><strong>Description:</strong> {{ product.description }}</p>
         <p><strong>Category:</strong> {{ getCategoryName(product.categoryId) }}</p>
         <p><strong>Subcategory:</strong> {{ getSubcategoryName(product.subcategoryId) }}</p>
-        <p><strong>Brand:</strong> {{  brandStore.BrandById(product.brandId) }}</p>
-        <p><strong>Unit:</strong> {{  unitStore.UnitById(product.brandId) }}</p>
+        <p><strong>Brand:</strong> {{  brandStore?.getBrandById(product.brandId) }}</p>
+        <p><strong>Unit:</strong> {{  unitStore?.UnitById(product.brandId) }}</p>
         <p><strong>Low Stock Alert:</strong> {{ product.lowStockAlert }}</p>
         <p><strong>VAT Type:</strong> {{ product.vatType }}</p>
         <p><strong>Is Composition?:</strong> {{ product.isComposition }}</p>
+        <p><strong>Selected Taxes:</strong> {{ product.selectedTaxes ? product.selectedTaxes.map(tax => tax.label).join(', ') : 'None' }}</p>
 
         <h4>Variants</h4>
         <div v-for="(variant, index) in variants" :key="index" class="variant-item">
           <p><strong>SKU:</strong> {{ variant.sku }}</p>
           <p><strong>Price:</strong> {{ variant.price }}</p>
           <p><strong>Stock Quantity:</strong> {{ variant.stockQuantity }}</p>
+          <p><strong>Image:</strong> {{ variant.image ? 'Uploaded' : 'Not uploaded' }}</p>
           <div v-for="(attribute, attrIndex) in variant.attributes" :key="attrIndex">
             <p><strong>Attribute:</strong> {{ getAttributeName(attribute.attributeId) }}</p>
             <p><strong>Attribute Value:</strong> {{ getAttributeValueName(attribute.valueId) }}</p>
@@ -198,6 +219,7 @@ import BrandAddModal from "~/components/product/brands/brandAddModal.vue";
 import UnitsAddModal from "~/components/product/units/unitsAddModal.vue";
 import AttributeAddModal from "~/components/product/attributes/attributeAddModal.vue";
 import AttributeValueAddModal from "~/components/product/attributes/attributeValueAddModal.vue";
+import { useTaxStore } from '@/stores/taxStore.js'; // Store to fetch available taxes
 
 const { $toast } = useNuxtApp();
 const productStore = useProductStore();
@@ -206,11 +228,13 @@ const subcategoryStore = useSubcategoryStore();
 const attributesStore = useAttributesStore();
 const brandStore = useBrandStore(); // Initialize the brand store
 const unitStore = useUnitStore();
+const taxStore = useTaxStore(); // Tax store instance
 attributesStore.fetchAttributeValues();
 brandStore.fetchBrands()
 unitStore.fetchUnits()
+taxStore.fetchTaxes()
 const router = useRouter();
-
+const selectedTaxes = ref([]);
 const currentStep = ref(0);
 const product = ref({
   name: '',
@@ -222,6 +246,7 @@ const product = ref({
   unitId: null,
   lowStockAlert: 0, // Add lowStockAlert to the product object
   isComposition:false,
+  selectedTaxes: [], // Initialize selectedTaxes as an empty array
 
 });
 
@@ -229,6 +254,7 @@ const newVariant = ref({
   sku: '',
   price: null,
   stockQuantity: null,
+  image: null,
   attributes: [
     { attributeId: null, valueId: null, attributeValues: [] },
   ],
@@ -257,6 +283,7 @@ const resetVariantForm = () => {
   newVariant.value.sku = '';
   newVariant.value.price = null;
   newVariant.value.stockQuantity = null;
+  newVariant.value.image = null;
   newVariant.value.attributes = [
     { attributeId: null, valueId: null, attributeValues: [] },
   ];
@@ -271,13 +298,14 @@ const removeVariant = (index) => {
 };
 
 const resetForm = () => {
-  product.value = { name: '', description: '', categoryId: null, subcategoryId: null, vatType: 'exclusive',brandId: null,lowStockAlert: 0,unitId: null, };
+  product.value = { name: '', description: '', categoryId: null, subcategoryId: null, vatType: 'exclusive',brandId: null,lowStockAlert: 0,unitId: null,selectedTaxes: [] };
   variants.value = [];
   currentStep.value = 0;
 };
 
 const submitProductWithVariants = async () => {
   try {
+    console.log("selected Taxes",product.selectedTaxes)
     const productId = await productStore.createProduct(product.value);
     for (const variant of variants.value) {
       variant.productId = productId.id;
@@ -288,6 +316,10 @@ const submitProductWithVariants = async () => {
           variantId: createdVariant.id,
         };
         await productStore.createVariantAttributeValue(newVariantAttributeValue);
+      }
+      console.log("variant.image",variant.image)
+      if (variant.image) {
+        await productStore.uploadImage(createdVariant.id, variant.image);
       }
     }
     await navigateTo('/products');
@@ -389,6 +421,10 @@ const handleSubmitSuccess = () => {
 const filterOption = (input, option) => {
   const name = option.children?.toString() || ''; // Use option.children which represents the inner text of the option
   return name.toLowerCase().includes(input.toLowerCase());
+};
+
+const handleImageUpload = async ({ file }) => {
+  newVariant.value.image = file;
 };
 </script>
 

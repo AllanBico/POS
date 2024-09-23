@@ -11,6 +11,13 @@ export const useSerialNumberStore = defineStore('serialNumber', {
     }),
 
     actions: {
+        search(term) {
+            if (!term) return []; // Return empty if no search term provided
+            const searchTerm = term.toLowerCase();
+            return this.serialNumbers.filter(serial =>
+                serial.serialNumber.toLowerCase().includes(searchTerm)
+            );
+        },
         // Fetch all serial numbers by variantId
         async fetchSerialNumbers() {
             this.loading = true;

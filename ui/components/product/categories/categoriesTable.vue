@@ -1,188 +1,428 @@
 <template>
-  <div>
-    <a-modal v-model:open="open" title="Add User" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
-             cancel-text="Cancel">
+  <div class="div-container">
+    <!-- Modals -->
+    <a-modal
+      v-model:open="isAddModalOpen"
+      title="Create Category"
+      @ok="handleModalOk"
+      @cancel="handleModalCancel"
+      ok-text="Submit"
+      cancel-text="Cancel"
+      :maskClosable="false"
+    >
       <category-add-modal @submit-success="handleSubmitSuccess"></category-add-modal>
-      <template #footer>
-      </template>
+      <template #footer> </template>
     </a-modal>
-    <a-modal v-model:open="edit_open" title="Edit User" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
-             cancel-text="Cancel">
-      <category-edit-modal @submit-success="handleSubmitSuccess" :category_id="category_id"></category-edit-modal>
-      <template #footer>
-      </template>
-    </a-modal>
-  </div>
-  <div>
-  </div>
-  <div class="coupons-container">
-    <a-card title="Categories" bordered={false}>
-      <div class="header-controls">
-        <div class="actions">
-          <a-button type="primary" @click="handleAdd" :icon="h(PlusOutlined)">Add New</a-button>
-        </div>
-      </div>
 
-      <a-table
-          :columns="columns"
-          :data-source="categoryStore.categories"
-          :pagination="pagination"
-          :rowKey="id"
-          bordered
-          size="small"
-          @change="onChange"
+    <a-modal
+      v-model:open="isEditModalOpen"
+      title="Edit Category"
+      @ok="handleModalOk"
+      @cancel="handleModalCancel"
+      ok-text="Submit"
+      cancel-text="Cancel"
+      :maskClosable="false"
+    >
+      <category-edit-modal
+        @submit-success="handleSubmitSuccess"
+        :selectedCategoryId="selectedCategoryId"
+      ></category-edit-modal>
+      <template #footer> </template>
+    </a-modal>
+
+    <!-- Header -->
+    <a-card class="div-header-card" :bordered="false">
+      <a-page-header
+        class="div-header"
+        title="Categories"
+        sub-title="Manage and organize your product categories"
       >
+        <template #extra>
+          <a-button
+            class="add-category-btn"
+            type="primary"
+            @click="handleAddCategory"
+            :icon="h(PlusOutlined)"
+          >
+            Create Category
+          </a-button>
+          <a-dropdown>
+            <template #overlay>
+              <a-menu>
+                <a-menu-item key="1" @click="exportToExcel">
+                  <FileExcelOutlined />  Excel
+                </a-menu-item>
+                <a-menu-item key="2" @click="exportToPDF">
+                  <FilePdfOutlined />  PDF
+                </a-menu-item>
+              </a-menu>
+            </template>
+            <a-button class="export-btn">
+              Export <DownOutlined />
+            </a-button>
+          </a-dropdown>
+        </template>
+      </a-page-header>
+    </a-card>
+
+    <!-- Categories table -->
+    <div class="div-table-container">
+      <a-table
+        :dataSource="categoryStore.categories"
+        :columns="columns"
+        :pagination="{
+          pageSize: 10,
+          showSizeChanger: true,
+          showQuickJumper: true,
+        }"
+        :rowKey="(record) => record.id"
+        :loading="categoryStore.loading"
+        size="middle"
+        @change="handleTableChange"
+      >
+        <!-- Custom filter dropdown template -->
         <template
-            #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }"
+          #customFilterDropdown="{
+            setSelectedKeys,
+            selectedKeys,
+            confirm,
+            clearFilters,
+            column,
+          }"
         >
-          <div style="padding: 8px">
+          <div class="custom-filter-dropdown">
             <a-input
-                ref="searchInput"
-                :placeholder="`Search ${column.dataIndex}`"
-                :value="selectedKeys[0]"
-                style="width: 188px; margin-bottom: 8px; display: block"
-                @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
-                @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex)"
+              ref="searchInput"
+              :placeholder="`Search ${column.title}`"
+              :value="selectedKeys[0]"
+              @change="
+                (e) => setSelectedKeys(e.target.value ? [e.target.value] : [])
+              "
+              @pressEnter="
+                handleSearch(selectedKeys, confirm, column.dataIndex)
+              "
             />
             <a-button
-                type="primary"
-                size="small"
-                style="width: 90px; margin-right: 8px"
-                @click="handleSearch(selectedKeys, confirm, column.dataIndex)"
+              type="primary"
+              @click="handleSearch(selectedKeys, confirm, column.dataIndex)"
             >
               <template #icon><SearchOutlined /></template>
               Search
             </a-button>
-            <a-button size="small" style="width: 90px" @click="handleReset(clearFilters)">
+            <a-button @click="handleReset(clearFilters)">
               Reset
             </a-button>
           </div>
         </template>
-        <template #customFilterIcon="{ filtered }">
-          <search-outlined :style="{ color: filtered ? '#108ee9' : undefined }" />
-        </template>
-        <template #bodyCell="{ column, text, record }">
-          <template v-if="column.dataIndex === 'operation'">
-            <a-tooltip title="Edit" placement="bottom">
-              <a-button @click="onEdit(record.id)" style="margin-right: 3px" :icon="h(EditOutlined)"/>
-            </a-tooltip>
-            <a-popconfirm
-                v-if="categoryStore.categories.length"
-                title="Sure to delete?"
-                @confirm="onDelete(record.id)">
-              <a-tooltip title="Delete" placement="bottom">
-                <a-button :icon="h(DeleteOutlined)"/>
-              </a-tooltip>
-            </a-popconfirm>
 
+        <!-- Custom filter icon -->
+        <template #customFilterIcon="{ filtered }">
+          <search-outlined
+            :class="{ 'text-primary': filtered }"
+          />
+        </template>
+
+        <!-- Custom render for operation column -->
+        <template #bodyCell="{ column, record, index }">
+          <template v-if="column.dataIndex === 'operation'">
+            <div class="action-buttons">
+              <a-tooltip title="Edit">
+                <a-button
+                  type="link"
+                  class="edit-btn"
+                  @click="handleEditCategory(record.id)"
+                  :style="{ color: '#1890ff' }"
+                >
+                  <template #icon><EditOutlined /></template>
+                </a-button>
+              </a-tooltip>
+              <a-popconfirm
+                :title="`Are you sure you want to delete ${record.name}?`"
+                ok-text="Yes"
+                cancel-text="No"
+                @confirm="handleDeleteCategory(record.id)"
+                placement="topRight"
+              >
+                <a-tooltip title="Delete">
+                  <a-button
+                    type="link"
+                    class="delete-btn"
+                    :style="{ color: '#ff4d4f' }"
+                  >
+                    <template #icon><DeleteOutlined /></template>
+                  </a-button>
+                </a-tooltip>
+              </a-popconfirm>
+              <a-dropdown>
+                <template #overlay>
+                  <a-menu>
+                    <a-menu-item key="view">
+                      <EyeOutlined /> View Details
+                    </a-menu-item>
+                    <a-menu-item key="duplicate">
+                      <CopyOutlined /> Duplicate
+                    </a-menu-item>
+                    <a-menu-item key="archive">
+                      <InboxOutlined /> Archive
+                    </a-menu-item>
+                  </a-menu>
+                </template>
+                <a-button type="link">
+                  <MoreOutlined style="font-size: 16px;" />
+                </a-button>
+              </a-dropdown>
+            </div>
+          </template>
+          <template v-else-if="column.dataIndex === 'index'">
+            {{ index + 1 }}
           </template>
         </template>
       </a-table>
-    </a-card>
+    </div>
   </div>
 </template>
 
 <script setup>
-import {computed, reactive, ref} from 'vue';
-import {cloneDeep} from 'lodash-es';
-import {useCategoryStore} from '~/stores/product/CategoryStore.js';
+import { ref } from "vue";
+import { useCategoryStore } from "~/stores/product/CategoryStore.js";
 import CategoryAddModal from "~/components/product/categories/categoryAddModal.vue";
 import CategoryEditModal from "~/components/product/categories/categoryEditModal.vue";
-import {DeleteOutlined, EditOutlined,PlusOutlined} from "@ant-design/icons-vue";
+import {
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+  SearchOutlined,
+  DownOutlined,
+  FileExcelOutlined,
+  FilePdfOutlined,
+  EyeOutlined,
+  CopyOutlined,
+  InboxOutlined,
+  MoreOutlined
+} from "@ant-design/icons-vue";
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+
+// Initialize category store and fetch categories
 const categoryStore = useCategoryStore();
-const open = ref(false);
-const edit_open = ref(false);
-let category_id = ref(null)
-categoryStore.fetchCategories()
-console.log("categoryStore.categories", categoryStore.categories)
+categoryStore.fetchCategories();
+
+// Reactive variables
+const isAddModalOpen = ref(false);
+const isEditModalOpen = ref(false);
+const selectedCategoryId = ref(null);
+const searchInput = ref(null);
+
+// Table columns configuration
 const columns = [
   {
-    title: 'Name',
-    dataIndex: 'name',
-    key: 'name',
-    width: '30%',
-    sorter: (a, b) => a.name.localeCompare(b.name),
-    sortDirections: ['descend', 'ascend'],
-    customFilterDropdown: true,
-    onFilter: (value, record) => record.name.toString().toLowerCase().includes(value.toLowerCase()),
-    onFilterDropdownOpenChange: visible => {
-      if (visible) {
-        setTimeout(() => {
-          searchInput.value.focus();
-        }, 100);
-      }
-    },
-  }
-  ,
+    title: "Index",
+    dataIndex: "index",
+    sorter: (a, b) => a.index - b.index,
+    onFilter: (value, record) => record.index.toString().includes(value),
+  },
   {
-    title: 'Description',
-    dataIndex: 'description',
-    key: 'description',
-    sorter: (a, b) => a.description.localeCompare(b.description),
-    sortDirections: ['descend', 'ascend'],
+    title: "Name",
+    dataIndex: "name",
+    sorter: (a, b) => a.name.localeCompare(b.name),
     customFilterDropdown: true,
-    onFilter: (value, record) => record.description.toString().toLowerCase().includes(value.toLowerCase()),
-    onFilterDropdownOpenChange: visible => {
+    onFilter: (value, record) =>
+      record.name.toLowerCase().includes(value.toLowerCase()),
+    onFilterDropdownOpenChange: (visible) => {
       if (visible) {
         setTimeout(() => {
-          searchInput.value.focus();
+          searchInput.value?.focus();
         }, 100);
       }
     },
   },
   {
-    title: 'operation',
-    dataIndex: 'operation',
-    key: 'operation',
+    title: "Description",
+    dataIndex: "description",
+    sorter: (a, b) => a.description.localeCompare(b.description),
+    customFilterDropdown: true,
+    onFilter: (value, record) =>
+      record.description.toLowerCase().includes(value.toLowerCase()),
+    onFilterDropdownOpenChange: (visible) => {
+      if (visible) {
+        setTimeout(() => {
+          searchInput.value?.focus();
+        }, 100);
+      }
+    },
+  },
+  {
+    title: "Operation",
+    dataIndex: "operation",
   },
 ];
 
-const pagination = ref({pageSize: 10});
-const edit = key => {
-};
-const save = key => {
-};
-const onDelete = async key => {
-  await categoryStore.deleteCategory(key)
-  console.log("deleted", key)
-};
-const onEdit = async key => {
-  console.log("edit", key)
-  category_id = parseInt(key)
-  console.log("user_id", category_id)
-  edit_open.value = true
-  console.log("done")
+// Event handlers
+const handleAddCategory = () => {
+  isAddModalOpen.value = true;
 };
 
-const handleAdd = () => {
-  open.value = true;
+const handleEditCategory = (categoryId) => {
+  selectedCategoryId.value = categoryId;
+  isEditModalOpen.value = true;
 };
-const handleOk = () => {
-  open.value = false;
-  // Optionally handle any additional logic here
+
+const handleDeleteCategory = async (categoryId) => {
+  try {
+    await categoryStore.deleteCategory(categoryId);
+    console.log("Category deleted successfully:", categoryId);
+  } catch (error) {
+    console.error("Error deleting category:", error);
+    // TODO: Implement user-friendly error handling
+  }
 };
-const handleCancel = () => {
-  open.value = false;
-  edit_open.value = false;
+
+const handleModalOk = () => {
+  isAddModalOpen.value = false;
+  isEditModalOpen.value = false;
 };
+
+const handleModalCancel = () => {
+  isAddModalOpen.value = false;
+  isEditModalOpen.value = false;
+};
+
 const handleSubmitSuccess = () => {
-  open.value = false;
-  edit_open.value = false;
+  isAddModalOpen.value = false;
+  isEditModalOpen.value = false;
 };
-const onChange = (pagination, filters, sorter) => {
-  console.log('params', pagination, filters, sorter);
-};
+
 const handleSearch = (selectedKeys, confirm, dataIndex) => {
   confirm();
-  state.searchText = selectedKeys[0];
-  state.searchedColumn = dataIndex;
+  // TODO: Implement search functionality
 };
-const handleReset = clearFilters => {
-  clearFilters({
-    confirm: true,
+
+const handleReset = (clearFilters) => {
+  clearFilters({ confirm: true });
+  // TODO: Reset search state
+};
+
+const handleTableChange = (pagination, filters, sorter) => {
+  console.log('Table changed:', pagination, filters, sorter);
+  // TODO: Implement table change logic if needed
+};
+
+const exportToExcel = () => {
+  const data = categoryStore.categories.map(category => ({
+    Name: category.name,
+    Description: category.description
+  }));
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Categories");
+  XLSX.writeFile(wb, "categories.xlsx");
+};
+
+const exportToPDF = () => {
+  const doc = new jsPDF();
+  doc.autoTable({
+    head: [['Name', 'Description']],
+    body: categoryStore.categories.map(category => [category.name, category.description]),
   });
-  state.searchText = '';
+  doc.save('categories.pdf');
 };
 </script>
 
+<style scoped>
+.div-container {
+  background-color: #f0f2f5;
+  padding: 24px;
+  border-radius: 8px;
+}
 
+.div-header-card {
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.div-header {
+  padding: 16px;
+}
+
+.div-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #001529;
+}
+
+.add-category-btn {
+  font-size: 14px;
+  height: 36px;
+  margin-right: 8px;
+}
+
+.export-btn {
+  height: 36px;
+}
+
+.div-table-container {
+  background-color: #ffffff;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+:deep(.ant-table) {
+  font-size: 14px;
+}
+
+:deep(.ant-table-thead > tr > th) {
+  background-color: #fafafa;
+  color: #001529;
+  font-weight: 600;
+}
+
+:deep(.ant-table-tbody > tr > td) {
+  padding: 12px 16px;
+}
+
+:deep(.ant-table-tbody > tr:hover > td) {
+  background-color: #f5f5f5;
+}
+
+.custom-filter-dropdown {
+  padding: 8px;
+  border-radius: 4px;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.custom-filter-dropdown input {
+  width: 200px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.custom-filter-dropdown button {
+  width: 100px;
+  margin-right: 8px;
+}
+
+.actions-btn {
+  background-color: #f0f0f0;
+  border-color: #d9d9d9;
+}
+
+.actions-btn:hover {
+  background-color: #e6e6e6;
+  border-color: #d9d9d9;
+}
+
+.edit-link, .delete-link {
+  color: #001529;
+}
+
+.edit-link:hover, .delete-link:hover {
+  color: #ff4d4f;
+}
+
+.text-primary {
+  color: #1890ff;
+}
+</style>

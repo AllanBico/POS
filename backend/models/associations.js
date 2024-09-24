@@ -100,6 +100,7 @@ VariantAttributeValue.belongsTo(AttributeValue, {foreignKey: 'attributeValueId',
 
 // Inventory <-> Variant, Warehouse, Store
 Inventory.belongsTo(Variant, {foreignKey: 'variantId', as: 'InventoryVariants'});
+Variant.hasMany(Inventory, { foreignKey: 'variantId', as: 'InventoryVariants' });
 Inventory.belongsTo(Warehouse, {foreignKey: 'warehouseId', as: 'warehouse'});
 Inventory.belongsTo(Store, {foreignKey: 'storeId', as: 'store'});
 
@@ -200,6 +201,9 @@ VariantImage.belongsTo(Variant, { foreignKey: 'variantId' });
 
 Product.hasMany(ProductTax, { foreignKey: 'ProductId', as: 'taxes' });
 ProductTax.belongsTo(Product, { foreignKey: 'ProductId' });
+
+Taxes.hasMany(ProductTax, { foreignKey: 'TaxId', as: 'taxes' });
+ProductTax.belongsTo(Taxes, { foreignKey: 'TaxId' });
 
 module.exports = {
     Product,

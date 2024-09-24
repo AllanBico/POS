@@ -1,265 +1,269 @@
 <template>
-  <div>
-    <a-modal v-model:open="open" title="Add Supplier" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
-             cancel-text="Cancel">
+  <div class="div-container">
+    <!-- Modals -->
+    <a-modal
+      v-model:open="open"
+      title="Add Supplier"
+      @ok="handleOk"
+      @cancel="handleCancel"
+      ok-text="Submit"
+      cancel-text="Cancel"
+      :maskClosable="false"
+    >
       <supplier-add-modal @submit-success="handleSubmitSuccess"></supplier-add-modal>
-      <template #footer>
-      </template>
+      <template #footer></template>
     </a-modal>
-    <a-modal v-model:open="edit_open" title="Edit User" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
-             cancel-text="Cancel">
-      <Supplier-edit-modal @submit-success="handleSubmitSuccess" :supplier_id="supplier_id"></Supplier-edit-modal>
-      <template #footer>
-      </template>
+
+    <a-modal
+      v-model:open="edit_open"
+      title="Edit Supplier"
+      @ok="handleOk"
+      @cancel="handleCancel"
+      ok-text="Submit"
+      cancel-text="Cancel"
+      :maskClosable="false"
+    >
+      <supplier-edit-modal @submit-success="handleSubmitSuccess" :supplier_id="supplier_id"></supplier-edit-modal>
+      <template #footer></template>
     </a-modal>
-  </div>
-  <div>
-  </div>
-  <div class="coupons-container">
-    <a-card  bordered={false}>
-      <div class="header-controls">
-        <a-input-search
-            placeholder="Search"
-            style="width: 200px;"
-        />
 
-        <div class="actions">
-          <a-button type="primary" @click="handleAdd" :icon="h(PlusOutlined)">Add New</a-button>
-
-        </div>
-      </div>
-
-      <a-table
-          :columns="columns"
-          :data-source="supplierStore.suppliers"
-          :pagination="pagination"
-          :rowKey="id"
-          bordered
-          size="small"
-          @change="onChange"
+    <!-- Header -->
+    <a-card class="div-header-card" :bordered="false">
+      <a-page-header
+        class="div-header"
+        title="Suppliers"
+        sub-title="Manage and organize your suppliers"
       >
-        <template
-            #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }"
-        >
-          <div style="padding: 8px">
-            <a-input
-                ref="searchInput"
-                :placeholder="`Search ${column.dataIndex}`"
-                :value="selectedKeys[0]"
-                style="width: 188px; margin-bottom: 8px; display: block"
-                @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
-                @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex)"
-            />
-            <a-button
-                type="primary"
-                size="small"
-                style="width: 90px; margin-right: 8px"
-                @click="handleSearch(selectedKeys, confirm, column.dataIndex)"
-            >
-              <template #icon><SearchOutlined /></template>
-              Search
-            </a-button>
-            <a-button size="small" style="width: 90px" @click="handleReset(clearFilters)">
-              Reset
-            </a-button>
-          </div>
-        </template>
-        <template #customFilterIcon="{ filtered }">
-          <search-outlined :style="{ color: filtered ? '#108ee9' : undefined }" />
-        </template>
-        <template #bodyCell="{ column, text, record }">
-          <template v-if="column.dataIndex === 'status'">
-        <span>
-          <a-tag
-              :key="record.id"
-              :color="record.status ? 'success' : 'error'"
+        <template #extra>
+          <a-button
+            class="add-supplier-btn"
+            type="primary"
+            @click="handleAdd"
+            :icon="h(PlusOutlined)"
           >
-          {{ record.status ? 'Active' : 'Inactive' }} {{record.status}}
-        </a-tag>
+            Add New
+          </a-button>
+        </template>
+      </a-page-header>
+    </a-card>
 
-        </span>
-          </template>
+    <!-- Suppliers table -->
+    <div class="div-table-container">
+      <a-table
+        :dataSource="supplierStore.suppliers"
+        :columns="columns"
+        :pagination="{
+          pageSize: 10,
+          showSizeChanger: true,
+          showQuickJumper: true,
+        }"
+        :rowKey="(record) => record.id"
+        :loading="supplierStore.loading"
+        size="middle"
+      >
+        <!-- Custom render for operation column -->
+        <template #bodyCell="{ column, record, index }">
           <template v-if="column.dataIndex === 'operation'">
-            <a-tooltip title="Edit" placement="bottom">
-              <a-button @click="onEdit(record.id)" style="margin-right: 3px" :icon="h(EditOutlined)"/>
-            </a-tooltip>
-            <a-popconfirm
-                v-if="supplierStore.suppliers.length"
-                title="Sure to delete?"
-                @confirm="onDelete(record.id)">
-              <a-tooltip title="Delete" placement="bottom">
-                <a-button :icon="h(DeleteOutlined)"/>
-              </a-tooltip>
-            </a-popconfirm>
-
+            <a-dropdown :trigger="['click']">
+              <template #overlay>
+                <a-menu>
+                  <a-menu-item key="edit">
+                    <a @click="onEdit(record.id)" class="edit-link">
+                      <EditOutlined /> Edit
+                    </a>
+                  </a-menu-item>
+                  <a-menu-item key="delete">
+                    <a-popconfirm
+                      :title="`Are you sure you want to delete this supplier: ${record.name}?`"
+                      ok-text="Yes"
+                      cancel-text="No"
+                      @confirm="onDelete(record.id)"
+                    >
+                      <a class="delete-link"><DeleteOutlined /> Delete</a>
+                    </a-popconfirm>
+                  </a-menu-item>
+                </a-menu>
+              </template>
+              <a-button class="actions-btn"> Actions <DownOutlined /> </a-button>
+            </a-dropdown>
+          </template>
+          <template v-else-if="column.dataIndex === 'index'">
+            {{ index + 1 }}
           </template>
         </template>
       </a-table>
-    </a-card>
+    </div>
   </div>
 </template>
 
 <script setup>
-import {computed, reactive, ref} from 'vue';
-import {cloneDeep} from 'lodash-es';
-
-import SupplierAddModal from "~/components/Suppliers/SupplierAddModal.vue";
-import SupplierEditModal from "~/components/Suppliers/SupplierEditModal.vue";
-import {DeleteOutlined, EditOutlined,PlusOutlined} from "@ant-design/icons-vue";
+import { ref } from 'vue';
+import { DeleteOutlined, EditOutlined, PlusOutlined, DownOutlined } from "@ant-design/icons-vue";
 import { useSupplierStore } from '~/stores/product/SupplierStore.js';
+import SupplierAddModal from "~/components/suppliers/SupplierAddModal.vue";
+import SupplierEditModal from "~/components/suppliers/SupplierEditModal.vue";
 
 const supplierStore = useSupplierStore();
 const open = ref(false);
 const edit_open = ref(false);
-let supplier_id = ref(null)
-supplierStore.fetchSuppliers()
-console.log("supplierStore.suppliers", supplierStore.suppliers)
+let supplier_id = ref(null);
+
+supplierStore.fetchSuppliers();
+
 const columns = [
+  {
+    title: "Index",
+    dataIndex: "index",
+    sorter: (a, b) => a.index.localeCompare(b.index),
+    onFilter: (value, record) =>
+      record.index.toLowerCase().includes(value.toLowerCase()),
+  },
   {
     title: 'Name',
     dataIndex: 'name',
-    key: 'name',
-    width: '30%',
     sorter: (a, b) => a.name.localeCompare(b.name),
-    sortDirections: ['descend', 'ascend'],
     customFilterDropdown: true,
-    onFilter: (value, record) => record.name.toString().toLowerCase().includes(value.toLowerCase()),
-    onFilterDropdownOpenChange: visible => {
-      if (visible) {
-        setTimeout(() => {
-          searchInput.value.focus();
-        }, 100);
-      }
-    },
-  }
-  ,
+    onFilter: (value, record) =>
+      record.name.toLowerCase().includes(value.toLowerCase()),
+  },
   {
     title: 'Contact',
     dataIndex: 'contact',
-    key: 'contact',
     sorter: (a, b) => a.contact.localeCompare(b.contact),
-    sortDirections: ['descend', 'ascend'],
     customFilterDropdown: true,
-    onFilter: (value, record) => record.contact.toString().toLowerCase().includes(value.toLowerCase()),
-    onFilterDropdownOpenChange: visible => {
-      if (visible) {
-        setTimeout(() => {
-          searchInput.value.focus();
-        }, 100);
-      }
-    },
+    onFilter: (value, record) =>
+      record.contact.toLowerCase().includes(value.toLowerCase()),
   },
   {
-    title: 'email',
+    title: 'Email',
     dataIndex: 'email',
-    key: 'email',
     sorter: (a, b) => a.email.localeCompare(b.email),
-    sortDirections: ['descend', 'ascend'],
     customFilterDropdown: true,
-    onFilter: (value, record) => record.email.toString().toLowerCase().includes(value.toLowerCase()),
-    onFilterDropdownOpenChange: visible => {
-      if (visible) {
-        setTimeout(() => {
-          searchInput.value.focus();
-        }, 100);
-      }
-    },
+    onFilter: (value, record) =>
+      record.email.toLowerCase().includes(value.toLowerCase()),
   },
   {
-    title: 'phone',
+    title: 'Phone',
     dataIndex: 'phone',
-    key: 'phone',
     sorter: (a, b) => a.phone.localeCompare(b.phone),
-    sortDirections: ['descend', 'ascend'],
     customFilterDropdown: true,
-    onFilter: (value, record) => record.phone.toString().toLowerCase().includes(value.toLowerCase()),
-    onFilterDropdownOpenChange: visible => {
-      if (visible) {
-        setTimeout(() => {
-          searchInput.value.focus();
-        }, 100);
-      }
-    },
+    onFilter: (value, record) =>
+      record.phone.toLowerCase().includes(value.toLowerCase()),
   },
   {
-    title: 'status',
+    title: 'Status',
     dataIndex: 'status',
-    key: 'status',
     sorter: (a, b) => a.status.localeCompare(b.status),
-    sortDirections: ['descend', 'ascend'],
   },
   {
-    title: 'operation',
+    title: 'Operation',
     dataIndex: 'operation',
-    key: 'operation',
   },
 ];
-
-const pagination = ref({pageSize: 10});
-const edit = key => {
-};
-const save = key => {
-};
-const onDelete = async key => {
-  await supplierStore.deleteSupplier(key)
-  console.log("deleted", key)
-};
-const onEdit = async key => {
-  console.log("edit", key)
-  supplier_id = parseInt(key)
-  console.log("user_id", supplier_id)
-  edit_open.value = true
-  console.log("done")
-};
 
 const handleAdd = () => {
   open.value = true;
 };
+
+const onEdit = (id) => {
+  supplier_id.value = parseInt(id);
+  edit_open.value = true;
+};
+
+const onDelete = async (id) => {
+  try {
+    await supplierStore.deleteSupplier(id);
+    console.log("Supplier deleted successfully:", id);
+  } catch (error) {
+    console.error("Error deleting supplier:", error);
+    // TODO: Implement user-friendly error handling
+  }
+};
+
 const handleOk = () => {
   open.value = false;
-  // Optionally handle any additional logic here
+  edit_open.value = false;
 };
+
 const handleCancel = () => {
   open.value = false;
   edit_open.value = false;
 };
+
 const handleSubmitSuccess = () => {
   open.value = false;
   edit_open.value = false;
 };
-const onChange = (pagination, filters, sorter) => {
-  console.log('params', pagination, filters, sorter);
-};
-const handleSearch = (selectedKeys, confirm, dataIndex) => {
-  confirm();
-  state.searchText = selectedKeys[0];
-  state.searchedColumn = dataIndex;
-};
-const handleReset = clearFilters => {
-  clearFilters({
-    confirm: true,
-  });
-  state.searchText = '';
-};
 </script>
 
 <style scoped>
-.coupons-container {
-  padding: 20px;
+.div-container {
+  background-color: #f0f2f5;
+  padding: 24px;
+  border-radius: 8px;
 }
 
-.header-controls {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
+.div-header-card {
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-.actions {
-  display: flex;
-  align-items: end;
+.div-header {
+  padding: 16px;
 }
 
-.actions a-button {
-  margin-left: 2px;
+.div-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #001529;
+}
+
+.add-supplier-btn {
+  font-size: 14px;
+  height: 36px;
+  margin-right: 8px;
+}
+
+.div-table-container {
+  background-color: #ffffff;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+:deep(.ant-table) {
+  font-size: 14px;
+}
+
+:deep(.ant-table-thead > tr > th) {
+  background-color: #fafafa;
+  color: #001529;
+  font-weight: 600;
+}
+
+:deep(.ant-table-tbody > tr > td) {
+  padding: 12px 16px;
+}
+
+:deep(.ant-table-tbody > tr:hover > td) {
+  background-color: #f5f5f5;
+}
+
+.actions-btn {
+  background-color: #f0f0f0;
+  border-color: #d9d9d9;
+}
+
+.actions-btn:hover {
+  background-color: #e6e6e6;
+  border-color: #d9d9d9;
+}
+
+.edit-link, .delete-link {
+  color: #001529;
+}
+
+.edit-link:hover, .delete-link:hover {
+  color: #ff4d4f;
 }
 </style>

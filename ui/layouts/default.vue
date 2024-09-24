@@ -1,17 +1,18 @@
 <template>
-  <a-layout>
+  <a-layout style="min-height: 100vh;">
+    <!-- Sidebar -->
     <a-layout-sider
       v-model:collapsed="state.collapsed"
-      :trigger="null"
       collapsible
-      :style="{boxShadow: '2px 0 5px rgba(0,0,0,0.1)', overflow: 'auto', height: '100vh'}"
+      theme="light"
+      :trigger="null"
+      :style="{boxShadow: '2px 0 5px rgba(0,0,0,0.1)', overflow: 'auto'}"
+      :breakpoint="'lg'"
+      @breakpoint="handleBreakpoint"
     >
       <div class="logo">
-        <img src="https://its.intellitech.co.ke/static/logo.png" alt="Vue Antd Admin"/>
+        <img src="https://its.intellitech.co.ke/static/logo.png" alt="Smart Inventory"/>
       </div>
-
-
-
       <a-menu
         v-model:openKeys="state.openKeys"
         v-model:selectedKeys="state.selectedKeys"
@@ -23,9 +24,9 @@
 
     <!-- Main Layout -->
     <a-layout>
-      <a-layout-content :style="{padding: '5px'}">
-      <QuickActions/>
-        <!-- Tabs -->
+
+      <!-- Content -->
+      <a-layout-content >
         <a-tabs v-model:activeKey="tabsStore.activeKey" :size="size" hide-add @edit="onEdit" type="editable-card">
           <a-tab-pane v-for="tab in tabsStore.tabs" :key="tab.key" :tab="tab.title" closable>
             <keep-alive>
@@ -33,20 +34,21 @@
             </keep-alive>
           </a-tab-pane>
           <template #rightExtra>
-            <a-card class="control-area" :bodyStyle="{ padding: '3px' }">
-              <!-- Collapse Button -->
-              <a-button type="primary" style="margin: 0px" @click="toggleCollapsed">
-                <MenuUnfoldOutlined v-if="state.collapsed" />
-                <MenuFoldOutlined v-else />
-              </a-button>
-            <ControlTab/>
+            <a-card class="control-area" :bodyStyle="{ padding: '5px' }">
+              <QuickActions/>
+              <a-button type="primary" @click="toggleCollapsed" style="margin-right: 5px;">
+            <MenuUnfoldOutlined v-if="state.collapsed" />
+            <MenuFoldOutlined v-else />
+          </a-button>
+              <ControlTab/>
             </a-card>
           </template>
         </a-tabs>
       </a-layout-content>
 
-      <a-layout-footer style="text-align: center; padding: 10px 0;">
-        Smart inventory ©2024 Intellitech LTD
+      <!-- Footer -->
+      <a-layout-footer style="text-align: center; padding: 10px 0; background: #f0f2f5;">
+        Smart Inventory ©2024 Intellitech LTD
       </a-layout-footer>
     </a-layout>
   </a-layout>
@@ -58,28 +60,23 @@ import { useTabsStore } from '~/stores/tabsStore';
 import {
   MenuUnfoldOutlined,
   MenuFoldOutlined,
-  PieChartOutlined,
-  MailOutlined,
-  DesktopOutlined,
-  InboxOutlined,
-  AppstoreOutlined,
-  BellOutlined,
-  SettingOutlined,
-  UserOutlined,
-  PlusOutlined,
-  CommentOutlined,
-  BarChartOutlined,
-  TagOutlined,
-  GiftOutlined,
-  BarcodeOutlined,
-  StockOutlined,
-  ShoppingOutlined,
+  DashboardOutlined,
+  ShopOutlined,
+  TagsOutlined,
   ShoppingCartOutlined,
   DollarOutlined,
-  FileTextOutlined,
+  BarChartOutlined,
   TeamOutlined,
-  EnvironmentOutlined,
-  PercentageOutlined, ApartmentOutlined, ContactsOutlined,
+  SettingOutlined,
+  InboxOutlined,
+  SwapOutlined,
+  AuditOutlined,
+  FileTextOutlined,
+  UserOutlined,
+  ContactsOutlined,
+  BankOutlined,
+  HomeOutlined,
+  PercentageOutlined,
 } from '@ant-design/icons-vue';
 import expensesTable from '~/components/expenses/expensesTable.vue';
 import productsTable from '~/components/product/products/productsTable.vue';
@@ -89,15 +86,15 @@ import unitsTable from '~/components/product/units/unitsTable.vue';
 import purchasesTable from '~/components/purchases/purchasesTable.vue';
 import usersTable from '~/components/users/usersTable.vue';
 import subCategoriesTable from '~/components/product/subcategories/subCategoriesTable.vue';
-import attributesTable from '~/components/product/attributes/attributesTable.vue'
-import warrantiesTable from '~/components/warranties/warrantiesTable.vue'
-import customersTable from '~/components/customers/customersTable.vue'
-import inventoriesTable from '~/components/inventory/inventoriesTable.vue'
-import storesTable from '~/components/stores/storesTable.vue'
-import suppliersTable from '~/components/suppliers/suppliersTable.vue'
-import warehousesTable from '~/components/warehouses/warehousesTable.vue'
-import paymentMethodsTable from '~/components/expenses/paymentMethodsTable.vue'
-import expensesCategoriesTable from '~/components/expenses/expensesCategoriesTable.vue'
+import attributesTable from '~/components/product/attributes/attributesTable.vue';
+import warrantiesTable from '~/components/warranties/warrantiesTable.vue';
+import customersTable from '~/components/customers/customersTable.vue';
+import inventoriesTable from '~/components/inventory/inventoriesTable.vue';
+import storesTable from '~/components/stores/storesTable.vue';
+import suppliersTable from '~/components/suppliers/suppliersTable.vue';
+import warehousesTable from '~/components/warehouses/warehousesTable.vue';
+import paymentMethodsTable from '~/components/expenses/paymentMethodsTable.vue';
+import expensesCategoriesTable from '~/components/expenses/expensesCategoriesTable.vue';
 import GoodsReceivingTable from "~/components/inventory/receive/GoodsReceivingTable.vue";
 import rolesTable from "~/components/users/roleandpermission/rolesTable.vue";
 import variantsTable from '~/components/product/products/variantsTable.vue';
@@ -111,7 +108,7 @@ import serialNumbers from "~/components/inventory/serialNumber/serialNumber.vue"
 import OrderList from "~/components/sales/OrderList.vue";
 import QuickActions from "~/components/layout/QuickActions.vue";
 import ControlTab from "~/components/layout/ControlTab.vue";
-
+import Dashboard from "~/components/Dashboard.vue";
 const tabsStore = useTabsStore();
 
 const state = reactive({
@@ -126,18 +123,18 @@ const size = ref('small');
 const menuItems = [
   {
     key: 'dashboard',
-    icon: () => h(BarChartOutlined),
+    icon: () => h(DashboardOutlined),
     label: 'Dashboard',
     title: 'Dashboard',
+    onClick: () => addTab('Dashboard', Dashboard),
   },
   {
     type: 'divider',
-    label: 'Inventory',
   },
   {
-    key: 'Products',
-    icon: () => h(TeamOutlined),
-    label: 'Products',
+    key: 'inventory',
+    icon: () => h(ShopOutlined),
+    label: 'Inventory',
     children: [
       {
         key: 'ProductsList',
@@ -145,220 +142,192 @@ const menuItems = [
         onClick: () => addTab('Products', productsTable),
       },
       {
-        key: 'Expired Products',
-        label: 'Expired Products',
+        key: 'categories',
+        label: 'Categories',
+        children: [
+          {
+            key: 'Categories',
+            label: 'Categories',
+            onClick: () => addTab('Categories', categoriesTable),
+          },
+          {
+            key: 'SubCategories',
+            label: 'Sub Categories',
+            onClick: () => addTab('SubCategories', subCategoriesTable),
+          },
+        ],
       },
       {
-        key: 'Low Stocks',
-        label: 'Low Stocks',
+        key: 'Brands',
+        label: 'Brands',
+        onClick: () => addTab('Brands', brandsTable),
       },
       {
-        key: 'Print Barcode',
-        label: 'Print Barcode',
+        key: 'Units',
+        label: 'Units',
+        onClick: () => addTab('Units', unitsTable),
+      },
+      {
+        key: 'Variants',
+        label: 'Variants',
+        onClick: () => addTab('Variants', variantsTable),
+      },
+      {
+        key: 'Attributes',
+        label: 'Attributes',
+        onClick: () => addTab('Attributes', attributesTable),
+      },
+      {
+        key: 'Serials',
+        label: 'Serial Numbers',
+        onClick: () => addTab('Serial Numbers', serialNumbers),
       },
     ],
   },
   {
-    key: 'Categories',
-    icon: () => h(ApartmentOutlined),
-    label: 'Categories',
+    key: 'stock',
+    icon: () => h(InboxOutlined),
+    label: 'Stock Management',
     children: [
       {
-        key: 'Category',
-        label: 'Category',
-        onClick: () => addTab('Categories', categoriesTable),
+        key: 'inventories',
+        label: 'Current Stock',
+        onClick: () => addTab('Inventory', inventoriesTable),
       },
       {
-        key: 'Sub Category',
-        label: 'Sub Category',
-        onClick: () => addTab('SubCategories', subCategoriesTable),
+        key: 'Received',
+        label: 'Goods Received',
+        onClick: () => addTab('Goods Received', GoodsReceivingTable),
+      },
+      {
+        key: 'stockTransfer',
+        label: 'Stock Transfer',
+        onClick: () => addTab('Stock Transfer', stockTransfer),
+      },
+      {
+        key: 'stockTakes',
+        label: 'Stock Take',
+        onClick: () => addTab('Stock Takes', stockTakesTable),
+      },
+      {
+        key: 'stockAdjustments',
+        label: 'Stock Adjustments',
+        onClick: () => addTab('Stock Adjustments', stockAdjustmentsTable),
       },
     ],
-  },
-  {
-    key: 'Brands',
-    icon: () => h(PieChartOutlined),
-    label: 'Brands',
-    onClick: () => addTab('Brands', brandsTable),
-  },
-  {
-    key: 'Units',
-    icon: () => h(PieChartOutlined),
-    label: 'Units',
-    onClick: () => addTab('Units', unitsTable),
-  },{
-    key: 'Orders',
-    icon: () => h(PieChartOutlined),
-    label: 'Orders',
-    onClick: () => addTab('Orders', OrderList),
-  },
-  {
-    key: 'Variants',
-    icon: () => h(PieChartOutlined),
-    label: 'Variants',
-    onClick: () => addTab('Variants', variantsTable),
-  },{
-    key: 'Serials',
-    icon: () => h(PieChartOutlined),
-    label: 'Serials',
-    onClick: () => addTab('Serial Numbers', serialNumbers),
-  },
-  {
-    key: 'Attributes',
-    icon: () => h(PieChartOutlined),
-    label: 'Attributes',
-    onClick: () => addTab('Attributes', attributesTable),
-  },
-  {
-    key: 'Warranties',
-    icon: () => h(PieChartOutlined),
-    label: 'Warranties',
-    onClick: () => addTab('Warranties', warrantiesTable),
-  },
-  {
-    key: 'coupons',
-    icon: () => h(PieChartOutlined),
-    label: 'Coupons',
-    onClick: () => addTab('Coupons', couponsTable),
-  },
-  {
-    type: 'divider',
-    label: 'Stock',
-  },
-  {
-    key: 'inventories',
-    icon: () => h(PieChartOutlined),
-    label: 'Inventories',
-    onClick: () => addTab('Inventory', inventoriesTable),
-  },
-  {
-    key: 'Received',
-    icon: () => h(PieChartOutlined),
-    label: 'Received',
-    onClick: () => addTab('Goods Received', GoodsReceivingTable),
-  },
-  {
-    key: 'stockTransfer',
-    icon: () => h(PieChartOutlined),
-    label: 'Stock Transfer',
-    onClick: () => addTab('Stock Transfer', stockTransfer),
-  },
-  {
-    key: 'stockTakes',
-    icon: () => h(PieChartOutlined),
-    label: 'Stock Take',
-    onClick: () => addTab('Stock Takes', stockTakesTable),
-  },
-  {
-    key: 'stockAdjustments',
-    icon: () => h(PieChartOutlined),
-    label: 'Stock Adjustments',
-    onClick: () => addTab('Stock Adjustments', stockAdjustmentsTable),
-  },
-  {
-    type: 'divider',
-    label: 'Purchases',
   },
   {
     key: 'purchases',
-    icon: () => h(PieChartOutlined),
+    icon: () => h(ShoppingCartOutlined),
     label: 'Purchases',
     onClick: () => addTab('Purchases', purchasesTable),
   },
   {
-    type: 'divider',
-    label: 'Finance & Accounts',
-  },
-  {
-    key: 'expenses',
-    icon: () => h(PieChartOutlined),
-    label: 'Expenses',
-    onClick: () => addTab('Expenses', expensesTable),
-  },
-  {
-    key: 'expenses_categories',
-    icon: () => h(PieChartOutlined),
-    label: 'Expenses Categories',
-    onClick: () => addTab('Expenses Categories', expensesCategoriesTable),
-  },
-  {
-    key: 'payment_method',
-    icon: () => h(PieChartOutlined),
-    label: 'Payment Method',
-    onClick: () => addTab('Payment Methods', paymentMethodsTable),
-  },
-  {
-    type: 'divider',
+    key: 'sales',
+    icon: () => h(DollarOutlined),
     label: 'Sales',
-  },
-  {
-    type: 'divider',
-    label: 'Reports',
-  },
-  {
-    type: 'divider',
-    label: 'People',
-  },
-  {
-    key: 'Users',
-    icon: () => h(TeamOutlined),
-    label: 'Users',
     children: [
       {
-        key: 'Users',
-        label: 'Users',
-        onClick: () => addTab('Users', usersTable),
+        key: 'Orders',
+        label: 'Orders',
+        onClick: () => addTab('Orders', OrderList),
       },
       {
-        key: 'Users Roles',
-        label: 'Users Roles',
-        onClick: () => addTab('User Roles', rolesTable),
+        key: 'coupons',
+        label: 'Coupons',
+        onClick: () => addTab('Coupons', couponsTable),
       },
     ],
   },
   {
-    key: 'Customers',
-    icon: () => h(ContactsOutlined),
-    label: 'Customers',
-    onClick: () => addTab('Customers', customersTable),
+    key: 'finance',
+    icon: () => h(BarChartOutlined),
+    label: 'Finance',
+    children: [
+      {
+        key: 'expenses',
+        label: 'Expenses',
+        onClick: () => addTab('Expenses', expensesTable),
+      },
+      {
+        key: 'expenses_categories',
+        label: 'Expense Categories',
+        onClick: () => addTab('Expense Categories', expensesCategoriesTable),
+      },
+      {
+        key: 'payment_method',
+        label: 'Payment Methods',
+        onClick: () => addTab('Payment Methods', paymentMethodsTable),
+      },
+    ],
   },
   {
-    key: 'Suppliers',
-    icon: () => h(PieChartOutlined),
-    label: 'Suppliers',
-    onClick: () => addTab('Suppliers', suppliersTable),
+    key: 'people',
+    icon: () => h(TeamOutlined),
+    label: 'People',
+    children: [
+      {
+        key: 'Users',
+        label: 'Users',
+        icon: () => h(UserOutlined),
+        onClick: () => addTab('Users', usersTable),
+      },
+      {
+        key: 'Customers',
+        label: 'Customers',
+        icon: () => h(ContactsOutlined),
+        onClick: () => addTab('Customers', customersTable),
+      },
+      {
+        key: 'Suppliers',
+        label: 'Suppliers',
+        icon: () => h(BankOutlined),
+        onClick: () => addTab('Suppliers', suppliersTable),
+      },
+    ],
   },
   {
-    key: 'Warehouses',
-    icon: () => h(PieChartOutlined),
-    label: 'Warehouses',
-    onClick: () => addTab('Warehouses', warehousesTable),
+    key: 'locations',
+    icon: () => h(HomeOutlined),
+    label: 'Locations',
+    children: [
+      {
+        key: 'Warehouses',
+        label: 'Warehouses',
+        onClick: () => addTab('Warehouses', warehousesTable),
+      },
+      {
+        key: 'Stores',
+        label: 'Stores',
+        onClick: () => addTab('Stores', storesTable),
+      },
+    ],
   },
   {
-    key: 'Stores',
-    icon: () => h(PieChartOutlined),
-    label: 'Stores',
-    onClick: () => addTab('Stores', storesTable),
-  },
-  {
-    key: 'Taxes',
-    icon: () => h(PieChartOutlined),
-    label: 'Taxes',
-    onClick: () => addTab('Taxes', taxesTable),
-  },
-  {
-    key: 'Settings',
+    key: 'settings',
     icon: () => h(SettingOutlined),
     label: 'Settings',
     children: [
       {
-        key: 'settings',
-        label: 'Barcode Settings',
+        key: 'general_settings',
+        label: 'General Settings',
         onClick: () => addTab('Settings', settings),
       },
       {
         key: 'Users Roles',
-        label: 'Users Roles',
+        label: 'User Roles',
+        onClick: () => addTab('User Roles', rolesTable),
+      },
+      {
+        key: 'Taxes',
+        label: 'Taxes',
+        icon: () => h(PercentageOutlined),
+        onClick: () => addTab('Taxes', taxesTable),
+      },
+      {
+        key: 'Warranties',
+        label: 'Warranties',
+        onClick: () => addTab('Warranties', warrantiesTable),
       },
     ],
   },
@@ -386,12 +355,16 @@ const onEdit = (targetKey, action) => {
   }
 };
 
+const handleBreakpoint = (broken) => {
+  state.collapsed = broken;
+};
+
 </script>
 
 <style scoped>
 /* Styling the Logo */
 .logo {
-  height: 50px;
+  height: 64px;
   margin: 16px;
   display: flex;
   justify-content: center;
@@ -429,6 +402,7 @@ a {
 a:hover {
   color: #40a9ff;
 }
+
 /* 3D floating effect for active tab */
 .ant-tabs-card .ant-tabs-tab-active {
   position: relative;
@@ -452,4 +426,35 @@ a:hover {
   transform: translateY(-2px);
 }
 
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .ant-layout-sider {
+    position: fixed;
+    z-index: 1000;
+    height: 100%;
+  }
+
+  .ant-layout-content {
+    margin-left: 200px;
+  }
+
+  .ant-layout-sider-collapsed + .ant-layout .ant-layout-content {
+    margin-left: 80px;
+  }
+}
+
+@media (max-width: 576px) {
+  .ant-layout-sider {
+    width: 100%;
+    height: auto;
+  }
+
+  .ant-layout-content {
+    margin-left: 0;
+  }
+
+  .ant-layout-sider-collapsed + .ant-layout .ant-layout-content {
+    margin-left: 0;
+  }
+}
 </style>

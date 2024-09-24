@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <!-- Modal for adding a new unit -->
+  <div class="div-container">
+    <!-- Modals -->
     <a-modal
       v-model:open="isAddModalOpen"
       title="Add Unit"
@@ -8,12 +8,12 @@
       @cancel="handleModalCancel"
       ok-text="Submit"
       cancel-text="Cancel"
+      :maskClosable="false"
     >
       <UnitsAddModal @submit-success="handleSubmitSuccess" />
       <template #footer></template>
     </a-modal>
 
-    <!-- Modal for editing an existing unit -->
     <a-modal
       v-model:open="isEditModalOpen"
       title="Edit Unit"
@@ -21,21 +21,22 @@
       @cancel="handleModalCancel"
       ok-text="Submit"
       cancel-text="Cancel"
+      :maskClosable="false"
     >
       <UnitsEditModal @submit-success="handleSubmitSuccess" :unit_id="selectedUnitId" />
       <template #footer></template>
     </a-modal>
-  </div>
-  <a-card style="padding: 0px; margin-bottom: 10px" :bordered="false">
+
+    <!-- Header -->
+    <a-card class="div-header-card" :bordered="false">
       <a-page-header
-        style="padding: 0px"
+        class="div-header"
         title="Units"
-        class="units-header"
-        sub-title="Manage and organize your product brands"
+        sub-title="Manage and organize your product units"
       >
         <template #extra>
           <a-button
-            class="add-brand-btn"
+            class="add-unit-btn"
             type="primary"
             @click="handleAdd"
             :icon="h(PlusOutlined)"
@@ -45,33 +46,53 @@
         </template>
       </a-page-header>
     </a-card>
-  <div theme="dark">
-    <a-table
-      bordered
-      :data-source="unitStore.units"
-      :columns="columns"
-    >
-      <template #bodyCell="{ column, record }">
-        <template v-if="column.dataIndex === 'operation'">
-          <a-tooltip title="Edit" placement="bottom">
-            <a-button
-              @click="handleEdit(record.id)"
-              style="margin-right: 3px"
-              :icon="h(EditOutlined)"
-            />
-          </a-tooltip>
-          <a-popconfirm
-            v-if="unitStore.units.length"
-            title="Are you sure you want to delete this unit?"
-            @confirm="handleDelete(record.id)"
-          >
-            <a-tooltip title="Delete" placement="bottom">
-              <a-button :icon="h(DeleteOutlined)" />
-            </a-tooltip>
-          </a-popconfirm>
+
+    <!-- Units table -->
+    <div class="div-table-container">
+      <a-table
+        :dataSource="unitStore.units"
+        :columns="columns"
+        :pagination="{
+          pageSize: 10,
+          showSizeChanger: true,
+          showQuickJumper: true,
+        }"
+        :rowKey="(record) => record.id"
+        :loading="unitStore.loading"
+        size="middle"
+      >
+        <!-- Custom render for operation column -->
+        <template #bodyCell="{ column, record, index }">
+          <template v-if="column.dataIndex === 'operation'">
+            <a-dropdown :trigger="['click']">
+              <template #overlay>
+                <a-menu>
+                  <a-menu-item key="edit">
+                    <a @click="handleEdit(record.id)" class="edit-link">
+                      <EditOutlined /> Edit
+                    </a>
+                  </a-menu-item>
+                  <a-menu-item key="delete">
+                    <a-popconfirm
+                      :title="`Are you sure you want to delete this unit: ${record.name}?`"
+                      ok-text="Yes"
+                      cancel-text="No"
+                      @confirm="handleDelete(record.id)"
+                    >
+                      <a class="delete-link"><DeleteOutlined /> Delete</a>
+                    </a-popconfirm>
+                  </a-menu-item>
+                </a-menu>
+              </template>
+              <a-button class="actions-btn"> Actions <DownOutlined /> </a-button>
+            </a-dropdown>
+          </template>
+          <template v-else-if="column.dataIndex === 'index'">
+            {{ index + 1 }}
+          </template>
         </template>
-      </template>
-    </a-table>
+      </a-table>
+    </div>
   </div>
 </template>
 
@@ -80,7 +101,7 @@ import { ref } from 'vue';
 import { useUnitStore } from '~/stores/product/UnitStore.js';
 import UnitsAddModal from "~/components/product/units/unitsAddModal.vue";
 import UnitsEditModal from "~/components/product/units/unitsEditModal.vue";
-import { DeleteOutlined, EditOutlined,PlusOutlined } from "@ant-design/icons-vue";
+import { DeleteOutlined, EditOutlined, PlusOutlined, DownOutlined } from "@ant-design/icons-vue";
 
 // State management
 const unitStore = useUnitStore();
@@ -94,20 +115,38 @@ unitStore.fetchUnits();
 // Table columns configuration
 const columns = [
   {
+    title: "Index",
+    dataIndex: "index",
+    sorter: (a, b) => a.index.localeCompare(b.index),
+    onFilter: (value, record) =>
+      record.index.toLowerCase().includes(value.toLowerCase()),
+  },
+  {
     title: 'Name',
     dataIndex: 'name',
-    width: '30%',
+    sorter: (a, b) => a.name.localeCompare(b.name),
+    customFilterDropdown: true,
+    onFilter: (value, record) =>
+      record.name.toLowerCase().includes(value.toLowerCase()),
   },
   {
     title: 'Abbreviation',
     dataIndex: 'abbreviation',
+    sorter: (a, b) => a.abbreviation.localeCompare(b.abbreviation),
+    customFilterDropdown: true,
+    onFilter: (value, record) =>
+      record.abbreviation.toLowerCase().includes(value.toLowerCase()),
   },
   {
     title: 'Description',
     dataIndex: 'description',
+    sorter: (a, b) => a.description.localeCompare(b.description),
+    customFilterDropdown: true,
+    onFilter: (value, record) =>
+      record.description.toLowerCase().includes(value.toLowerCase()),
   },
   {
-    title: 'Operations',
+    title: 'Operation',
     dataIndex: 'operation',
   },
 ];
@@ -133,7 +172,6 @@ const handleDelete = async (id) => {
 };
 
 const handleModalOk = () => {
-  // This function is not used directly, but kept for potential future use
   isAddModalOpen.value = false;
   isEditModalOpen.value = false;
 };
@@ -150,47 +188,74 @@ const handleSubmitSuccess = () => {
 };
 </script>
 
-<style lang="less" scoped>
-.editable-cell {
-  position: relative;
-
-  .editable-cell-input-wrapper,
-  .editable-cell-text-wrapper {
-    padding-right: 24px;
-  }
-
-  .editable-cell-text-wrapper {
-    padding: 5px 24px 5px 5px;
-  }
-
-  .editable-cell-icon,
-  .editable-cell-icon-check {
-    position: absolute;
-    right: 0;
-    width: 20px;
-    cursor: pointer;
-  }
-
-  .editable-cell-icon {
-    margin-top: 4px;
-    display: none;
-  }
-
-  .editable-cell-icon-check {
-    line-height: 28px;
-  }
-
-  .editable-cell-icon:hover,
-  .editable-cell-icon-check:hover {
-    color: #108ee9;
-  }
-
-  .editable-add-btn {
-    margin-bottom: 8px;
-  }
+<style scoped>
+.div-container {
+  background-color: #f0f2f5;
+  padding: 24px;
+  border-radius: 8px;
 }
 
-.editable-cell:hover .editable-cell-icon {
-  display: inline-block;
+.div-header-card {
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.div-header {
+  padding: 16px;
+}
+
+.div-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #001529;
+}
+
+.add-unit-btn {
+  font-size: 14px;
+  height: 36px;
+  margin-right: 8px;
+}
+
+.div-table-container {
+  background-color: #ffffff;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+:deep(.ant-table) {
+  font-size: 14px;
+}
+
+:deep(.ant-table-thead > tr > th) {
+  background-color: #fafafa;
+  color: #001529;
+  font-weight: 600;
+}
+
+:deep(.ant-table-tbody > tr > td) {
+  padding: 12px 16px;
+}
+
+:deep(.ant-table-tbody > tr:hover > td) {
+  background-color: #f5f5f5;
+}
+
+.actions-btn {
+  background-color: #f0f0f0;
+  border-color: #d9d9d9;
+}
+
+.actions-btn:hover {
+  background-color: #e6e6e6;
+  border-color: #d9d9d9;
+}
+
+.edit-link, .delete-link {
+  color: #001529;
+}
+
+.edit-link:hover, .delete-link:hover {
+  color: #ff4d4f;
 }
 </style>

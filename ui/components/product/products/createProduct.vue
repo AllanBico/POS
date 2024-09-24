@@ -1,41 +1,6 @@
 <template>
-  <a-modal v-model:open="open_attribute_value" title="Add Attribute" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
-           cancel-text="Cancel">
-    <attribute-value-add-modal  @submit-success="handleSubmitSuccess"></attribute-value-add-modal>
-    <template #footer>
-    </template>
-  </a-modal>
-  <a-modal v-model:open="open_attribute" title="Add Attribute" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
-           cancel-text="Cancel">
-    <attribute-add-modal @submit-success="handleSubmitSuccess"></attribute-add-modal>
-    <template #footer>
-    </template>
-  </a-modal>
-  <a-modal v-model:open="open_unit" title="Add Unit" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"  cancel-text="Cancel">
-    <UnitsAddModal @submit-success="handleSubmitSuccess"></UnitsAddModal>
-    <template #footer>
-    </template>
-  </a-modal>
-  <a-modal v-model:open="open_subcategory" title="Add SubCategory" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
-           cancel-text="Cancel">
-    <sub-category-add-modal @submit-success="handleSubmitSuccess"></sub-category-add-modal>
-    <template #footer>
-    </template>
-  </a-modal>
-  <a-modal v-model:open="open_category" title="Add Category" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
-           cancel-text="Cancel">
-    <category-add-modal @submit-success="handleSubmitSuccess"></category-add-modal>
-    <template #footer>
-    </template>
-  </a-modal>
-  <a-modal v-model:open="open_brand" title="Add Brand" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
-           cancel-text="Cancel">
-    <brand-add-modal @submit-success="handleSubmitSuccess"></brand-add-modal>
-    <template #footer>
-    </template>
-  </a-modal>
   <a-card>
-    <a-steps :current="currentStep">
+    <a-steps :current="currentStep" class="steps-header">
       <a-step title="Product Details" />
       <a-step title="Variants" />
       <a-step title="Review" />
@@ -43,17 +8,17 @@
     <div class="steps-content">
       <template v-if="currentStep === 0">
         <!-- Step 1: Product Details -->
-        <form @submit.prevent="nextStep" >
-          <a-form-item label="Product Name">
+        <form @submit.prevent="nextStep" class="form-layout">
+          <a-form-item label="Product Name" class="form-item">
             <a-input v-model:value="product.name" placeholder="Enter product name" />
           </a-form-item>
-          <a-form-item label="Description">
+          <a-form-item label="Description" class="form-item">
             <a-textarea v-model:value="product.description" placeholder="Enter product description" />
           </a-form-item>
-          <a-form-item label="Is Composition?">
+          <a-form-item label="Is Composition?" class="form-item">
             <a-switch v-model:checked="product.isComposition" />
           </a-form-item>
-          <a-form-item label="Category">
+          <a-form-item label="Category" class="form-item">
             <a-button type="link" @click="handleAddCategory" :icon="h(PlusOutlined)">Add New</a-button>
             <a-select v-model:value="product.categoryId" placeholder="Select category" show-search :filter-option="filterOption">
               <a-select-option v-for="category in categories" :key="category.id" :value="category.id">
@@ -61,8 +26,7 @@
               </a-select-option>
             </a-select>
           </a-form-item>
-
-          <a-form-item label="Subcategory">
+          <a-form-item label="Subcategory" class="form-item">
             <a-button type="link" @click="handleAddSubCategory" :icon="h(PlusOutlined)">Add New</a-button>
             <a-select v-model:value="product.subcategoryId" placeholder="Select subcategory">
               <a-select-option v-for="subcategory in subcategories" :key="subcategory.id" :value="subcategory.id">
@@ -70,7 +34,7 @@
               </a-select-option>
             </a-select>
           </a-form-item>
-          <a-form-item label="Brand">
+          <a-form-item label="Brand" class="form-item">
             <a-button type="link" @click="handleAddBrand" :icon="h(PlusOutlined)">Add New</a-button>
             <a-select v-model:value="product.brandId" placeholder="Select brand">
               <a-select-option v-for="brand in brandStore.brands" :key="brand.id" :value="brand.id">
@@ -78,7 +42,7 @@
               </a-select-option>
             </a-select>
           </a-form-item>
-          <a-form-item label="Unit">
+          <a-form-item label="Unit" class="form-item">
             <a-button type="link" @click="handleAddUnit" :icon="h(PlusOutlined)">Add New</a-button>
             <a-select v-model:value="product.unitId" placeholder="Select unit">
               <a-select-option v-for="unit in unitStore.units" :key="unit.id" :value="unit.id">
@@ -86,17 +50,17 @@
               </a-select-option>
             </a-select>
           </a-form-item>
-          <a-form-item label="Low Stock Alert">
+          <a-form-item label="Low Stock Alert" class="form-item">
             <a-input-number v-model:value="product.lowStockAlert" placeholder="Enter low stock alert quantity" min="0" />
           </a-form-item>
-          <a-form-item label="VAT Type">
+          <a-form-item label="VAT Type" class="form-item">
             <a-select v-model:value="product.vatType" placeholder="Select VAT type">
               <a-select-option value="inclusive">Inclusive</a-select-option>
               <a-select-option value="exclusive">Exclusive</a-select-option>
               <a-select-option value="exempted">Exempted</a-select-option>
             </a-select>
           </a-form-item>
-          <a-form-item label="Select Taxes">
+          <a-form-item label="Select Taxes" class="form-item">
             <a-select
                 v-model:value="product.selectedTaxes"
                 mode="multiple"
@@ -105,26 +69,28 @@
                 :options="taxStore.taxes.map(tax => ({ label: tax.name, value: tax.id }))"
             />
           </a-form-item>
-          <a-button type="primary" html-type="submit">Next</a-button>
+          <div class="form-actions">
+            <a-button type="primary" html-type="submit">Next</a-button>
+          </div>
         </form>
       </template>
 
       <template v-else-if="currentStep === 1">
         <!-- Step 2: Variants -->
-        <form @submit.prevent="addVariant">
-          <a-button type="link" @click="handleAddAttribute" :icon="h(PlusOutlined)">Add New</a-button>
-          <a-button type="link" @click="handleAddAttributeValue" :icon="h(PlusOutlined)">Add New</a-button>
+        <form @submit.prevent="addVariant" class="form-layout">
+          <div class="form-actions">
+            <a-button type="link" @click="handleAddAttribute" :icon="h(PlusOutlined)">Add New Attribute</a-button>
+            <a-button type="link" @click="handleAddAttributeValue" :icon="h(PlusOutlined)">Add New Attribute Value</a-button>
+          </div>
           <div v-for="(attributeSelection, index) in newVariant.attributes" :key="index" class="attribute-selection">
-
-            <a-form-item :label="'Select Attribute ' + (index + 1)">
+            <a-form-item :label="'Select Attribute ' + (index + 1)" class="form-item">
               <a-select v-model:value="attributeSelection.attributeId" @change="fetchValuesForAttribute(attributeSelection.attributeId, index)" placeholder="Select attribute">
                 <a-select-option v-for="attribute in attributes" :key="attribute.id" :value="attribute.id">
                   {{ attribute.name }}
                 </a-select-option>
               </a-select>
             </a-form-item>
-
-            <a-form-item :label="'Select Attribute Value ' + (index + 1)">
+            <a-form-item :label="'Select Attribute Value ' + (index + 1)" class="form-item">
               <a-select v-model:value="attributeSelection.valueId" placeholder="Select attribute value">
                 <a-select-option v-for="value in attributeSelection.attributeValues" :key="value.id" :value="value.id">
                   {{ value.value }}
@@ -132,17 +98,17 @@
               </a-select>
             </a-form-item>
           </div>
-          <a-button @click="addNewAttribute">Add Another Attribute</a-button>
-          <a-form-item label="SKU">
+          <a-button @click="addNewAttribute" class="add-attribute-btn">Add Another Attribute</a-button>
+          <a-form-item label="SKU" class="form-item">
             <a-input v-model:value="newVariant.sku" placeholder="Enter SKU" />
           </a-form-item>
-          <a-form-item label="Price">
+          <a-form-item label="Price" class="form-item">
             <a-input-number v-model:value="newVariant.price" placeholder="Enter price" />
           </a-form-item>
-          <a-form-item label="Stock Quantity">
+          <a-form-item label="Stock Quantity" class="form-item">
             <a-input-number v-model:value="newVariant.stockQuantity" placeholder="Enter stock quantity" />
           </a-form-item>
-          <a-form-item label="Image">
+          <a-form-item label="Image" class="form-item">
             <a-upload
                 name="file"
                 :customRequest="handleImageUpload"
@@ -151,8 +117,10 @@
               <a-button icon="upload">Upload Image</a-button>
             </a-upload>
           </a-form-item>
-          <a-button type="primary" html-type="submit">Add Variant</a-button>
-          <a-button @click="prevStep" style="margin-left: 8px;">Previous</a-button>
+          <div class="form-actions">
+            <a-button type="primary" html-type="submit">Add Variant</a-button>
+            <a-button @click="prevStep" style="margin-left: 8px;">Previous</a-button>
+          </div>
         </form>
 
         <!-- Displaying added variants -->
@@ -168,22 +136,26 @@
           <a-button type="danger" @click="removeVariant(index)">Remove</a-button>
         </div>
 
-        <a-button type="primary" @click="nextStep">Next</a-button>
+        <div class="form-actions">
+          <a-button type="primary" @click="nextStep">Next</a-button>
+        </div>
       </template>
 
       <template v-else-if="currentStep === 2">
         <!-- Step 3: Review -->
         <h3>Review Product Details</h3>
-        <p><strong>Product Name:</strong> {{ product.name }}</p>
-        <p><strong>Description:</strong> {{ product.description }}</p>
-        <p><strong>Category:</strong> {{ getCategoryName(product.categoryId) }}</p>
-        <p><strong>Subcategory:</strong> {{ getSubcategoryName(product.subcategoryId) }}</p>
-        <p><strong>Brand:</strong> {{  brandStore?.getBrandById(product.brandId) }}</p>
-        <p><strong>Unit:</strong> {{  unitStore?.UnitById(product.brandId) }}</p>
-        <p><strong>Low Stock Alert:</strong> {{ product.lowStockAlert }}</p>
-        <p><strong>VAT Type:</strong> {{ product.vatType }}</p>
-        <p><strong>Is Composition?:</strong> {{ product.isComposition }}</p>
-        <p><strong>Selected Taxes:</strong> {{ product.selectedTaxes ? product.selectedTaxes.map(tax => tax.label).join(', ') : 'None' }}</p>
+        <div class="review-section">
+          <p><strong>Product Name:</strong> {{ product.name }}</p>
+          <p><strong>Description:</strong> {{ product.description }}</p>
+          <p><strong>Category:</strong> {{ getCategoryName(product.categoryId) }}</p>
+          <p><strong>Subcategory:</strong> {{ getSubcategoryName(product.subcategoryId) }}</p>
+          <p><strong>Brand:</strong> {{  brandStore?.getBrandById(product.brandId) }}</p>
+          <p><strong>Unit:</strong> {{  unitStore?.UnitById(product.brandId) }}</p>
+          <p><strong>Low Stock Alert:</strong> {{ product.lowStockAlert }}</p>
+          <p><strong>VAT Type:</strong> {{ product.vatType }}</p>
+          <p><strong>Is Composition?:</strong> {{ product.isComposition }}</p>
+          <p><strong>Selected Taxes:</strong> {{ product.selectedTaxes ? product.selectedTaxes.map(tax => tax.label).join(', ') : 'None' }}</p>
+        </div>
 
         <h4>Variants</h4>
         <div v-for="(variant, index) in variants" :key="index" class="variant-item">
@@ -197,11 +169,33 @@
           </div>
         </div>
 
-        <a-button type="primary" @click="submitProductWithVariants">Submit</a-button>
-        <a-button @click="prevStep" style="margin-left: 8px;">Previous</a-button>
+        <div class="form-actions">
+          <a-button type="primary" @click="submitProductWithVariants">Submit</a-button>
+          <a-button @click="prevStep" style="margin-left: 8px;">Previous</a-button>
+        </div>
       </template>
     </div>
   </a-card>
+
+  <!-- Modals -->
+  <a-modal v-model:open="open_attribute_value" title="Add Attribute" @ok="handleOk" @cancel="handleCancel" ok-text="Submit" cancel-text="Cancel">
+    <attribute-value-add-modal @submit-success="handleSubmitSuccess"></attribute-value-add-modal>
+  </a-modal>
+  <a-modal v-model:open="open_attribute" title="Add Attribute" @ok="handleOk" @cancel="handleCancel" ok-text="Submit" cancel-text="Cancel">
+    <attribute-add-modal @submit-success="handleSubmitSuccess"></attribute-add-modal>
+  </a-modal>
+  <a-modal v-model:open="open_unit" title="Add Unit" @ok="handleOk" @cancel="handleCancel" ok-text="Submit" cancel-text="Cancel">
+    <UnitsAddModal @submit-success="handleSubmitSuccess"></UnitsAddModal>
+  </a-modal>
+  <a-modal v-model:open="open_subcategory" title="Add SubCategory" @ok="handleOk" @cancel="handleCancel" ok-text="Submit" cancel-text="Cancel">
+    <sub-category-add-modal @submit-success="handleSubmitSuccess"></sub-category-add-modal>
+  </a-modal>
+  <a-modal v-model:open="open_category" title="Add Category" @ok="handleOk" @cancel="handleCancel" ok-text="Submit" cancel-text="Cancel">
+    <category-add-modal @submit-success="handleSubmitSuccess"></category-add-modal>
+  </a-modal>
+  <a-modal v-model:open="open_brand" title="Add Brand" @ok="handleOk" @cancel="handleCancel" ok-text="Submit" cancel-text="Cancel">
+    <brand-add-modal @submit-success="handleSubmitSuccess"></brand-add-modal>
+  </a-modal>
 </template>
 
 <script setup>
@@ -211,28 +205,28 @@ import { useCategoryStore } from '~/stores/product/CategoryStore.js';
 import { useSubcategoryStore } from '~/stores/product/SubcategoryStore.js';
 import { useAttributesStore } from '~/stores/product/AttributeStore.js';
 import { useBrandStore } from '~/stores/product/BrandStore.js';
-import {useUnitStore} from "~/stores/product/UnitStore.js";
-import CategoryAddModal from "~/components/product/categories/categoryAddModal.vue";
-import {PlusOutlined} from "@ant-design/icons-vue";
-import SubCategoryAddModal from "~/components/product/subcategories/subCategoryAddModal.vue";
-import BrandAddModal from "~/components/product/brands/brandAddModal.vue";
-import UnitsAddModal from "~/components/product/units/unitsAddModal.vue";
-import AttributeAddModal from "~/components/product/attributes/attributeAddModal.vue";
-import AttributeValueAddModal from "~/components/product/attributes/attributeValueAddModal.vue";
-import { useTaxStore } from '@/stores/taxStore.js'; // Store to fetch available taxes
+import { useUnitStore } from '~/stores/product/UnitStore.js';
+import { useTaxStore } from '@/stores/taxStore.js';
+import CategoryAddModal from '~/components/product/categories/categoryAddModal.vue';
+import SubCategoryAddModal from '~/components/product/subcategories/subCategoryAddModal.vue';
+import BrandAddModal from '~/components/product/brands/brandAddModal.vue';
+import UnitsAddModal from '~/components/product/units/unitsAddModal.vue';
+import AttributeAddModal from '~/components/product/attributes/attributeAddModal.vue';
+import AttributeValueAddModal from '~/components/product/attributes/attributeValueAddModal.vue';
+import { PlusOutlined } from '@ant-design/icons-vue';
 
 const { $toast } = useNuxtApp();
 const productStore = useProductStore();
 const categoryStore = useCategoryStore();
 const subcategoryStore = useSubcategoryStore();
 const attributesStore = useAttributesStore();
-const brandStore = useBrandStore(); // Initialize the brand store
+const brandStore = useBrandStore();
 const unitStore = useUnitStore();
-const taxStore = useTaxStore(); // Tax store instance
+const taxStore = useTaxStore();
 attributesStore.fetchAttributeValues();
-brandStore.fetchBrands()
-unitStore.fetchUnits()
-taxStore.fetchTaxes()
+brandStore.fetchBrands();
+unitStore.fetchUnits();
+taxStore.fetchTaxes();
 const router = useRouter();
 const selectedTaxes = ref([]);
 const currentStep = ref(0);
@@ -242,12 +236,11 @@ const product = ref({
   categoryId: null,
   subcategoryId: null,
   vatType: 'exclusive',
-  brandId: null, // Add brandId to the product object
+  brandId: null,
   unitId: null,
-  lowStockAlert: 0, // Add lowStockAlert to the product object
-  isComposition:false,
-  selectedTaxes: [], // Initialize selectedTaxes as an empty array
-
+  lowStockAlert: 0,
+  isComposition: false,
+  selectedTaxes: [],
 });
 
 const newVariant = ref({
@@ -298,14 +291,13 @@ const removeVariant = (index) => {
 };
 
 const resetForm = () => {
-  product.value = { name: '', description: '', categoryId: null, subcategoryId: null, vatType: 'exclusive',brandId: null,lowStockAlert: 0,unitId: null,selectedTaxes: [] };
+  product.value = { name: '', description: '', categoryId: null, subcategoryId: null, vatType: 'exclusive', brandId: null, lowStockAlert: 0, unitId: null, selectedTaxes: [] };
   variants.value = [];
   currentStep.value = 0;
 };
 
 const submitProductWithVariants = async () => {
   try {
-    console.log("selected Taxes",product.selectedTaxes)
     const productId = await productStore.createProduct(product.value);
     for (const variant of variants.value) {
       variant.productId = productId.id;
@@ -317,7 +309,6 @@ const submitProductWithVariants = async () => {
         };
         await productStore.createVariantAttributeValue(newVariantAttributeValue);
       }
-      console.log("variant.image",variant.image)
       if (variant.image) {
         await productStore.uploadImage(createdVariant.id, variant.image);
       }
@@ -331,7 +322,6 @@ const submitProductWithVariants = async () => {
   }
 };
 
-// Fetch categories and subcategories
 categoryStore.fetchCategories().then(() => {
   categories.value = categoryStore.categories;
 });
@@ -339,7 +329,6 @@ subcategoryStore.fetchSubcategories().then(() => {
   subcategories.value = subcategoryStore.subcategories;
 });
 
-// Fetch attributes on component mount
 attributesStore.fetchAttributes().then(() => {
   attributes.value = attributesStore.attributes;
 });
@@ -367,7 +356,8 @@ const getAttributeValueName = (attributeValueId) => {
   const value = attributes.value.find(val => val.id === attributeValueId);
   return value ? value.value : '';
 };
-const getBrandName = (id) => brands.value.find(brand => brand.id === id)?.name || 'Unknown'; // Function to get brand name
+
+const getBrandName = (id) => brands.value.find(brand => brand.id === id)?.name || 'Unknown';
 
 const open_category = ref(false);
 const open_subcategory = ref(false);
@@ -419,7 +409,7 @@ const handleSubmitSuccess = () => {
 };
 
 const filterOption = (input, option) => {
-  const name = option.children?.toString() || ''; // Use option.children which represents the inner text of the option
+  const name = option.children?.toString() || '';
   return name.toLowerCase().includes(input.toLowerCase());
 };
 
@@ -429,8 +419,28 @@ const handleImageUpload = async ({ file }) => {
 </script>
 
 <style scoped>
+.steps-header {
+  margin-bottom: 20px;
+}
+
 .steps-content {
   margin-top: 20px;
+}
+
+.form-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-item {
+  margin-bottom: 16px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .variant-item {
@@ -438,9 +448,18 @@ const handleImageUpload = async ({ file }) => {
   padding: 10px;
   border: 1px solid #d9d9d9;
   border-radius: 4px;
+  background-color: #f9f9f9;
 }
 
 .attribute-selection {
   margin-bottom: 15px;
+}
+
+.add-attribute-btn {
+  margin-bottom: 16px;
+}
+
+.review-section {
+  margin-bottom: 20px;
 }
 </style>

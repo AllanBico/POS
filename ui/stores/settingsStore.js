@@ -19,26 +19,46 @@ export const useSettingsStore = defineStore('settings', {
                 this.error = error;
             }
         },
-        async updateSetting(key, value) {
+        async updateSetting(updatedSettings) {
             const config = useRuntimeConfig();
-            const setting = this.settings.find(item => item.key === key);
-            if (setting) {
-                try {
-                    const apiUrl = `${config.public.baseURL}/api/settings/${setting.id}`;
-                    const response = await fetch(apiUrl, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ value: JSON.stringify(value) }),
-                    });
-                    if (!response.ok) throw new Error('Failed to update setting');
-                    setting.value = JSON.stringify(value); // Update local value in store
-                    $toast.success('Setting updated successfully');
-                } catch (e) {
-                    $toast.error('Failed to update setting');
-                    console.error(e.message);
-                }
+            try {
+                const payload = Object.keys(updatedSettings).map(key => ({
+                    key,
+                    value: updatedSettings[key],
+                }));
+
+                await Promise.all(
+                    payload.map(setting =>
+                        useFetch(`${config.public.baseURL}/api/settings/${setting.key}`, {
+                            method: 'PUT',
+                            body: { value: JSON.stringify(setting.value) }, // Assuming values need to be JSON-encoded
+                            credentials: 'include',
+                        })
+                    )
+                );
+
+                // Refetch settings after update
+                await this.fetchSettings();
+            } catch (error) {
+                console.error('Failed to update settings:', error);
+            }
+        },
+
+        async uploadFile(file) {
+            const config = useRuntimeConfig();
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const { data } = await useFetch(`${config.public.baseURL}/api/upload`, {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'include',
+                });
+                return data;
+            } catch (error) {
+                console.error('Failed to upload file:', error);
+                return null;
             }
         },
         async deleteSettings() {

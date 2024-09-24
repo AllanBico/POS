@@ -1,220 +1,389 @@
 <template>
-  <div>
-    <a-modal v-model:open="open" title="Add Attribute" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
-             cancel-text="Cancel">
-      <attribute-value-add-modal :attribute_id="attribute_id"  @submit-success="handleSubmitSuccess"></attribute-value-add-modal>
-      <template #footer>
-      </template>
+  <div class="div-container">
+    <!-- Modals -->
+    <a-modal
+      v-model:open="isAddModalOpen"
+      title="Create Attribute Value"
+      @ok="handleModalOk"
+      @cancel="handleModalCancel"
+      ok-text="Submit"
+      cancel-text="Cancel"
+      :maskClosable="false"
+    >
+      <attribute-value-add-modal 
+        :attribute_id="attribute_id"
+        @submit-success="handleSubmitSuccess"
+      ></attribute-value-add-modal>
+      <template #footer> </template>
     </a-modal>
-    <a-modal v-model:open="edit_open" title="Edit Attribute" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
-             cancel-text="Cancel">
-      <attribute-value-edit-modal @submit-success="handleSubmitSuccess" :attribute_value_id="attribute_value_id"></attribute-value-edit-modal>
-      <template #footer>
-      </template>
+
+    <a-modal
+      v-model:open="isEditModalOpen"
+      title="Edit Attribute Value"
+      @ok="handleModalOk"
+      @cancel="handleModalCancel"
+      ok-text="Submit"
+      cancel-text="Cancel"
+      :maskClosable="false"
+    >
+      <attribute-value-edit-modal
+        @submit-success="handleSubmitSuccess"
+        :attribute_value_id="selectedAttributeValueId"
+      ></attribute-value-edit-modal>
+      <template #footer> </template>
     </a-modal>
-  </div>
-  <div>
-  </div>
-  <div class="coupons-container">
-    <a-card  bordered={false}>
-      <div class="header-controls">
-        <a-input-search
-            placeholder="Search"
-            style="width: 200px;"
-        />
 
-        <div class="actions">
-          <a-button type="primary" @click="handleAdd" :icon="h(PlusOutlined)">Add New</a-button>
-
-        </div>
-      </div>
-
-      <a-table
-          :columns="columns"
-          :data-source="values"
-          :pagination="pagination"
-          :rowKey="id"
-          bordered
-          size="small"
-          @change="onChange"
+    <!-- Header -->
+    <a-card class="div-header-card" :bordered="false">
+      <a-page-header
+        class="div-header"
+        :title="`${attribute?.name} Attribute Values`"
+        :sub-title="`Manage and organize your attribute values`"
       >
+        <template #extra>
+          <a-button
+            class="add-attribute-value-btn"
+            type="primary"
+            @click="handleAddAttributeValue"
+            :icon="h(PlusOutlined)"
+          >
+            Create Attribute Value
+          </a-button>
+          <a-dropdown>
+            <template #overlay>
+              <a-menu>
+                <a-menu-item key="1" @click="exportToExcel">
+                  <FileExcelOutlined />  Excel
+                </a-menu-item>
+                <a-menu-item key="2" @click="exportToPDF">
+                  <FilePdfOutlined />  PDF
+                </a-menu-item>
+              </a-menu>
+            </template>
+            <a-button class="export-btn">
+              Export <DownOutlined />
+            </a-button>
+          </a-dropdown>
+        </template>
+      </a-page-header>
+    </a-card>
+
+    <!-- Attribute Values table -->
+    <div class="div-table-container">
+      <a-table
+        :dataSource="values"
+        :columns="columns"
+        :pagination="pagination"
+        :rowKey="(record) => record.id"
+        :loading="attributesStore.loading"
+        size="middle"
+        @change="handleTableChange"
+      >
+        <!-- Custom filter dropdown template -->
         <template
-            #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }"
+          #customFilterDropdown="{
+            setSelectedKeys,
+            selectedKeys,
+            confirm,
+            clearFilters,
+            column,
+          }"
         >
-          <div style="padding: 8px">
+          <div class="custom-filter-dropdown">
             <a-input
-                ref="searchInput"
-                :placeholder="`Search ${column.dataIndex}`"
-                :value="selectedKeys[0]"
-                style="width: 188px; margin-bottom: 8px; display: block"
-                @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
-                @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex)"
+              ref="searchInput"
+              :placeholder="`Search ${column.title}`"
+              :value="selectedKeys[0]"
+              @change="
+                (e) => setSelectedKeys(e.target.value ? [e.target.value] : [])
+              "
+              @pressEnter="
+                handleSearch(selectedKeys, confirm, column.dataIndex)
+              "
             />
             <a-button
-                type="primary"
-                size="small"
-                style="width: 90px; margin-right: 8px"
-                @click="handleSearch(selectedKeys, confirm, column.dataIndex)"
+              type="primary"
+              @click="handleSearch(selectedKeys, confirm, column.dataIndex)"
             >
               <template #icon><SearchOutlined /></template>
               Search
             </a-button>
-            <a-button size="small" style="width: 90px" @click="handleReset(clearFilters)">
+            <a-button @click="handleReset(clearFilters)">
               Reset
             </a-button>
           </div>
         </template>
+
+        <!-- Custom filter icon -->
         <template #customFilterIcon="{ filtered }">
-          <search-outlined :style="{ color: filtered ? '#108ee9' : undefined }" />
+          <search-outlined
+            :class="{ 'text-primary': filtered }"
+          />
         </template>
-        <template #bodyCell="{ column, text, record }">
-          <template v-if="column.dataIndex === 'status'">
-        <span>
-          <a-tag
-              :key="record.id"
-              :color="record.status ? 'success' : 'error'"
-          >
-          {{ record.status ? 'Active' : 'Inactive' }} {{record.status}}
-        </a-tag>
 
-        </span>
-          </template>
+        <!-- Custom render for operation column -->
+        <template #bodyCell="{ column, record }">
           <template v-if="column.dataIndex === 'operation'">
-            <a-tooltip title="Edit" placement="bottom">
-              <a-button @click="onEdit(record.id)" style="margin-right: 3px" :icon="h(EditOutlined)"/>
-            </a-tooltip>
-            <a-popconfirm
-                v-if="values.length"
-                title="Sure to delete?"
-                @confirm="onDelete(record.id)">
-              <a-tooltip title="Delete" placement="bottom">
-                <a-button :icon="h(DeleteOutlined)"/>
+            <div class="action-buttons">
+              <a-tooltip title="Edit">
+                <a-button
+                  type="link"
+                  class="edit-btn"
+                  @click="handleEditAttributeValue(record.id)"
+                  :style="{ color: '#1890ff' }"
+                >
+                  <template #icon><EditOutlined /></template>
+                </a-button>
               </a-tooltip>
-            </a-popconfirm>
-
+              <a-popconfirm
+                :title="`Are you sure you want to delete ${record.value}?`"
+                ok-text="Yes"
+                cancel-text="No"
+                @confirm="handleDeleteAttributeValue(record.id)"
+                placement="topRight"
+              >
+                <a-tooltip title="Delete">
+                  <a-button
+                    type="link"
+                    class="delete-btn"
+                    :style="{ color: '#ff4d4f' }"
+                  >
+                    <template #icon><DeleteOutlined /></template>
+                  </a-button>
+                </a-tooltip>
+              </a-popconfirm>
+            </div>
           </template>
         </template>
       </a-table>
-    </a-card>
+    </div>
   </div>
 </template>
 
 <script setup>
-import {ref, watch} from 'vue';
-import {DeleteOutlined, EditOutlined,PlusOutlined} from "@ant-design/icons-vue";
+import { ref, computed, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import { useAttributesStore } from '~/stores/product/AttributeStore.js';
-const attributesStore = useAttributesStore();
 import AttributeValueAddModal from "~/components/product/attributes/attributeValueAddModal.vue";
 import AttributeValueEditModal from "~/components/product/attributes/attributeValueEditModal.vue";
+import {
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+  SearchOutlined,
+  DownOutlined,
+  FileExcelOutlined,
+  FilePdfOutlined,
+} from "@ant-design/icons-vue";
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
-const open = ref(false);
-const edit_open = ref(false);
-let attribute_value_id = ref(null)
+const attributesStore = useAttributesStore();
 const route = useRoute();
+
 const props = defineProps({
   id: {
     type: String,
     required: true,
   },
 });
-let  attribute_id = props.id
-attributesStore.fetchAttributeValues()
+
+// Reactive variables
+const isAddModalOpen = ref(false);
+const isEditModalOpen = ref(false);
+const selectedAttributeValueId = ref(null);
+const searchInput = ref(null);
+const attribute_id = ref(props.id);
+
+// Fetch attribute values
+attributesStore.fetchAttributeValues();
+
+// Computed values
 const values = computed(() => attributesStore.ValuesByAttributeId(parseInt(props.id)));
-watch(() => props.id, (newcategoryId) => {
-  attribute_id = newcategoryId;
+const attribute = computed(() => attributesStore.AttributeById(parseInt(props.id)));
+
+// Watch for changes in props.id
+watch(() => props.id, (newAttributeId) => {
+  attribute_id.value = newAttributeId;
 }, { immediate: true });
+
+// Table columns configuration
 const columns = [
   {
     title: 'Value',
     dataIndex: 'value',
-    key: 'name',
-    width: '30%',
+    key: 'value',
     sorter: (a, b) => a.value.localeCompare(b.value),
-    sortDirections: ['descend', 'ascend'],
     customFilterDropdown: true,
-    onFilter: (value, record) => record.value.toString().toLowerCase().includes(value.toLowerCase()),
-    onFilterDropdownOpenChange: visible => {
+    onFilter: (value, record) => record.value.toLowerCase().includes(value.toLowerCase()),
+    onFilterDropdownOpenChange: (visible) => {
       if (visible) {
         setTimeout(() => {
-          searchInput.value.focus();
+          searchInput.value?.focus();
         }, 100);
       }
     },
   },
   {
-    title: 'operation',
+    title: 'Operation',
     dataIndex: 'operation',
     key: 'operation',
   },
 ];
 
-const pagination = ref({pageSize: 10});
-const edit = key => {
-};
-const save = key => {
-};
-const onDelete = async key => {
-  await attributesStore.deleteAttributeValue(key)
-  console.log("deleted", key)
-};
-const onEdit = async key => {
-  console.log("edit", key)
-  attribute_value_id = parseInt(key)
-  console.log("attribute_value_id", attribute_value_id)
-  edit_open.value = true
-  console.log("done")
+const pagination = ref({
+  pageSize: 10,
+  showSizeChanger: true,
+  showQuickJumper: true,
+});
+
+// Event handlers
+const handleAddAttributeValue = () => {
+  isAddModalOpen.value = true;
 };
 
+const handleEditAttributeValue = (attributeValueId) => {
+  selectedAttributeValueId.value = attributeValueId;
+  isEditModalOpen.value = true;
+};
 
+const handleDeleteAttributeValue = async (attributeValueId) => {
+  try {
+    await attributesStore.deleteAttributeValue(attributeValueId);
+    console.log("Attribute value deleted successfully:", attributeValueId);
+  } catch (error) {
+    console.error("Error deleting attribute value:", error);
+    // TODO: Implement user-friendly error handling
+  }
+};
 
-const handleAdd = () => {
-  open.value = true;
+const handleModalOk = () => {
+  isAddModalOpen.value = false;
+  isEditModalOpen.value = false;
 };
-const handleOk = () => {
-  open.value = false;
-  // Optionally handle any additional logic here
+
+const handleModalCancel = () => {
+  isAddModalOpen.value = false;
+  isEditModalOpen.value = false;
 };
-const handleCancel = () => {
-  open.value = false;
-  edit_open.value = false;
-};
+
 const handleSubmitSuccess = () => {
-  open.value = false;
-  edit_open.value = false;
+  isAddModalOpen.value = false;
+  isEditModalOpen.value = false;
 };
-const onChange = (pagination, filters, sorter) => {
-  console.log('params', pagination, filters, sorter);
-};
+
 const handleSearch = (selectedKeys, confirm, dataIndex) => {
   confirm();
-  state.searchText = selectedKeys[0];
-  state.searchedColumn = dataIndex;
+  // TODO: Implement search functionality
 };
-const handleReset = clearFilters => {
-  clearFilters({
-    confirm: true,
+
+const handleReset = (clearFilters) => {
+  clearFilters({ confirm: true });
+  // TODO: Reset search state
+};
+
+const handleTableChange = (pagination, filters, sorter) => {
+  console.log('Table params', pagination, filters, sorter);
+  // TODO: Handle table change if needed
+};
+
+const exportToExcel = () => {
+  const data = values.value.map(attributeValue => ({
+    Value: attributeValue.value,
+  }));
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Attribute Values");
+  XLSX.writeFile(wb, "attribute_values.xlsx");
+};
+
+const exportToPDF = () => {
+  const doc = new jsPDF();
+  doc.autoTable({
+    head: [['Value']],
+    body: values.value.map(attributeValue => [attributeValue.value]),
   });
-  state.searchText = '';
+  doc.save('attribute_values.pdf');
 };
 </script>
 
 <style scoped>
-.coupons-container {
-  padding: 20px;
+.div-container {
+  background-color: #f0f2f5;
+  padding: 24px;
+  border-radius: 8px;
 }
 
-.header-controls {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
+.div-header-card {
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-.actions {
-  display: flex;
-  align-items: end;
+.div-header {
+  padding: 16px;
 }
 
-.actions a-button {
-  margin-left: 2px;
+.div-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #001529;
+}
+
+.add-attribute-value-btn {
+  font-size: 14px;
+  height: 36px;
+  margin-right: 8px;
+}
+
+.export-btn {
+  height: 36px;
+}
+
+.div-table-container {
+  background-color: #ffffff;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+:deep(.ant-table) {
+  font-size: 14px;
+}
+
+:deep(.ant-table-thead > tr > th) {
+  background-color: #fafafa;
+  color: #001529;
+  font-weight: 600;
+}
+
+:deep(.ant-table-tbody > tr > td) {
+  padding: 12px 16px;
+}
+
+:deep(.ant-table-tbody > tr:hover > td) {
+  background-color: #f5f5f5;
+}
+
+.custom-filter-dropdown {
+  padding: 8px;
+  border-radius: 4px;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.custom-filter-dropdown input {
+  width: 200px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.custom-filter-dropdown button {
+  width: 100px;
+  margin-right: 8px;
+}
+
+.text-primary {
+  color: #1890ff;
 }
 </style>

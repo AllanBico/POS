@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Taxes } = require('../models/associations');
+const { Taxes,ProductTax } = require('../models/associations');
 
 // Get all taxes
 router.get('/', async (req, res) => {
@@ -15,6 +15,26 @@ router.get('/:id', async (req, res) => {
         return res.status(404).json({ error: 'Tax not found' });
     }
     res.json(tax);
+});
+router.get('/product/:id', async (req, res) => {
+    try {
+        const  productId  = req.params.id;
+
+        // Fetch all ProductTax records for the given productId
+        const productTaxes = await ProductTax.findAll({
+            where: { productId },
+            attributes: ['taxId'], // Only return the taxId
+        });
+
+        // Extract taxIds from the result
+        const taxIds = productTaxes.map(pt => pt.taxId);
+
+        // Return the taxIds as a response
+        res.json({ taxIds });
+    } catch (error) {
+        console.error('Error fetching product taxes:', error);
+        res.status(500).json({ message: 'Failed to fetch product taxes' });
+    }
 });
 
 // Create a new tax

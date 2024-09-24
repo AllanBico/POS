@@ -2,7 +2,7 @@
   <a-space>
     <!-- Badge and Notification -->
     <a-badge count="4" dot>
-      <a-button type="link" :icon="h(BellOutlined)" />
+      <a-button type="link" :icon="h(BellOutlined)" @click="showNotifications" />
     </a-badge>
 
     <!-- Search Icon -->
@@ -37,6 +37,7 @@
       placeholder="Search for products, customers, or serials..."
       @input="onSearch"
       class="command-palette-input"
+
       ref="searchInput"
       :prefix="h(SearchOutlined)"
     />
@@ -49,7 +50,7 @@
         <a-list item-layout="horizontal" :data-source="searchResults" size="small">
           <template #renderItem="{ item }">
             <a-list-item>
-              <a-list-item-meta
+              <a-list-item-meta @click="onProductView(item.productId)">
                 :description="`${item.sku} - ${getProductById(item.productId)?.name || 'N/A'}`"
               >
                 <template #title>
@@ -65,7 +66,7 @@
       <div v-if="CustomerSearchResults.length" class="result-section">
         <h3 class="result-type">Customers</h3>
         <a-list item-layout="horizontal" :data-source="CustomerSearchResults" size="small">
-                   <template #renderItem="{ item }">
+          <template #renderItem="{ item }">
             <a-list-item>
               <a-list-item-meta>
                 <template #title>
@@ -114,8 +115,11 @@ import { useProductStore } from '~/stores/product/ProductStore.js';
 import { useCustomerStore } from '~/stores/CustomerStore.js';
 import { useSerialNumberStore } from '~/stores/SerialNumberStore.js';
 import { BellOutlined, SettingOutlined, UserOutlined, SearchOutlined } from '@ant-design/icons-vue';
+import { notification } from 'ant-design-vue';
 import Mousetrap from 'mousetrap';
-
+import {useTabsStore} from "~/stores/tabsStore.js";
+import productView from "~/components/product/products/productView.vue";
+const tabsStore = useTabsStore();
 const serialStore = useSerialNumberStore();
 const productVariantStore = useProductStore();
 const customerStore = useCustomerStore();
@@ -177,6 +181,22 @@ onMounted(() => {
 onBeforeUnmount(() => {
   Mousetrap.unbind('ctrl+q');
 });
+
+// Show notifications when Bell icon is clicked
+const showNotifications = () => {
+  notification.open({
+    message: 'Notifications',
+    description: 'You have 4 new notifications.',
+    onClick: () => {
+      console.log('Notification Clicked!');
+    },
+  });
+};
+
+const onProductView = (id) => {
+  tabsStore.addTab('Product', productView, { id });
+  isSearchModalVisible.value = false;
+};
 </script>
 
 <style scoped>

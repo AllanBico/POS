@@ -22,15 +22,24 @@ export const useBrandStore = defineStore('brand', {
             this.loading = loading;
         },
 
+        setError(error) {
+            this.error = error;
+        },
+
+        clearError() {
+            this.error = null;
+        },
+
         handleError(error, message = 'An error occurred') {
             const { $toast } = useNuxtApp();
-            this.error = error;
+            this.setError(error);
             $toast.error(message);
             console.error(message, error);
         },
 
         async fetchBrands() {
             this.setLoading(true);
+            this.clearError();
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/brands`;
@@ -50,6 +59,7 @@ export const useBrandStore = defineStore('brand', {
 
         async createBrand(brand) {
             this.setLoading(true);
+            this.clearError();
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/brands`;
@@ -72,6 +82,7 @@ export const useBrandStore = defineStore('brand', {
 
         async updateBrand(id, updatedBrand) {
             this.setLoading(true);
+            this.clearError();
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/brands/${id}`;
@@ -97,6 +108,7 @@ export const useBrandStore = defineStore('brand', {
 
         async deleteBrand(id) {
             this.setLoading(true);
+            this.clearError();
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/brands/${id}`;

@@ -1,147 +1,412 @@
 <template>
-  <div>
-    <a-modal v-model:open="open" title="Add User" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
-             cancel-text="Cancel">
+  <div class="div-container">
+    <!-- Modals -->
+    <a-modal
+      v-model:open="isAddModalOpen"
+      title="Create Subcategory"
+      @ok="handleModalOk"
+      @cancel="handleModalCancel"
+      ok-text="Submit"
+      cancel-text="Cancel"
+      :maskClosable="false"
+    >
       <sub-category-add-modal @submit-success="handleSubmitSuccess"></sub-category-add-modal>
-      <template #footer>
-      </template>
+      <template #footer> </template>
     </a-modal>
-    <a-modal v-model:open="edit_open" title="Edit User" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
-             cancel-text="Cancel">
-      <sub-category-edit-modal :sub_category_id="sub_category_id" @submit-success="handleSubmitSuccess"/>
-      <template #footer>
-      </template>
+
+    <a-modal
+      v-model:open="isEditModalOpen"
+      title="Edit Subcategory"
+      @ok="handleModalOk"
+      @cancel="handleModalCancel"
+      ok-text="Submit"
+      cancel-text="Cancel"
+      :maskClosable="false"
+    >
+      <sub-category-edit-modal
+        @submit-success="handleSubmitSuccess"
+        :selectedSubcategoryId="selectedSubcategoryId"
+      ></sub-category-edit-modal>
+      <template #footer> </template>
     </a-modal>
+
+    <!-- Header -->
+    <a-card class="div-header-card" :bordered="false">
+      <a-page-header
+        class="div-header"
+        title="Subcategories"
+        sub-title="Manage and organize your product subcategories"
+      >
+        <template #extra>
+          <a-button
+            class="add-subcategory-btn"
+            type="primary"
+            @click="handleAddSubcategory"
+            :icon="h(PlusOutlined)"
+          >
+            Create Subcategory
+          </a-button>
+          <a-dropdown>
+            <template #overlay>
+              <a-menu>
+                <a-menu-item key="1" @click="exportToExcel">
+                  <FileExcelOutlined />  Excel
+                </a-menu-item>
+                <a-menu-item key="2" @click="exportToPDF">
+                  <FilePdfOutlined />  PDF
+                </a-menu-item>
+              </a-menu>
+            </template>
+            <a-button class="export-btn">
+              Export <DownOutlined />
+            </a-button>
+          </a-dropdown>
+        </template>
+      </a-page-header>
+    </a-card>
+
+    <!-- Subcategories table -->
+    <div class="div-table-container">
+      <a-table
+        :dataSource="subCategoryStore.subcategories"
+        :columns="columns"
+        :pagination="{
+          pageSize: 10,
+          showSizeChanger: true,
+          showQuickJumper: true,
+        }"
+        :rowKey="(record) => record.id"
+        :loading="subCategoryStore.loading"
+        size="middle"
+        @change="handleTableChange"
+      >
+        <!-- Custom filter dropdown template -->
+        <template
+          #customFilterDropdown="{
+            setSelectedKeys,
+            selectedKeys,
+            confirm,
+            clearFilters,
+            column,
+          }"
+        >
+          <div class="custom-filter-dropdown">
+            <a-input
+              ref="searchInput"
+              :placeholder="`Search ${column.title}`"
+              :value="selectedKeys[0]"
+              @change="
+                (e) => setSelectedKeys(e.target.value ? [e.target.value] : [])
+              "
+              @pressEnter="
+                handleSearch(selectedKeys, confirm, column.dataIndex)
+              "
+            />
+            <a-button
+              type="primary"
+              @click="handleSearch(selectedKeys, confirm, column.dataIndex)"
+            >
+              <template #icon><SearchOutlined /></template>
+              Search
+            </a-button>
+            <a-button @click="handleReset(clearFilters)">
+              Reset
+            </a-button>
+          </div>
+        </template>
+
+        <!-- Custom filter icon -->
+        <template #customFilterIcon="{ filtered }">
+          <search-outlined
+            :class="{ 'text-primary': filtered }"
+          />
+        </template>
+
+        <!-- Custom render for operation column -->
+        <template #bodyCell="{ column, record, index }">
+          <template v-if="column.dataIndex === 'operation'">
+            <div class="action-buttons">
+              <a-tooltip title="Edit">
+                <a-button
+                  type="link"
+                  class="edit-btn"
+                  @click="handleEditSubcategory(record.id)"
+                  :style="{ color: '#1890ff' }"
+                >
+                  <template #icon><EditOutlined /></template>
+                </a-button>
+              </a-tooltip>
+              <a-popconfirm
+                :title="`Are you sure you want to delete ${record.name}?`"
+                ok-text="Yes"
+                cancel-text="No"
+                @confirm="handleDeleteSubcategory(record.id)"
+                placement="topRight"
+              >
+                <a-tooltip title="Delete">
+                  <a-button
+                    type="link"
+                    class="delete-btn"
+                    :style="{ color: '#ff4d4f' }"
+                  >
+                    <template #icon><DeleteOutlined /></template>
+                  </a-button>
+                </a-tooltip>
+              </a-popconfirm>
+              <a-dropdown>
+                <template #overlay>
+                  <a-menu>
+                    <a-menu-item key="view">
+                      <EyeOutlined /> View Details
+                    </a-menu-item>
+                    <a-menu-item key="duplicate">
+                      <CopyOutlined /> Duplicate
+                    </a-menu-item>
+                    <a-menu-item key="archive">
+                      <InboxOutlined /> Archive
+                    </a-menu-item>
+                  </a-menu>
+                </template>
+                <a-button type="link">
+                  <MoreOutlined style="font-size: 16px;" />
+                </a-button>
+              </a-dropdown>
+            </div>
+          </template>
+          <template v-else-if="column.dataIndex === 'index'">
+            {{ index + 1 }}
+          </template>
+        </template>
+      </a-table>
+    </div>
   </div>
-  <div>
-  </div>
-  <a-button class="editable-add-btn" style="margin-bottom: 1px ;margin-top: 1px ;" @click="handleAdd">Add</a-button>
-  <a-table bordered :data-source="subCategoryStore.subcategories" :columns="columns">
-
-    <template #bodyCell="{ column, text, record }">
-
-      <template v-if="column.dataIndex === 'operation'">
-        <a style="margin-right: 3px" @click="onEdit(record.id)">Edit</a>
-        <a-popconfirm
-            v-if="subCategoryStore.subcategories.length"
-            title="Sure to delete?"
-            @confirm="onDelete(record.id)">
-          <a>Delete</a>
-        </a-popconfirm>
-
-      </template>
-    </template>
-  </a-table>
 </template>
+
 <script setup>
-import {computed, reactive, ref} from 'vue';
-import {cloneDeep} from 'lodash-es';
-import {useSubcategoryStore} from '~/stores/product/SubcategoryStore.js';
+import { ref } from "vue";
+import { useSubcategoryStore } from "~/stores/product/SubcategoryStore.js";
 import SubCategoryAddModal from "~/components/product/subcategories/subCategoryAddModal.vue";
 import SubCategoryEditModal from "~/components/product/subcategories/subCategoryEditModal.vue";
+import {
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+  SearchOutlined,
+  DownOutlined,
+  FileExcelOutlined,
+  FilePdfOutlined,
+  EyeOutlined,
+  CopyOutlined,
+  InboxOutlined,
+  MoreOutlined
+} from "@ant-design/icons-vue";
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
+// Initialize subcategory store and fetch subcategories
 const subCategoryStore = useSubcategoryStore();
-const open = ref(false);
-const edit_open = ref(false);
-let sub_category_id = ref(null)
-subCategoryStore.fetchSubcategories()
-console.log("subCategoryStore.subcategories", subCategoryStore.subcategories)
-const columns = [
+subCategoryStore.fetchSubcategories();
 
+// Reactive variables
+const isAddModalOpen = ref(false);
+const isEditModalOpen = ref(false);
+const selectedSubcategoryId = ref(null);
+const searchInput = ref(null);
+
+// Table columns configuration
+const columns = [
   {
-    title: 'Category',
-    key: 'category',
+    title: "Index",
+    dataIndex: "index",
+    sorter: (a, b) => a.index - b.index,
+    onFilter: (value, record) => record.index.toString().includes(value),
+  },
+  {
+    title: "Name",
+    dataIndex: "name",
+    sorter: (a, b) => a.name.localeCompare(b.name),
+    customFilterDropdown: true,
+    onFilter: (value, record) =>
+      record.name.toLowerCase().includes(value.toLowerCase()),
+    onFilterDropdownOpenChange: (visible) => {
+      if (visible) {
+        setTimeout(() => {
+          searchInput.value?.focus();
+        }, 100);
+      }
+    },
+  },
+  {
+    title: "Category",
+    dataIndex: "category",
     customRender: ({record}) => record.Category ? record.Category.name : 'N/A',
-    width: '30%',
+    sorter: (a, b) => a.Category.name.localeCompare(b.Category.name),
+    customFilterDropdown: true,
+    onFilter: (value, record) =>
+      record.Category.name.toLowerCase().includes(value.toLowerCase()),
   },
   {
-    title: 'Name',
-    dataIndex: 'name',
-    width: '30%',
+    title: "Description",
+    dataIndex: "description",
+    sorter: (a, b) => a.description.localeCompare(b.description),
+    customFilterDropdown: true,
+    onFilter: (value, record) =>
+      record.description.toLowerCase().includes(value.toLowerCase()),
   },
   {
-    title: 'Description',
-    dataIndex: 'description',
-  },
-  {
-    title: 'operation',
-    dataIndex: 'operation',
+    title: "Operation",
+    dataIndex: "operation",
   },
 ];
 
-
-const edit = key => {
-};
-const save = key => {
-};
-const onDelete = async key => {
-  await subCategoryStore.deleteSubcategory(key)
-  console.log("deleted", key)
-};
-const onEdit = async key => {
-  console.log("edit", key)
-  sub_category_id = parseInt(key)
-  edit_open.value = true
-  console.log("done")
+// Event handlers
+const handleAddSubcategory = () => {
+  isAddModalOpen.value = true;
 };
 
-const handleAdd = () => {
-  open.value = true;
+const handleEditSubcategory = (subcategoryId) => {
+  selectedSubcategoryId.value = subcategoryId;
+  isEditModalOpen.value = true;
 };
-const handleOk = () => {
-  open.value = false;
-  // Optionally handle any additional logic here
+
+const handleDeleteSubcategory = async (subcategoryId) => {
+  try {
+    await subCategoryStore.deleteSubcategory(subcategoryId);
+    console.log("Subcategory deleted successfully:", subcategoryId);
+  } catch (error) {
+    console.error("Error deleting subcategory:", error);
+    // TODO: Implement user-friendly error handling
+  }
 };
-const handleCancel = () => {
-  open.value = false;
-  edit_open.value = false;
+
+const handleModalOk = () => {
+  isAddModalOpen.value = false;
+  isEditModalOpen.value = false;
 };
+
+const handleModalCancel = () => {
+  isAddModalOpen.value = false;
+  isEditModalOpen.value = false;
+};
+
 const handleSubmitSuccess = () => {
-  open.value = false;
-  edit_open.value = false;
+  isAddModalOpen.value = false;
+  isEditModalOpen.value = false;
+};
+
+const handleSearch = (selectedKeys, confirm, dataIndex) => {
+  confirm();
+  // TODO: Implement search functionality
+};
+
+const handleReset = (clearFilters) => {
+  clearFilters({ confirm: true });
+  // TODO: Reset search state
+};
+
+const exportToExcel = () => {
+  const data = subCategoryStore.subcategories.map(subcategory => ({
+    Name: subcategory.name,
+    Category: subcategory.Category ? subcategory.Category.name : 'N/A',
+    Description: subcategory.description
+  }));
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Subcategories");
+  XLSX.writeFile(wb, "subcategories.xlsx");
+};
+
+const exportToPDF = () => {
+  const doc = new jsPDF();
+  doc.autoTable({
+    head: [['Name', 'Category', 'Description']],
+    body: subCategoryStore.subcategories.map(subcategory => [
+      subcategory.name,
+      subcategory.Category ? subcategory.Category.name : 'N/A',
+      subcategory.description
+    ]),
+  });
+  doc.save('subcategories.pdf');
 };
 </script>
-<style lang="less" scoped>
-.editable-cell {
-  position: relative;
 
-  .editable-cell-input-wrapper,
-  .editable-cell-text-wrapper {
-    padding-right: 24px;
-  }
-
-  .editable-cell-text-wrapper {
-    padding: 5px 24px 5px 5px;
-  }
-
-  .editable-cell-icon,
-  .editable-cell-icon-check {
-    position: absolute;
-    right: 0;
-    width: 20px;
-    cursor: pointer;
-  }
-
-  .editable-cell-icon {
-    margin-top: 4px;
-    display: none;
-  }
-
-  .editable-cell-icon-check {
-    line-height: 28px;
-  }
-
-  .editable-cell-icon:hover,
-  .editable-cell-icon-check:hover {
-    color: #108ee9;
-  }
-
-  .editable-add-btn {
-    margin-bottom: 8px;
-  }
+<style scoped>
+.div-container {
+  background-color: #f0f2f5;
+  padding: 24px;
+  border-radius: 8px;
 }
 
-.editable-cell:hover .editable-cell-icon {
-  display: inline-block;
+.div-header-card {
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.div-header {
+  padding: 16px;
+}
+
+.div-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #001529;
+}
+
+.add-subcategory-btn {
+  font-size: 14px;
+  height: 36px;
+  margin-right: 8px;
+}
+
+.export-btn {
+  height: 36px;
+}
+
+.div-table-container {
+  background-color: #ffffff;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+:deep(.ant-table) {
+  font-size: 14px;
+}
+
+:deep(.ant-table-thead > tr > th) {
+  background-color: #fafafa;
+  color: #001529;
+  font-weight: 600;
+}
+
+:deep(.ant-table-tbody > tr > td) {
+  padding: 12px 16px;
+}
+
+:deep(.ant-table-tbody > tr:hover > td) {
+  background-color: #f5f5f5;
+}
+
+.custom-filter-dropdown {
+  padding: 8px;
+  border-radius: 4px;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.custom-filter-dropdown input {
+  width: 200px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.custom-filter-dropdown button {
+  width: 100px;
+  margin-right: 8px;
+}
+
+.text-primary {
+  color: #1890ff;
 }
 </style>

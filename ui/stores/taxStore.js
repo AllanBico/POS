@@ -38,6 +38,16 @@ export const useTaxStore = defineStore('tax', {
                 console.error('Failed to load tax');
             }
         },
+        async fetchTaxByProduct(id) {
+            try {
+                const config = useRuntimeConfig();
+                const apiUrl = `${config.public.baseURL}/api/taxes/product/${id}`;
+                const { data } = await useFetch(apiUrl);
+                return data.value.taxIds;
+            } catch (error) {
+                console.error('Failed to load tax');
+            }
+        },
 
         async createTax(taxData) {
             try {

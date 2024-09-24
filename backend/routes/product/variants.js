@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { Product, Variant, Category, Subcategory, Unit, Attribute, AttributeValue, VariantAttributeValue } = require('../../models/associations');
+const { Product, Variant, Category, Subcategory, Unit, Attribute, AttributeValue, VariantAttributeValue,
+    Inventory,
+    Warehouse,
+    Store
+} = require('../../models/associations');
 const authenticateToken = require("../../middleware/auth");
 
 
@@ -30,7 +34,7 @@ router.get('/',authenticateToken, async (req, res) => {
                             ]
                         }
                     ]
-                },
+                },{model: Inventory, as: 'InventoryVariants',include: [{model: Warehouse, as: 'warehouse'}, {model: Store, as: 'store'}]},
                 {
                     model: Product,
                     as: 'Product',
@@ -44,7 +48,8 @@ router.get('/',authenticateToken, async (req, res) => {
         });
         res.status(200).json(variants);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('Error fetching variants:', error);
+        res.status(500).json({ error: 'An unexpected error occurred' });
     }
 });
 

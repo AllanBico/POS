@@ -10,7 +10,8 @@ export const useProductStore = defineStore('product', {
         variants: [],
         variantAttributeValues: [],
         error: null,
-        compositions:[]
+        compositions:[],
+        loading: false,
     }),
     getters: {
         /**
@@ -29,6 +30,9 @@ export const useProductStore = defineStore('product', {
         attributeValuesByAttributeId: (state) => (attributeId) => state.attributeValues.filter(value => value.attributeId === attributeId),
     },
     actions: {
+        setLoading(loading) {
+            this.loading = loading;
+        },
         search(term) {
             if (!term) {
                 this.searchResults = [];
@@ -84,6 +88,7 @@ export const useProductStore = defineStore('product', {
          */
         async fetchProducts() {
             const {$toast} = useNuxtApp();
+
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/products`;
@@ -99,16 +104,21 @@ export const useProductStore = defineStore('product', {
 
         async fetchProduct(id) {
             const {$toast} = useNuxtApp();
+            this.setLoading(true);
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/products/${id}`;
                 const {data, error} = await useFetch(apiUrl, { credentials: 'include' });
                 if (error.value) throw error.value;
                 this.product = data.value;
+                console.log("this.product",this.product)
+                return data.value;
             } catch (err) {
                 this.error = err;
                 console.error('Error fetching product:', err);
                 $toast.error('Error fetching product');
+            }finally {
+                this.setLoading(false);
             }
         },
 
@@ -221,7 +231,9 @@ export const useProductStore = defineStore('product', {
                     credentials: 'include',
                     body: JSON.stringify(product),
                 });
-                if (error.value) throw error.value;
+                if (error.value) {
+                    console.log("error",error)
+                    this.error = error.value;};
                 const index = this.products.findIndex(p => p.id === id);
                 if (index !== -1) {
                     this.products[index] = data.value;

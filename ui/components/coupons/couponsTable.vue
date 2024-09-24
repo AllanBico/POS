@@ -1,74 +1,143 @@
 <template>
-  <div>
-    <a-modal v-model:open="open" title="Add Coupon" @ok="handleOk" @cancel="handleCancel" ok-text="Submit" cancel-text="Cancel">
+  <div class="div-container">
+    <!-- Modals -->
+    <a-modal
+      v-model:open="open"
+      title="Add Coupon"
+      @ok="handleOk"
+      @cancel="handleCancel"
+      ok-text="Submit"
+      cancel-text="Cancel"
+      :maskClosable="false"
+    >
       <coupon-add-modal @submit-success="handleSubmitSuccess"></coupon-add-modal>
       <template #footer></template>
     </a-modal>
 
-    <a-modal v-model:open="edit_open" title="Edit Coupon" @ok="handleOk" @cancel="handleCancel" ok-text="Submit" cancel-text="Cancel">
-      <coupon-edit-modal @submit-success="handleSubmitSuccess" :coupon-id="coupon_id"></coupon-edit-modal>
+    <a-modal
+      v-model:open="edit_open"
+      title="Edit Coupon"
+      @ok="handleOk"
+      @cancel="handleCancel"
+      ok-text="Submit"
+      cancel-text="Cancel"
+      :maskClosable="false"
+    >
+      <coupon-edit-modal
+        @submit-success="handleSubmitSuccess"
+        :coupon-id="coupon_id"
+      ></coupon-edit-modal>
       <template #footer></template>
     </a-modal>
 
-    <a-card title="Coupons" bordered={false}>
-      <div class="header-controls">
-        <div class="actions">
-          <a-button ref="addButton" type="primary" @click="handleAdd" :icon="h(PlusOutlined)">Add New</a-button>
-        </div>
-      </div>
-
-      <a-table
-          :columns="columns"
-          :data-source="couponStore.coupons"
-          :pagination="pagination"
-          :rowKey="id"
-          bordered
-          size="small"
-          @change="onChange"
+    <!-- Header -->
+    <a-card class="div-header-card" :bordered="false">
+      <a-page-header
+        class="div-header"
+        title="Coupons"
+        sub-title="Manage and organize your coupons"
       >
-        <template #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }">
-          <div style="padding: 8px">
+        <template #extra>
+          <a-button
+            class="add-coupon-btn"
+            type="primary"
+            @click="handleAdd"
+            :icon="h(PlusOutlined)"
+          >
+            Add New
+          </a-button>
+        </template>
+      </a-page-header>
+    </a-card>
+
+    <!-- Coupons table -->
+    <div class="div-table-container">
+      <a-table
+        :dataSource="couponStore.coupons"
+        :columns="columns"
+        :pagination="{
+          pageSize: 10,
+          showSizeChanger: true,
+          showQuickJumper: true,
+        }"
+        :rowKey="(record) => record.id"
+        :loading="couponStore.loading"
+        size="middle"
+      >
+        <!-- Custom filter dropdown template -->
+        <template
+          #customFilterDropdown="{
+            setSelectedKeys,
+            selectedKeys,
+            confirm,
+            clearFilters,
+            column,
+          }"
+        >
+          <div class="custom-filter-dropdown">
             <a-input
-                ref="searchInput"
-                :placeholder="`Search ${column.dataIndex}`"
-                :value="selectedKeys[0]"
-                style="width: 188px; margin-bottom: 8px; display: block"
-                @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
-                @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex)"
+              ref="searchInput"
+              :placeholder="`Search ${column.title}`"
+              :value="selectedKeys[0]"
+              @change="
+                (e) => setSelectedKeys(e.target.value ? [e.target.value] : [])
+              "
+              @pressEnter="
+                handleSearch(selectedKeys, confirm, column.dataIndex)
+              "
             />
             <a-button
-                type="primary"
-                size="small"
-                style="width: 90px; margin-right: 8px"
-                @click="handleSearch(selectedKeys, confirm, column.dataIndex)"
+              type="primary"
+              @click="handleSearch(selectedKeys, confirm, column.dataIndex)"
             >
               <template #icon><SearchOutlined /></template>
               Search
             </a-button>
-            <a-button size="small" style="width: 90px" @click="handleReset(clearFilters)">Reset</a-button>
+            <a-button @click="handleReset(clearFilters)">
+              Reset
+            </a-button>
           </div>
         </template>
-        <template #bodyCell="{ column, text, record }">
+
+        <!-- Custom filter icon -->
+        <template #customFilterIcon="{ filtered }">
+          <search-outlined
+            :class="{ 'text-primary': filtered }"
+          />
+        </template>
+
+        <!-- Custom render for operation column -->
+        <template #bodyCell="{ column, record, index }">
           <template v-if="column.dataIndex === 'operation'">
-            <a-tooltip title="Edit" placement="bottom">
-              <a-button @click="onEdit(record.id)" style="margin-right: 3px" :icon="h(EditOutlined)" />
-            </a-tooltip>
-            <a-popconfirm
-                v-if="couponStore.coupons.length"
-                title="Sure to delete?"
-                @confirm="onDelete(record.id)"
-            >
-              <a-tooltip title="Delete" placement="bottom">
-                <a-button :icon="h(DeleteOutlined)" />
-              </a-tooltip>
-            </a-popconfirm>
+            <a-dropdown :trigger="['click']">
+              <template #overlay>
+                <a-menu>
+                  <a-menu-item key="edit">
+                    <a @click="onEdit(record.id)" class="edit-link">
+                      <EditOutlined /> Edit
+                    </a>
+                  </a-menu-item>
+                  <a-menu-item key="delete">
+                    <a-popconfirm
+                      :title="`Are you sure you want to delete this coupon: ${record.code}?`"
+                      ok-text="Yes"
+                      cancel-text="No"
+                      @confirm="onDelete(record.id)"
+                    >
+                      <a class="delete-link"><DeleteOutlined /> Delete</a>
+                    </a-popconfirm>
+                  </a-menu-item>
+                </a-menu>
+              </template>
+              <a-button class="actions-btn"> Actions <DownOutlined /> </a-button>
+            </a-dropdown>
+          </template>
+          <template v-else-if="column.dataIndex === 'index'">
+            {{ index + 1 }}
           </template>
         </template>
       </a-table>
-    </a-card>
-
-    <!-- Tour Component -->
-    <a-tour :steps="steps" v-model:open="tourOpen" />
+    </div>
   </div>
 </template>
 
@@ -77,89 +146,55 @@ import { ref } from 'vue';
 import { useCouponStore } from '~/stores/CouponStore.js';
 import CouponAddModal from '~/components/coupons/CouponAddModal.vue';
 import CouponEditModal from '~/components/coupons/CouponEditModal.vue';
-import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons-vue';
-import { Tour } from 'ant-design-vue';
+import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined, DownOutlined } from '@ant-design/icons-vue';
 
 const couponStore = useCouponStore();
 const open = ref(false);
 const edit_open = ref(false);
 const coupon_id = ref(null);
-const tourOpen = ref(false);
 
 couponStore.fetchCoupons();
 
 const columns = [
   {
+    title: "Index",
+    dataIndex: "index",
+    sorter: (a, b) => a.index.localeCompare(b.index),
+    onFilter: (value, record) =>
+      record.index.toLowerCase().includes(value.toLowerCase()),
+  },
+  {
     title: 'Code',
     dataIndex: 'code',
-    key: 'code',
-    width: '20%',
     sorter: (a, b) => a.code.localeCompare(b.code),
-    sortDirections: ['descend', 'ascend'],
     customFilterDropdown: true,
-    onFilter: (value, record) => record.code.toLowerCase().includes(value.toLowerCase()),
+    onFilter: (value, record) =>
+      record.code.toLowerCase().includes(value.toLowerCase()),
   },
   {
     title: 'Discount Type',
     dataIndex: 'discountType',
-    key: 'discountType',
-    width: '20%',
     sorter: (a, b) => a.discountType.localeCompare(b.discountType),
-    sortDirections: ['descend', 'ascend'],
   },
   {
     title: 'Discount Value',
     dataIndex: 'discountValue',
-    key: 'discountValue',
-    width: '20%',
     sorter: (a, b) => a.discountValue - b.discountValue,
-    sortDirections: ['descend', 'ascend'],
   },
   {
     title: 'Usage Limit',
     dataIndex: 'usageLimit',
-    key: 'usageLimit',
-    width: '20%',
     sorter: (a, b) => a.usageLimit - b.usageLimit,
-    sortDirections: ['descend', 'ascend'],
   },
   {
     title: 'Used Count',
     dataIndex: 'usageCount',
-    key: 'usageCount',
-    width: '20%',
     sorter: (a, b) => a.usageCount - b.usageCount,
-    sortDirections: ['descend', 'ascend'],
   },
   {
-    title: 'operation',
+    title: 'Operation',
     dataIndex: 'operation',
-    key: 'operation',
   },
-];
-
-const pagination = ref({ pageSize: 10 });
-
-// Tour steps definition
-const steps = [
-  {
-    title: 'Add Coupon',
-    description: 'Click here to add a new coupon.',
-    target: () => document.querySelector('.header-controls .actions .ant-btn'),
-    placement: 'bottom'
-  },
-  {
-    title: 'Search Coupons',
-    description: 'Use this search bar to filter coupons by code.',
-    target: () => document.querySelector('.ant-input'),
-    placement: 'bottom'
-  },
-  {
-    title: 'Coupon Table',
-    description: 'This table shows all coupons, with options to edit or delete.',
-    target: () => document.querySelector('.ant-table'),
-    placement: 'top'
-  }
 ];
 
 const onDelete = async (key) => {
@@ -190,42 +225,107 @@ const handleSubmitSuccess = () => {
   edit_open.value = false;
 };
 
-const onChange = (pagination, filters, sorter) => {
-  console.log('params', pagination, filters, sorter);
-};
-
 const handleSearch = (selectedKeys, confirm, dataIndex) => {
   confirm();
-  state.searchText = selectedKeys[0];
-  state.searchedColumn = dataIndex;
+  // TODO: Implement search functionality
 };
 
 const handleReset = (clearFilters) => {
-  clearFilters({
-    confirm: true,
-  });
-  state.searchText = '';
+  clearFilters({ confirm: true });
+  // TODO: Reset search state
 };
-
-// Start tour
-const startTour = () => {
-  tourOpen.value = true;
-};
-
-// Optional: start the tour on component mount or after a specific action
-//  onMounted(() => {
-//    startTour();
-//  });
 </script>
 
 <style scoped>
-.coupons-container {
+.div-container {
+  background-color: #f0f2f5;
+  padding: 24px;
+  border-radius: 8px;
+}
+
+.div-header-card {
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.div-header {
   padding: 16px;
 }
-.header-controls {
-  margin-bottom: 16px;
+
+.div-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #001529;
 }
-.actions {
-  text-align: right;
+
+.add-coupon-btn {
+  font-size: 14px;
+  height: 36px;
+  margin-right: 8px;
+}
+
+.div-table-container {
+  background-color: #ffffff;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+:deep(.ant-table) {
+  font-size: 14px;
+}
+
+:deep(.ant-table-thead > tr > th) {
+  background-color: #fafafa;
+  color: #001529;
+  font-weight: 600;
+}
+
+:deep(.ant-table-tbody > tr > td) {
+  padding: 12px 16px;
+}
+
+:deep(.ant-table-tbody > tr:hover > td) {
+  background-color: #f5f5f5;
+}
+
+.custom-filter-dropdown {
+  padding: 8px;
+  border-radius: 4px;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.custom-filter-dropdown input {
+  width: 200px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.custom-filter-dropdown button {
+  width: 100px;
+  margin-right: 8px;
+}
+
+.actions-btn {
+  background-color: #f0f0f0;
+  border-color: #d9d9d9;
+}
+
+.actions-btn:hover {
+  background-color: #e6e6e6;
+  border-color: #d9d9d9;
+}
+
+.edit-link, .delete-link {
+  color: #001529;
+}
+
+.edit-link:hover, .delete-link:hover {
+  color: #ff4d4f;
+}
+
+.text-primary {
+  color: #1890ff;
 }
 </style>

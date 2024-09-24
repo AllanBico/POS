@@ -1,10 +1,12 @@
 <template>
   <Toaster richColors   position="top-right" />
-  <a-config-provider :theme="theme">
+
   <NuxtLayout>
+    <a-config-provider :theme="theme">
     <NuxtPage />
-  </NuxtLayout>
   </a-config-provider>
+  </NuxtLayout>
+
 </template>
 <script setup>
 import {Toaster} from "vue-sonner";

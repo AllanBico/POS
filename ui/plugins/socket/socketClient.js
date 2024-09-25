@@ -1,5 +1,5 @@
 import { io } from 'socket.io-client';
-import { useRuntimeConfig } from '#app';
+import { useState } from '#app'; // Import Nuxt's useState composable
 
 export const setupSocketClient = () => {
     const config = useRuntimeConfig();
@@ -13,8 +13,13 @@ export const setupSocketClient = () => {
         },
     });
 
+    // Save the socket ID into the global state when the connection is established
     socket.on('connect', () => {
-        console.log('Connected to the Socket.IO server',socket.id);
+        console.log('Connected to the Socket.IO server', socket.id);
+
+        // Use `useState` to store the socketId globally in Nuxt
+        const socketId = useState('socketId', () => socket.id);
+        socketId.value = socket.id; // Save the socket id
     });
 
     socket.on('disconnect', () => {

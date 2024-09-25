@@ -34,14 +34,14 @@
         sub-title="Manage and organize your variants"
       >
         <template #extra>
-          <a-button
-              class="add-product-btn"
-              type="primary"
-              @click="handleAddProduct"
-              :icon="h(PlusOutlined)"
-          >
-            Create Product
-          </a-button>
+<!--          <a-button-->
+<!--              class="add-product-btn"-->
+<!--              type="primary"-->
+<!--              @click="handleAddProduct"-->
+<!--              :icon="h(PlusOutlined)"-->
+<!--          >-->
+<!--            Create Product-->
+<!--          </a-button>-->
           <a-dropdown>
             <template #overlay>
               <a-menu>
@@ -60,7 +60,7 @@
         </template>
       </a-page-header>
     </a-card>
-    
+
     <!-- Variants table -->
     <div class="div-table-container">
       <a-table
@@ -168,6 +168,9 @@
                     <a-menu-item key="composition" @click="onComposition(record.id)">
                       <CopyOutlined /> Composition
                     </a-menu-item>
+                    <a-menu-item key="serial" @click="onSerial(record.id)">
+                      <CopyOutlined /> Serial Numbers
+                    </a-menu-item>
                   </a-menu>
                 </template>
                 <a-button type="link">
@@ -201,6 +204,7 @@ import createProduct from "~/components/product/products/createProduct.vue";
 import {useTabsStore} from '~/stores/tabsStore.js';
 import compositionForm from "~/components/product/products/compositionForm.vue";
 import compositionView from "~/components/product/products/compositionView.vue";
+import variantSerial from "~/components/product/products/variants/variantSerial.vue";
 
 const productStore = useProductStore();
 const tabsStore = useTabsStore();
@@ -308,6 +312,10 @@ const onCreate = async () => {
 };
 const onComposition = key => {
   tabsStore.addTab('Product Composition', compositionForm, { variant_id: key });
+};
+
+const onSerial = key => {
+  tabsStore.addTab('Serial Numbers', variantSerial, { id: key });
 };
 const onCompositionView = key => {
   tabsStore.addTab('Product Composition', compositionView, { variant_id: key });

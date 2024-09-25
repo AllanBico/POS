@@ -11,8 +11,9 @@ const authenticateToken = require("../../middleware/auth");
 // Create a Variant
 router.post('/',authenticateToken, async (req, res) => {
     try {
-        const { sku, price, stockQuantity, productId } = req.body;
-        const variant = await Variant.create({ sku, price, stockQuantity, productId });
+        const { sku, price, stockQuantity, productId ,partNumber,code} = req.body;
+        console.log("sku, price, stockQuantity, productId",sku, price, stockQuantity, productId,partNumber,code)
+        const variant = await Variant.create({ sku, price, stockQuantity, productId,partNumber,code });
         res.status(201).json(variant);
     } catch (error) {
         res.status(500).json({ error: error.message });

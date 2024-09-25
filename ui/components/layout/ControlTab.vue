@@ -25,21 +25,20 @@
 
   <!-- Command Palette Modal -->
   <a-modal
-    v-model:visible="isSearchModalVisible"
-    :footer="null"
-    :closable="false"
-    :width="600"
-    class="command-palette-modal"
+      v-model:visible="isSearchModalVisible"
+      :footer="null"
+      :closable="false"
+      :width="600"
+      class="command-palette-modal"
   >
     <!-- Search input -->
     <a-input
-      v-model:value="searchTerm"
-      placeholder="Search for products, customers, or serials..."
-      @input="onSearch"
-      class="command-palette-input"
-
-      ref="searchInput"
-      :prefix="h(SearchOutlined)"
+        v-model:value="searchTerm"
+        placeholder="Search for products, customers, or serials..."
+        @input="onSearch"
+        class="command-palette-input"
+        ref="searchInput"
+        :prefix="h(SearchOutlined)"
     />
 
     <!-- Search results -->
@@ -49,9 +48,9 @@
         <h3 class="result-type">Products</h3>
         <a-list item-layout="horizontal" :data-source="searchResults" size="small">
           <template #renderItem="{ item }">
-            <a-list-item>
-              <a-list-item-meta @click="onProductView(item.productId)">
-                :description="`${item.sku} - ${getProductById(item.productId)?.name || 'N/A'}`"
+            <a-list-item @click="onProductView(item.productId)">
+              <a-list-item-meta
+                  :description="`${item.sku} - ${getProductById(item.productId)?.name || 'N/A'}`"
               >
                 <template #title>
                   <span>{{ item.sku }} | {{ item?.partNumber }}</span>
@@ -85,7 +84,7 @@
           <template #renderItem="{ item }">
             <a-list-item>
               <a-list-item-meta
-                :description="`Product: ${item?.variant?.sku || 'N/A'} (${item?.variant?.Product?.name || 'N/A'})`"
+                  :description="`Product: ${item?.variant?.sku || 'N/A'} (${item?.variant?.Product?.name || 'N/A'})`"
               >
                 <template #title>
                   <span>{{ item.serialNumber }}</span>
@@ -117,8 +116,9 @@ import { useSerialNumberStore } from '~/stores/SerialNumberStore.js';
 import { BellOutlined, SettingOutlined, UserOutlined, SearchOutlined } from '@ant-design/icons-vue';
 import { notification } from 'ant-design-vue';
 import Mousetrap from 'mousetrap';
-import {useTabsStore} from "~/stores/tabsStore.js";
-import productView from "~/components/product/products/productView.vue";
+import { useTabsStore } from '~/stores/tabsStore.js';
+import productView from '~/components/product/products/productView.vue';
+
 const tabsStore = useTabsStore();
 const serialStore = useSerialNumberStore();
 const productVariantStore = useProductStore();
@@ -153,9 +153,9 @@ const onSearch = async () => {
 
 // Computed property to check if there are any results
 const hasResults = computed(() => {
-  return searchResults.value.length > 0 || 
-         CustomerSearchResults.value.length > 0 || 
-         SerialSearchResults.value.length > 0;
+  return searchResults.value.length > 0 ||
+      CustomerSearchResults.value.length > 0 ||
+      SerialSearchResults.value.length > 0;
 });
 
 // Helper function to get product by ID from store
@@ -202,19 +202,29 @@ const onProductView = (id) => {
 <style scoped>
 .command-palette-modal {
   top: 50px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .command-palette-input {
   margin-bottom: 10px;
+  border-radius: 8px;
+  border: 1px solid #d9d9d9;
+  padding: 10px;
+  font-size: 16px;
 }
 
 .command-palette-results {
   max-height: 400px;
   overflow-y: auto;
+  border-radius: 8px;
+  padding: 10px;
+  background-color: #fafafa;
 }
 
 .result-section {
   margin-bottom: 10px;
+  border-bottom: 1px solid #e8e8e8;
 }
 
 .result-type {
@@ -228,17 +238,27 @@ const onProductView = (id) => {
   text-align: center;
   color: #999;
   font-style: italic;
+  padding: 20px;
 }
 
 :deep(.ant-list-item) {
   padding: 8px 0;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+:deep(.ant-list-item:hover) {
+  background-color: #e6f7ff;
 }
 
 :deep(.ant-list-item-meta-title) {
   margin-bottom: 0;
+  font-size: 14px;
+  color: #333;
 }
 
 :deep(.ant-list-item-meta-description) {
   font-size: 12px;
+  color: #666;
 }
 </style>

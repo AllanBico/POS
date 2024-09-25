@@ -87,8 +87,7 @@ router.get('/variant/:variantId', async (req, res) => {
     try {
         const { variantId } = req.params;
         const serialNumbers = await SerialNumber.findAll({
-            where: { variantId },
-            include: [{ model: Variant }],
+            where: { variantId, status: 'available' }
         });
         if (serialNumbers.length === 0) {
             return res.status(404).json({ message: 'No serial numbers found for this variant' });

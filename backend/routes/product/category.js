@@ -1,40 +1,59 @@
-// routes/CategoryStore.js
 const express = require('express');
-const {  Category } = require('../../models/associations');
+const { Category } = require('../../models/associations');
 const authenticateToken = require('../../middleware/auth');
+const { ValidationError } = require('sequelize');
 const router = express.Router();
 
-// Error handling middleware
+// Utility function to handle async routes
 const asyncHandler = fn => (req, res, next) =>
     Promise.resolve(fn(req, res, next)).catch(next);
 
-// Create a category
-router.post('/', authenticateToken,asyncHandler(async (req, res) => {
-    const { name, description } = req.body;
-    if (!name ) {
-        return res.status(400).json({ error: 'Name is required' });
+// Validate category input
+const validateCategoryInput = (name) => {
+    if (!name || typeof name !== 'string' || name.trim() === '') {
+        const error = new Error('Valid name is required');
+        error.status = 400;
+        throw error;
     }
+};
+
+// Emit socket event to all clients except the sender
+const emitToOthers = (req, event, data) => {
+    const socketId = req.headers['x-socket-id'];
+    const allSockets = req.io.sockets.sockets;
+    // Emit to all sockets except the one with the specified socketId
+    for (const [id, socket] of allSockets) {
+        if (id !== socketId) {
+            socket.emit(event, data);
+        }
+    }
+};
+
+// Create a category
+router.post('/', authenticateToken, asyncHandler(async (req, res) => {
+    const { name, description } = req.body;
+    validateCategoryInput(name);
+
     try {
         const category = await Category.create({ name, description });
         res.status(201).json(category);
-        console.log("socket Id",req)
-        req.io.emit('newCategory', category);
+        // Emit the event after sending the response
+        setImmediate(() => {
+            emitToOthers(req, 'newCategory', category);
+        });
     } catch (error) {
-        console.error('Error creating category:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        if (error instanceof ValidationError) {
+            res.status(400).json({ error: error.errors.map(e => e.message) });
+        } else {
+            throw error;
+        }
     }
 }));
 
 // Get all categories
 router.get('/', authenticateToken, asyncHandler(async (req, res) => {
-
-    try {
-        const categories = await Category.findAll(); // Use Sequelize or your DB library
-        res.json(categories);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server error');
-    }
+    const categories = await Category.findAll();
+    res.status(200).json(categories);
 }));
 
 // Get a single category by ID
@@ -45,7 +64,9 @@ router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
     }
 
     const category = await Category.findByPk(id);
-    if (!category) return res.status(404).json({ error: 'Category not found' });
+    if (!category) {
+        return res.status(404).json({ error: 'Category not found' });
+    }
     res.status(200).json(category);
 }));
 
@@ -57,15 +78,19 @@ router.put('/:id', authenticateToken, asyncHandler(async (req, res) => {
         return res.status(400).json({ error: 'Invalid category ID' });
     }
 
-    const category = await Category.findByPk(id);
-    if (!category) return res.status(404).json({ error: 'Category not found' });
+    validateCategoryInput(name);
 
-    if (name) category.name = name;
-    if (description) category.description = description;
-    await category.save();
-    res.status(200).json(category);
+    const [updatedRowsCount, [updatedCategory]] = await Category.update(
+        { name, description },
+        { where: { id }, returning: true }
+    );
 
-    req.io.emit('updateCategory', category);
+    if (updatedRowsCount === 0) {
+        return res.status(404).json({ error: 'Category not found' });
+    }
+
+    res.status(200).json(updatedCategory);
+    emitToOthers(req, 'updateCategory', updatedCategory);
 }));
 
 // Delete a category by ID
@@ -75,12 +100,19 @@ router.delete('/:id', authenticateToken, asyncHandler(async (req, res) => {
         return res.status(400).json({ error: 'Invalid category ID' });
     }
 
-    const category = await Category.findByPk(id);
-    if (!category) return res.status(404).json({ error: 'Category not found' });
+    const deletedRowsCount = await Category.destroy({ where: { id } });
+    if (deletedRowsCount === 0) {
+        return res.status(404).json({ error: 'Category not found' });
+    }
 
-    await category.destroy(); // Soft delete because of `paranoid: true`
-    res.status(204).json({ message: 'Category deleted' });
-    req.io.emit('deleteCategory', id);
+    res.status(204).send();
+    emitToOthers(req, 'deleteCategory', id);
 }));
+
+// Error handling middleware
+router.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(err.status || 500).json({ error: err.message || 'Internal server error' });
+});
 
 module.exports = router;

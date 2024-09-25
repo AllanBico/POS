@@ -1,12 +1,12 @@
 <template>
   <Toaster richColors   position="top-right" />
-
+  <a-config-provider :theme="theme">
   <NuxtLayout>
-    <a-config-provider :theme="theme">
-    <NuxtPage />
-  </a-config-provider>
-  </NuxtLayout>
 
+    <NuxtPage />
+
+  </NuxtLayout>
+  </a-config-provider>
 </template>
 <script setup>
 import {Toaster} from "vue-sonner";
@@ -16,101 +16,87 @@ definePageMeta({
 
 const theme = reactive({
   token: {
-    // --- Primary Colors ---
-    // colorPrimary: "#2ed162", // Light green from the primary palette for UI elements like buttons, icons
-    // colorSecondary: "#14122e", // Dark secondary color for text and secondary actions (unchanged)
-    // colorSuccess: "#30cf58", // Adjusted green from the provided color scale
-    // colorWarning: "#ff9800", // Keep the orange for warnings
-    // colorError: "#d12eb6", // Soft accent pink for errors
-    // colorBackground: "#2fd04f", // Light green for background in light mode
-    colorText: "#14122e", // Dark text color for readability (unchanged)
+    colorPrimary: "#f2003c",
+    colorSecondary: "#14122e",
+    colorSuccess: "#30cf58",
+    colorWarning: "#ff9800",
+    colorError: "#d12eb6",
+    colorBackground: "#2fd04f",
+    colorText: "#14122e",
 
-    // --- Background & Element Styling ---
-    // Global Background
-    layoutBodyBackground: "#2fd04f", // Light green background for the entire layout
-    bodyBackgroundColor: "#2fd04f", // Consistent green background for body
+    layoutBodyBackground: "#2fd04f",
+    bodyBackgroundColor: "#2fd04f",
+    cardBackground: "#b792e7",
+    modalBackground: "#b792e7",
+    inputBackground: "#b792e7",
+    buttonBackground: "#ffffff",
 
-    // Element Backgrounds (White)
-    // cardBackground: "#b792e7", // White background for cards (unchanged)
-    // modalBackground: "#b792e7", // White background for modals (unchanged)
-    // inputBackground: "#b792e7", // White background for form inputs (unchanged)
-    // buttonBackground: "#ffffff", // White button background (unchanged)
+    colorTextHeading: "#14122e",
+    colorTextBody: "#14122e",
+    fontSizeBase: 14,
+    fontSizeHeading1: 24,
+    fontSizeHeading2: 20,
+    fontSizeHeading3: 16,
 
-    // Typography
-    colorTextHeading: "#14122e", // Dark text for headings (unchanged)
-    colorTextBody: "#14122e", // Dark text for body content (unchanged)
-    fontSizeBase: 14, // Base font size (unchanged)
-    fontSizeHeading1: 24, // H1 size (unchanged)
-    fontSizeHeading2: 20, // H2 size (unchanged)
-    fontSizeHeading3: 16, // H3 size (unchanged)
+    borderRadiusBase: "6px",
+    borderWidth: "1px",
 
-    // --- Borders ---
-    // borderColor: "#d12eb6", // Accent pink for borders (from the accent scale)
-    borderRadiusBase: "6px", // Default border radius (unchanged)
-    borderWidth: "1px", // Border width (unchanged)
+    buttonPrimaryColor: "#ffffff",
+    buttonTextColorPrimary: "#2fd04f",
+    buttonBorderRadius: "6px",
+    buttonPaddingHorizontal: "12px",
+    buttonPaddingVertical: "8px",
+    buttonFontWeight: "bold",
+    buttonHoverBackground: "#d12eb6",
 
-    // --- Buttons ---
-    // buttonPrimaryColor: "#ffffff", // White background for buttons (unchanged)
-    // buttonTextColorPrimary: "#2fd04f", // Green text on primary buttons
-    buttonBorderRadius: "6px", // Rounded button corners (unchanged)
-    buttonPaddingHorizontal: "12px", // Padding for buttons (unchanged)
-    buttonPaddingVertical: "8px", // Vertical padding (unchanged)
-    buttonFontWeight: "bold", // Bold text for buttons (unchanged)
-    // buttonHoverBackground: "#d12eb6", // Hover effect in accent pink
+    inputBorderColor: "#d12eb6",
+    inputBorderRadius: "6px",
+    inputPadding: "8px 12px",
+    inputTextColor: "#14122e",
+    inputFocusBorderColor: "#2fd04f",
 
-    // --- Inputs ---
-    // inputBorderColor: "#d12eb6", // Pink borders for inputs
-    inputBorderRadius: "6px", // Rounded input corners (unchanged)
-    inputPadding: "8px 12px", // Padding for inputs (unchanged)
-    inputTextColor: "#14122e", // Dark text inside inputs (unchanged)
-    // inputFocusBorderColor: "#2fd04f", // Green border color on focus
+    cardPadding: "16px",
+    cardShadow: "0px 4px 12px rgba(0, 0, 0, 0.05)",
+    cardBorderRadius: "6px",
+    cardBorderColor: "#d12eb6",
+    cardHeaderBackgroundColor: "#f1fcf4",
+    cardContentBackgroundColor: "#f1fcf4",
+    cardTextColor: "#14122e",
 
-    // --- Cards ---
-    cardPadding: "16px", // Padding inside cards (unchanged)
-    cardShadow: "0px 4px 12px rgba(0, 0, 0, 0.05)", // Shadow for depth (unchanged)
-    cardBorderRadius: "6px", // Rounded corners for cards (unchanged)
-    // cardBorderColor: "#d12eb6", // Border color in pink
-    // cardHeaderBackgroundColor: "#f1fcf4", // White background for card headers (unchanged)
-    // cardContentBackgroundColor: "#f1fcf4", // White content background (unchanged)
-    cardTextColor: "#14122e", // Dark text on cards (unchanged)
+    modalPadding: "20px",
+    modalBorderRadius: "8px",
+    modalBorderColor: "#d12eb6",
+    modalShadow: "0px 6px 16px rgba(0, 0, 0, 0.1)",
+    modalBackgroundColor:"#b792e7",
 
-    // --- Modals ---
-    modalPadding: "20px", // Modal padding (unchanged)
-    modalBorderRadius: "8px", // Rounded corners for modals (unchanged)
-    // modalBorderColor: "#d12eb6", // Pink border for modals
-    modalShadow: "0px 6px 16px rgba(0, 0, 0, 0.1)", // Stronger shadow for depth
-    // modalBackgroundColor:"#b792e7",
+    tableHeaderBackground: "#f0f0f0",
+    tableRowBackgroundHover: "#fafafa",
+    tableBorderColor: "#d12eb6",
+    tablePadding: "10px",
 
-    // --- Table ---
-    // tableHeaderBackground: "#f0f0f0", // Light grey background for table headers (unchanged)
-    // tableRowBackgroundHover: "#fafafa", // Light hover effect on table rows (unchanged)
-    // tableBorderColor: "#d12eb6", // Pink border for tables
-    tablePadding: "10px", // Padding for table cells (unchanged)
+    tabBarBackground: "#ffffff",
+    tabBarBorderColor: "#d12eb6",
+    tabPadding: "10px 16px",
+    tabFontSize: "14px",
 
-    // --- Tabs ---
-    // tabBarBackground: "#ffffff", // White background for tabs (unchanged)
-    // tabBarBorderColor: "#d12eb6", // Pink border under tabs
-    tabPadding: "10px 16px", // Padding for tabs (unchanged)
-    tabFontSize: "14px", // Font size for tabs (unchanged)
+    dropdownBackground: "#ffffff",
+    dropdownBorder: "1px solid #d12eb6",
+    dropdownPadding: "8px",
 
-    // --- Dropdowns ---
-    dropdownBackground: "#ffffff", // White background for dropdowns (unchanged)
-    dropdownBorder: "1px solid #d12eb6", // Pink border for dropdowns
-    dropdownPadding: "8px", // Padding for dropdowns (unchanged)
+    boxShadowBase: "0px 2px 8px rgba(0, 0, 0, 0.05)",
+    paddingBase: 8,
 
-    // --- Shadows and Spacing ---
-    boxShadowBase: "0px 2px 8px rgba(0, 0, 0, 0.05)", // Default shadow (unchanged)
-    paddingBase: 8, // Standard padding (unchanged)
-
-    // --- Other ---
-    wireframe: false, // Keep the polished look (unchanged)
+    wireframe: false,
   },
   // components: {
   //   Card: {
-  //     colorBgContainer: "#f1fcf4", // Light green background for card containers
+  //     colorBgContainer: "#faf7fe",
   //   },
   //   Modal: {
-  //     colorBgElevated: "#f1fcf4", // Light green background for elevated modal containers
+  //     colorBgElevated: "#faf7fe",
+  //   },
+  //   Menu: {
+  //     colorItemBg: "#f2eff6",
   //   }
   // }
 });

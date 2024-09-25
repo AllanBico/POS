@@ -52,7 +52,7 @@ const error = ref(null);
 // Fetch brand data based on the selected brand ID
 const fetchBrand = async () => {
   try {
-    const fetchedBrand = brandStore.getBrandById(parseInt(brandId.value));
+    const fetchedBrand = await brandStore.getBrandById(parseInt(brandId.value));
     if (fetchedBrand) {
       form.value = { ...fetchedBrand };
     } else {

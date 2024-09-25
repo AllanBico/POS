@@ -1,6 +1,20 @@
 <template>
   <div class="div-container">
+
     <!-- Modals -->
+    <a-modal
+        v-model:open="is_visible"
+        title="Add Variants"
+        @ok="handleModalOk"
+        @cancel="handleModalCancel"
+        ok-text="Submit"
+        width="100%"
+        cancel-text="Cancel"
+        :maskClosable="false"
+    >
+      <variants-add-modal @submit-success="handleSubmitSuccess" :product-id="product_id" />
+      <template #footer> </template>
+    </a-modal>
     <a-modal
       v-model:open="isAddModalOpen"
       title="Create Product"
@@ -129,9 +143,9 @@
             <span>
               <a-tag
                   :key="record.id"
-                  :color="record.variants.length > 0 && record.variants[0].stockQuantity > 0 ? 'success' : 'error'"
+                  :color="record?.variants?.length > 0 && record?.variants[0]?.stockQuantity > 0 ? 'success' : 'error'"
               >
-                {{ record.variants.length > 0 && record.variants[0].stockQuantity > 0 ? 'In Stock' : 'Out of Stock' }}
+                {{ record?.variants?.length > 0 && record?.variants[0]?.stockQuantity > 0 ? 'In Stock' : 'Out of Stock' }}
               </a-tag>
             </span>
           </template>
@@ -170,8 +184,8 @@
                     <a-menu-item key="view" @click="onView(record.id)">
                       <EyeOutlined /> View Details
                     </a-menu-item>
-                    <a-menu-item key="duplicate">
-                      <CopyOutlined /> Duplicate
+                    <a-menu-item key="duplicate" @click="onAdd(record.id)">
+                      <CopyOutlined /> Add Variant
                     </a-menu-item>
                     <a-menu-item key="archive">
                       <InboxOutlined /> Archive
@@ -232,6 +246,7 @@ import 'jspdf-autotable';
 import {useTabsStore} from "~/stores/tabsStore.js";
 import attributesValuesTable from "~/components/product/attributes/attributesValuesTable.vue";
 import productView from "~/components/product/products/productView.vue";
+import VariantsAddModal from "~/components/product/products/variants/variantsAddModal.vue";
 
 // Initialize product store and fetch products
 const productStore = useProductStore();
@@ -316,6 +331,12 @@ const pagination = ref({pageSize: 10});
 const onView = (id) => {
   tabsStore.addTab('Product', productView, { id });
 };
+const product_id = ref(null)
+const is_visible = ref(false)
+const onAdd = (id) => {
+  product_id.value = id
+  is_visible.value = true
+};
 // Event handlers
 const handleAddProduct = () => {
   isAddModalOpen.value = true;
@@ -349,6 +370,7 @@ const handleModalCancel = () => {
 const handleSubmitSuccess = () => {
   isAddModalOpen.value = false;
   isEditModalOpen.value = false;
+  is_visible.value = false;
 };
 
 const handleSearch = (selectedKeys, confirm, dataIndex) => {

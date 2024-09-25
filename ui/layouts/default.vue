@@ -97,7 +97,7 @@ import paymentMethodsTable from '~/components/expenses/paymentMethodsTable.vue';
 import expensesCategoriesTable from '~/components/expenses/expensesCategoriesTable.vue';
 import GoodsReceivingTable from "~/components/inventory/receive/GoodsReceivingTable.vue";
 import rolesTable from "~/components/users/roleandpermission/rolesTable.vue";
-import variantsTable from '~/components/product/products/variantsTable.vue';
+import variantsTable from '~/components/product/products/variants/variantsTable.vue';
 import settings from '~/components/settings/settings.vue';
 import stockTransfer from '~/components/inventory/stockTransfer.vue';
 import taxesTable from "~/components/taxes/taxesTable.vue";
@@ -109,6 +109,7 @@ import OrderList from "~/components/sales/OrderList.vue";
 import QuickActions from "~/components/layout/QuickActions.vue";
 import ControlTab from "~/components/layout/ControlTab.vue";
 import Dashboard from "~/components/Dashboard.vue";
+import test from "~/components/test.vue";
 const tabsStore = useTabsStore();
 
 const state = reactive({
@@ -127,6 +128,13 @@ const menuItems = [
     label: 'Dashboard',
     title: 'Dashboard',
     onClick: () => addTab('Dashboard', Dashboard),
+  },
+  {
+    key: 'test',
+    icon: () => h(DashboardOutlined),
+    label: 'test',
+    title: 'test',
+    onClick: () => addTab('test', test),
   },
   {
     type: 'divider',

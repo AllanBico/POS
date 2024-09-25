@@ -1,72 +1,102 @@
 <template>
-  <a-form @submit="handleSubmit" layout="vertical">
-    <a-form-item label="Product Name" class="form-item">
-      <a-input v-model:value="product.name" placeholder="Enter product name"/>
-    </a-form-item>
-    <a-form-item label="Description" class="form-item">
-      <a-textarea v-model:value="product.description" placeholder="Enter product description"/>
-    </a-form-item>
-    <a-form-item label="Is Composition?" class="form-item">
-      <a-switch v-model:checked="product.isComposition"/>
-    </a-form-item>
-    <a-form-item label="Category" class="form-item">
-      <a-button type="link" @click="handleAddCategory" :icon="h(PlusOutlined)">Add New</a-button>
-      <a-select v-model:value="product.categoryId" placeholder="Select category" show-search
-                :filter-option="filterOption">
-        <a-select-option v-for="category in categoryStore.categories" :key="category.id" :value="category.id">
-          {{ category.name }}
-        </a-select-option>
-      </a-select>
-    </a-form-item>
-    <a-form-item label="Subcategory" class="form-item">
-      <a-button type="link" @click="handleAddSubCategory" :icon="h(PlusOutlined)">Add New</a-button>
-      <a-select v-model:value="product.subcategoryId" placeholder="Select subcategory">
-        <a-select-option v-for="subcategory in subcategoryStore.subcategories" :key="subcategory.id" :value="subcategory.id">
-          {{ subcategory.name }}
-        </a-select-option>
-      </a-select>
-    </a-form-item>
-    <a-form-item label="Brand" class="form-item">
-      <a-button type="link" @click="handleAddBrand" :icon="h(PlusOutlined)">Add New</a-button>
-      <a-select v-model:value="product.brandId" placeholder="Select brand">
-        <a-select-option v-for="brand in brandStore.brands" :key="brand.id" :value="brand.id">
-          {{ brand.name }}
-        </a-select-option>
-      </a-select>
-    </a-form-item>
-    <a-form-item label="Unit" class="form-item">
-      <a-button type="link" @click="handleAddUnit" :icon="h(PlusOutlined)">Add New</a-button>
-      <a-select v-model:value="product.unitId" placeholder="Select unit">
-        <a-select-option v-for="unit in unitStore.units" :key="unit.id" :value="unit.id">
-          {{ unit.name }}
-        </a-select-option>
-      </a-select>
-    </a-form-item>
-    <a-form-item label="Low Stock Alert" class="form-item">
-      <a-input-number v-model:value="product.lowStockAlert" placeholder="Enter low stock alert quantity" min="0"/>
-    </a-form-item>
-    <a-form-item label="VAT Type" class="form-item">
-      <a-select v-model:value="product.vatType" placeholder="Select VAT type">
-        <a-select-option value="inclusive">Inclusive</a-select-option>
-        <a-select-option value="exclusive">Exclusive</a-select-option>
-        <a-select-option value="exempted">Exempted</a-select-option>
-      </a-select>
-    </a-form-item>
-    <a-form-item label="Select Taxes" class="form-item">
-      <a-select
-          v-model:value="product.selectedTaxes"
-          mode="multiple"
-          placeholder="Select Taxes"
-          labelInValue
-          :options="taxStore.taxes.map(tax => ({ label: tax.name, value: tax.id }))"
-      />
-    </a-form-item>
-    <a-form-item>
-      <a-button type="primary" @click="handleSubmit" :loading="loading">
-        Create Product
-      </a-button>
-    </a-form-item>
-  </a-form>
+
+    <a-form @submit="handleSubmit" layout="vertical">
+      <a-row :gutter="24">
+        <a-col :span="12">
+          <a-form-item label="Product Name" class="form-item">
+            <a-input v-model:value="product.name" placeholder="Enter product name"/>
+          </a-form-item>
+        </a-col>
+        <a-col :span="12">
+          <a-form-item label="Description" class="form-item">
+            <a-textarea v-model:value="product.description" placeholder="Enter product description"/>
+          </a-form-item>
+        </a-col>
+      </a-row>
+      <a-row :gutter="24">
+        <a-col :span="12">
+          <a-form-item label="Is Composition?" class="form-item">
+            <a-switch v-model:checked="product.isComposition"/>
+          </a-form-item>
+        </a-col>
+        <a-col :span="12">
+          <a-form-item label="Low Stock Alert" class="form-item">
+            <a-input-number v-model:value="product.lowStockAlert" placeholder="Enter low stock alert quantity" min="0"/>
+          </a-form-item>
+        </a-col>
+      </a-row>
+      <a-row :gutter="24">
+        <a-col :span="12">
+          <a-form-item label="Category" class="form-item">
+            <a-button type="link" @click="handleAddCategory" :icon="h(PlusOutlined)">Add New</a-button>
+            <a-select v-model:value="product.categoryId" placeholder="Select category" show-search :filter-option="filterOption">
+              <a-select-option v-for="category in categoryStore.categories" :key="category.id" :value="category.id">
+                {{ category.name }}
+              </a-select-option>
+            </a-select>
+          </a-form-item>
+        </a-col>
+        <a-col :span="12">
+          <a-form-item label="Subcategory" class="form-item">
+            <a-button type="link" @click="handleAddSubCategory" :icon="h(PlusOutlined)">Add New</a-button>
+            <a-select v-model:value="product.subcategoryId" placeholder="Select subcategory">
+              <a-select-option v-for="subcategory in subcategoryStore.subcategories" :key="subcategory.id" :value="subcategory.id">
+                {{ subcategory.name }}
+              </a-select-option>
+            </a-select>
+          </a-form-item>
+        </a-col>
+      </a-row>
+      <a-row :gutter="24">
+        <a-col :span="12">
+          <a-form-item label="Brand" class="form-item">
+            <a-button type="link" @click="handleAddBrand" :icon="h(PlusOutlined)">Add New</a-button>
+            <a-select v-model:value="product.brandId" placeholder="Select brand">
+              <a-select-option v-for="brand in brandStore.brands" :key="brand.id" :value="brand.id">
+                {{ brand.name }}
+              </a-select-option>
+            </a-select>
+          </a-form-item>
+        </a-col>
+        <a-col :span="12">
+          <a-form-item label="Unit" class="form-item">
+            <a-button type="link" @click="handleAddUnit" :icon="h(PlusOutlined)">Add New</a-button>
+            <a-select v-model:value="product.unitId" placeholder="Select unit">
+              <a-select-option v-for="unit in unitStore.units" :key="unit.id" :value="unit.id">
+                {{ unit.name }}
+              </a-select-option>
+            </a-select>
+          </a-form-item>
+        </a-col>
+      </a-row>
+      <a-row :gutter="24">
+        <a-col :span="12">
+          <a-form-item label="VAT Type" class="form-item">
+            <a-select v-model:value="product.vatType" placeholder="Select VAT type">
+              <a-select-option value="inclusive">Inclusive</a-select-option>
+              <a-select-option value="exclusive">Exclusive</a-select-option>
+              <a-select-option value="exempted">Exempted</a-select-option>
+            </a-select>
+          </a-form-item>
+        </a-col>
+        <a-col :span="12">
+          <a-form-item label="Select Taxes" class="form-item">
+            <a-select
+                v-model:value="product.selectedTaxes"
+                mode="multiple"
+                placeholder="Select Taxes"
+                labelInValue
+                :options="taxStore.taxes.map(tax => ({ label: tax.name, value: tax.id }))"
+            />
+          </a-form-item>
+        </a-col>
+      </a-row>
+      <a-form-item class="submit-button">
+        <a-button type="primary" @click="handleSubmit" :loading="productStore.loading">
+          Submit
+        </a-button>
+      </a-form-item>
+    </a-form>
 
   <a-modal v-model:open="open_unit" title="Add Unit" @ok="handleOk" @cancel="handleCancel" ok-text="Submit" cancel-text="Cancel">
     <UnitsAddModal @submit-success="handleSubmitSuccess"></UnitsAddModal>
@@ -110,15 +140,9 @@ brandStore.fetchBrands();
 unitStore.fetchUnits();
 taxStore.fetchTaxes();
 
-
-
-
 const categories = ref([]);
 const subcategories = ref([]);
 const attributes = ref([]);
-
-
-
 
 const props = defineProps({
   productId: {
@@ -145,9 +169,6 @@ const fetchProduct = async () => {
     loading.value = true;
     product.value = await productStore.productById(parseInt(props.productId));
     product.value.selectedTaxes = await taxStore.fetchTaxByProduct(parseInt(props.productId))
-
-    console.log("product.value",product.value)
-    console.log("product.value.selectedTaxes",product.value.selectedTaxes)
   } catch (error) {
     console.error('Error fetching product:', error);
   } finally {
@@ -157,7 +178,6 @@ const fetchProduct = async () => {
 fetchProduct()
 const handleSubmit = async () => {
   try {
-
     await productStore.updateProduct(props.productId, product.value); // Update the product
     emit('submit-success');
   } catch (error) {
@@ -177,8 +197,6 @@ subcategoryStore.fetchSubcategories().then(() => {
 attributesStore.fetchAttributes().then(() => {
   attributes.value = attributesStore.attributes;
 });
-
-
 
 const open_category = ref(false);
 const open_subcategory = ref(false);
@@ -227,7 +245,10 @@ const filterOption = (input, option) => {
   return name.toLowerCase().includes(input.toLowerCase());
 };
 
+const visible = ref(true); // This should be controlled by the parent component
 </script>
 <style scoped>
-
+.form-item {
+  margin-bottom: 24px;
+}
 </style>

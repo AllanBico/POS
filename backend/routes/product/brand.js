@@ -1,17 +1,26 @@
 const express = require('express');
-const {  Brand } = require('../../models/associations');
+const { Brand } = require('../../models/associations');
 const authenticateToken = require('../../middleware/auth');
 
 const router = express.Router();
+
+// Utility function to handle async routes
 const asyncHandler = fn => (req, res, next) =>
     Promise.resolve(fn(req, res, next)).catch(next);
 
-// Create a new brand
-router.post('/', authenticateToken,asyncHandler(async (req, res) => {
-    const { name, description } = req.body;
+// Validate brand input
+const validateBrandInput = (name, description) => {
     if (!name || !description) {
-        return res.status(400).json({ error: 'Name and description are required' });
+        const error = new Error('Name and description are required');
+        error.status = 400;
+        throw error;
     }
+};
+
+// Create a new brand
+router.post('/', authenticateToken, asyncHandler(async (req, res) => {
+    const { name, description } = req.body;
+    validateBrandInput(name, description);
 
     const brand = await Brand.create({ name, description });
     res.status(201).json(brand);
@@ -32,7 +41,9 @@ router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
     }
 
     const brand = await Brand.findByPk(id);
-    if (!brand) return res.status(404).json({ error: 'Brand not found' });
+    if (!brand) {
+        return res.status(404).json({ error: 'Brand not found' });
+    }
     res.status(200).json(brand);
 }));
 
@@ -44,19 +55,22 @@ router.put('/:id', authenticateToken, asyncHandler(async (req, res) => {
     }
 
     const { name, description } = req.body;
-    if (!name || !description) {
-        return res.status(400).json({ error: 'Name and description are required' });
-    }
+    validateBrandInput(name, description);
 
     const brand = await Brand.findByPk(id);
-    if (!brand) return res.status(404).json({ error: 'Brand not found' });
+    if (!brand) {
+        return res.status(404).json({ error: 'Brand not found' });
+    }
 
     brand.name = name;
     brand.description = description;
     await brand.save();
+
     const updatedBrand = await Brand.findByPk(id);
     res.status(200).json(updatedBrand);
-    req.io.emit('updateBrand', updatedBrand);
+    const socketId = req.headers['x-socket-id'];
+    console.log('Socket ID:', socketId);
+    req.io.emit('updateBrand', updatedBrand, { except: socketId });
 }));
 
 // Delete a brand (soft delete)
@@ -67,11 +81,19 @@ router.delete('/:id', authenticateToken, asyncHandler(async (req, res) => {
     }
 
     const brand = await Brand.findByPk(id);
-    if (!brand) return res.status(404).json({ error: 'Brand not found' });
+    if (!brand) {
+        return res.status(404).json({ error: 'Brand not found' });
+    }
 
     await brand.destroy();
-    res.status(204).json();
+    res.status(200).json({ message: 'Brand deleted successfully' });
     req.io.emit('deleteBrand', id);
 }));
+
+// Error handling middleware
+router.use((err, req, res, next) => {
+    const status = err.status || 500;
+    res.status(status).json({ error: err.message });
+});
 
 module.exports = router;

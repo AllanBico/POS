@@ -13,6 +13,7 @@ export const setupCategoryHandlers = (socket) => {
     });
 
     socket.on('deleteCategory', async (id) => {
+        console.log("socket del category",id)
         await categoryStore.socketDeleteCategory(parseInt(id));
     });
     socket.on('newSubcategory', async (subCategory) => {
@@ -23,6 +24,7 @@ export const setupCategoryHandlers = (socket) => {
         await subCategoryStore.socketUpdateSubcategory(subCategory);
     });
     socket.on('deleteSubcategory', async (id) => {
+
         await subCategoryStore.socketDeleteSubcategory(parseInt(id));
     });
 };

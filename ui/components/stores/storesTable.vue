@@ -110,29 +110,38 @@
         <!-- Custom render for operation column -->
         <template #bodyCell="{ column, record, index }">
           <template v-if="column.dataIndex === 'operation'">
-            <a-dropdown :trigger="['click']">
-              <template #overlay>
-                <a-menu>
-                  <a-menu-item key="edit">
-                    <a @click="handleEditStore(record.id)" class="edit-link">
-                      <EditOutlined /> Edit
-                    </a>
-                  </a-menu-item>
-                  <a-menu-item key="delete">
-                    <a-popconfirm
-                      :title="`Are you sure you want to delete this store: ${record.name}?`"
-                      ok-text="Yes"
-                      cancel-text="No"
-                      @confirm="handleDeleteStore(record.id)"
-                    >
-                      <a class="delete-link"><DeleteOutlined /> Delete</a>
-                    </a-popconfirm>
-                  </a-menu-item>
-                </a-menu>
-              </template>
-              <a-button class="actions-btn"> Actions <DownOutlined /> </a-button>
-            </a-dropdown>
+            <div class="action-buttons">
+              <a-tooltip title="Edit">
+                <a-button
+                    type="link"
+                    class="edit-btn"
+                    @click="handleEditStore(record.id)"
+                    :style="{ color: '#1890ff' }"
+                >
+                  <template #icon><EditOutlined /></template>
+                </a-button>
+              </a-tooltip>
+              <a-popconfirm
+                  :title="`Are you sure you want to delete ${record.name}?`"
+                  ok-text="Yes"
+                  cancel-text="No"
+                  @confirm="handleDeleteStore(record.id)"
+                  placement="topRight"
+              >
+                <a-tooltip title="Delete">
+                  <a-button
+                      type="link"
+                      class="delete-btn"
+                      :style="{ color: '#ff4d4f' }"
+                  >
+                    <template #icon><DeleteOutlined /></template>
+                  </a-button>
+                </a-tooltip>
+              </a-popconfirm>
+
+            </div>
           </template>
+
           <template v-else-if="column.dataIndex === 'index'">
             {{ index + 1 }}
           </template>
@@ -155,7 +164,6 @@ import {
   DownOutlined,
 } from "@ant-design/icons-vue";
 
-// Initialize store store and fetch stores
 const storeStore = useStoreStore();
 storeStore.fetchStores();
 
@@ -168,8 +176,9 @@ const searchInput = ref(null);
 // Table columns configuration
 const columns = [
   {
-    title: "Index",
+    title: "#",
     dataIndex: "index",
+    width:"5%",
     sorter: (a, b) => a.index.localeCompare(b.index),
     onFilter: (value, record) =>
       record.index.toLowerCase().includes(value.toLowerCase()),

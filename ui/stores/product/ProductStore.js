@@ -10,7 +10,7 @@ export const useProductStore = defineStore('product', {
         variants: [],
         variantAttributeValues: [],
         error: null,
-        compositions:[],
+        compositions: [],
         loading: false,
     }),
     getters: {
@@ -43,7 +43,7 @@ export const useProductStore = defineStore('product', {
 
             this.searchResults = this.variants?.filter((variant) => {
                 const product = this.products?.find(product => product.id === variant?.productId);
-                
+
                 const searchableFields = [
                     variant?.sku,
                     variant?.code,
@@ -52,7 +52,7 @@ export const useProductStore = defineStore('product', {
                     product?.name
                 ].filter(Boolean).map(field => field.toLowerCase());
 
-                return searchTerms.every(term => 
+                return searchTerms.every(term =>
                     searchableFields.some(field => field.includes(term))
                 );
             }) || [];
@@ -91,8 +91,14 @@ export const useProductStore = defineStore('product', {
 
             try {
                 const config = useRuntimeConfig();
+                const socketId = useState('socketId').value;  // Get the socketId from state
                 const apiUrl = `${config.public.baseURL}/api/products`;
-                const {data, error} = await useFetch(apiUrl, { credentials: 'include' });
+                const {data, error} = await useFetch(apiUrl, {
+                    credentials: 'include',
+                    headers: {
+                        'x-socket-id': socketId,
+                    },
+                });
                 if (error.value) throw error.value;
                 this.products = data.value;
             } catch (err) {
@@ -108,16 +114,16 @@ export const useProductStore = defineStore('product', {
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/products/${id}`;
-                const {data, error} = await useFetch(apiUrl, { credentials: 'include' });
+                const {data, error} = await useFetch(apiUrl, {credentials: 'include'});
                 if (error.value) throw error.value;
                 this.product = data.value;
-                console.log("this.product",this.product)
+                console.log("this.product", this.product)
                 return data.value;
             } catch (err) {
                 this.error = err;
                 console.error('Error fetching product:', err);
                 $toast.error('Error fetching product');
-            }finally {
+            } finally {
                 this.setLoading(false);
             }
         },
@@ -127,7 +133,7 @@ export const useProductStore = defineStore('product', {
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/attributes`;
-                const {data, error} = await useFetch(apiUrl, { credentials: 'include' });
+                const {data, error} = await useFetch(apiUrl, {credentials: 'include'});
                 if (error.value) throw error.value;
                 this.attributes = data.value;
             } catch (err) {
@@ -142,7 +148,7 @@ export const useProductStore = defineStore('product', {
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/attribute-values`;
-                const {data, error} = await useFetch(apiUrl, { credentials: 'include' });
+                const {data, error} = await useFetch(apiUrl, {credentials: 'include'});
                 if (error.value) throw error.value;
                 this.attributeValues = data.value;
             } catch (err) {
@@ -157,7 +163,7 @@ export const useProductStore = defineStore('product', {
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/variants`;
-                const {data, error} = await useFetch(apiUrl, { credentials: 'include' });
+                const {data, error} = await useFetch(apiUrl, {credentials: 'include'});
                 if (error.value) throw error.value;
                 this.variants = data.value;
             } catch (err) {
@@ -182,12 +188,12 @@ export const useProductStore = defineStore('product', {
                     body: JSON.stringify(product),
                 });
                 if (error.value) {
-                    console.log("error.value",error.value.data)
+                    console.log("error.value", error.value.data)
                     this.error = error.value;
                     throw error.value;
                 }
                 this.products.push(data.value);
-                console.log("store product created",data.value)
+                console.log("store product created", data.value)
                 $toast.success('Product created successfully');
                 return data.value
             } catch (err) {
@@ -206,9 +212,10 @@ export const useProductStore = defineStore('product', {
                 const apiUrl = `${config.public.baseURL}/api/variant-images/`;
                 const formData = new FormData();
                 formData.append('image', file);
+                console.log('image', file);
                 formData.append('variantId', variantId);
 
-                const { data } = await $fetch(apiUrl, {
+                const {data} = await $fetch(apiUrl, {
                     method: 'POST',
                     body: formData,
                     credentials: 'include',
@@ -232,8 +239,10 @@ export const useProductStore = defineStore('product', {
                     body: JSON.stringify(product),
                 });
                 if (error.value) {
-                    console.log("error",error)
-                    this.error = error.value;};
+                    console.log("error", error)
+                    this.error = error.value;
+                }
+                ;
                 const index = this.products.findIndex(p => p.id === id);
                 if (index !== -1) {
                     this.products[index] = data.value;
@@ -276,8 +285,8 @@ export const useProductStore = defineStore('product', {
                     body: JSON.stringify(variant),
                 });
                 if (error.value) throw error.value;
-                this.variants.push(data.value);
-                console.log("Variant store",data.value)
+                //this.variants.push(data.value);
+                console.log("Variant store", data.value)
                 $toast.success('Variant created successfully');
 
                 return data.value
@@ -334,7 +343,7 @@ export const useProductStore = defineStore('product', {
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/variant-attribute-values`;
-                const {data, error} = await useFetch(apiUrl,{credentials: 'include'});
+                const {data, error} = await useFetch(apiUrl, {credentials: 'include'});
                 if (error.value) throw error.value;
                 this.variantAttributeValues = data.value;
             } catch (err) {
@@ -349,7 +358,7 @@ export const useProductStore = defineStore('product', {
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/variant-attribute-values/${id}`;
-                const {data, error} = await useFetch(apiUrl,{credentials: 'include'});
+                const {data, error} = await useFetch(apiUrl, {credentials: 'include'});
                 if (error.value) throw error.value;
                 return data.value;
             } catch (err) {
@@ -425,7 +434,7 @@ export const useProductStore = defineStore('product', {
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/compositions/variant/${variantId}`;
-                const {data, error} = await useFetch(apiUrl, { credentials: 'include' });
+                const {data, error} = await useFetch(apiUrl, {credentials: 'include'});
                 if (error.value) throw error.value;
                 // Assuming you want to store the compositions somewhere in the store
                 // You may need to define a `compositions` array in the state if not already present
@@ -449,8 +458,8 @@ export const useProductStore = defineStore('product', {
                     }),
                     credentials: 'include',
                 });
-                if(error.value){
-                    console.log("error.value",error)
+                if (error.value) {
+                    console.log("error.value", error)
                 }
                 this.compositions.push(data.value)
             } catch (err) {

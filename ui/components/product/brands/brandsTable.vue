@@ -1,48 +1,40 @@
 <template>
-  <div class="div-container">
+  <div class="brand-container">
     <!-- Modals -->
     <a-modal
-      v-model:open="isAddModalOpen"
-      title="Create Brand"
-      @ok="handleModalOk"
-      @cancel="handleModalCancel"
-      ok-text="Submit"
-      cancel-text="Cancel"
-      :maskClosable="false"
+        v-model:open="isAddModalOpen"
+        title="Create Brand"
+        :footer="null"
+        :maskClosable="false"
     >
       <brand-add-modal @submit-success="handleSubmitSuccess"></brand-add-modal>
-      <template #footer> </template>
     </a-modal>
 
     <a-modal
-      v-model:open="isEditModalOpen"
-      title="Edit Brand"
-      @ok="handleModalOk"
-      @cancel="handleModalCancel"
-      ok-text="Submit"
-      cancel-text="Cancel"
-      :maskClosable="false"
+        v-model:open="isEditModalOpen"
+        title="Edit Brand"
+        :footer="null"
+        :maskClosable="false"
     >
       <brand-edit-modal
-        @submit-success="handleSubmitSuccess"
-        :selectedBrandId="selectedBrandId"
+          @submit-success="handleSubmitSuccess"
+          :selectedBrandId="selectedBrandId"
       ></brand-edit-modal>
-      <template #footer> </template>
     </a-modal>
 
     <!-- Header -->
-    <a-card class="div-header-card" :bordered="false">
+    <a-card class="header-card" :bordered="false">
       <a-page-header
-        class="div-header"
-        title="Brands"
-        sub-title="Manage and organize your product brands"
+          class="header"
+          title="Brands"
+          sub-title="Manage and organize your product brands"
       >
         <template #extra>
           <a-button
-            class="add-brand-btn"
-            type="primary"
-            @click="handleAddBrand"
-            :icon="h(PlusOutlined)"
+              class="add-brand-btn"
+              type="primary"
+              @click="handleAddBrand"
+              :icon="h(PlusOutlined)"
           >
             Create Brand
           </a-button>
@@ -50,10 +42,10 @@
             <template #overlay>
               <a-menu>
                 <a-menu-item key="1" @click="exportToExcel">
-                  <FileExcelOutlined />  Excel
+                  <FileExcelOutlined /> Excel
                 </a-menu-item>
                 <a-menu-item key="2" @click="exportToPDF">
-                  <FilePdfOutlined />  PDF
+                  <FilePdfOutlined /> PDF
                 </a-menu-item>
               </a-menu>
             </template>
@@ -66,23 +58,23 @@
     </a-card>
 
     <!-- Brands table -->
-    <div class="div-table-container">
+    <div class="table-container">
       <a-table
-        :dataSource="brandStore.brands"
-        :columns="columns"
-        :pagination="{
+          :dataSource="brandStore.brands"
+          :columns="columns"
+          :pagination="{
           pageSize: 10,
           showSizeChanger: true,
           showQuickJumper: true,
         }"
-        :rowKey="(record) => record.id"
-        :loading="brandStore.loading"
-        size="middle"
-        @change="handleTableChange"
+          :rowKey="(record) => record.id"
+          :loading="brandStore.loading"
+          size="middle"
+          @change="handleTableChange"
       >
         <!-- Custom filter dropdown template -->
         <template
-          #customFilterDropdown="{
+            #customFilterDropdown="{
             setSelectedKeys,
             selectedKeys,
             confirm,
@@ -92,19 +84,19 @@
         >
           <div class="custom-filter-dropdown">
             <a-input
-              ref="searchInput"
-              :placeholder="`Search ${column.title}`"
-              :value="selectedKeys[0]"
-              @change="
+                ref="searchInput"
+                :placeholder="`Search ${column.title}`"
+                :value="selectedKeys[0]"
+                @change="
                 (e) => setSelectedKeys(e.target.value ? [e.target.value] : [])
               "
-              @pressEnter="
+                @pressEnter="
                 handleSearch(selectedKeys, confirm, column.dataIndex)
               "
             />
             <a-button
-              type="primary"
-              @click="handleSearch(selectedKeys, confirm, column.dataIndex)"
+                type="primary"
+                @click="handleSearch(selectedKeys, confirm, column.dataIndex)"
             >
               <template #icon><SearchOutlined /></template>
               Search
@@ -117,9 +109,7 @@
 
         <!-- Custom filter icon -->
         <template #customFilterIcon="{ filtered }">
-          <search-outlined
-            :class="{ 'text-primary': filtered }"
-          />
+          <search-outlined :class="{ 'text-primary': filtered }" />
         </template>
 
         <!-- Custom render for operation column -->
@@ -128,26 +118,26 @@
             <div class="action-buttons">
               <a-tooltip title="Edit">
                 <a-button
-                  type="link"
-                  class="edit-btn"
-                  @click="handleEditBrand(record.id)"
-                  :style="{ color: '#1890ff' }"
+                    type="link"
+                    class="edit-btn"
+                    @click="handleEditBrand(record.id)"
+                    :style="{ color: '#1890ff' }"
                 >
                   <template #icon><EditOutlined /></template>
                 </a-button>
               </a-tooltip>
               <a-popconfirm
-                :title="`Are you sure you want to delete ${record.name}?`"
-                ok-text="Yes"
-                cancel-text="No"
-                @confirm="handleDeleteBrand(record.id)"
-                placement="topRight"
+                  :title="`Are you sure you want to delete ${record.name}?`"
+                  ok-text="Yes"
+                  cancel-text="No"
+                  @confirm="handleDeleteBrand(record.id)"
+                  placement="topRight"
               >
                 <a-tooltip title="Delete">
                   <a-button
-                    type="link"
-                    class="delete-btn"
-                    :style="{ color: '#ff4d4f' }"
+                      type="link"
+                      class="delete-btn"
+                      :style="{ color: '#ff4d4f' }"
                   >
                     <template #icon><DeleteOutlined /></template>
                   </a-button>
@@ -195,6 +185,10 @@ import {
   DownOutlined,
   FileExcelOutlined,
   FilePdfOutlined,
+  EyeOutlined,
+  CopyOutlined,
+  InboxOutlined,
+  MoreOutlined,
 } from "@ant-design/icons-vue";
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
@@ -213,11 +207,12 @@ const searchInput = ref(null);
 // Table columns configuration
 const columns = [
   {
-    title: "Index",
+    title: "#",
     dataIndex: "index",
+    width: "5%",
     sorter: (a, b) => a.index.localeCompare(b.index),
     onFilter: (value, record) =>
-      record.index.toLowerCase().includes(value.toLowerCase()),
+        record.index.toLowerCase().includes(value.toLowerCase()),
   },
   {
     title: "Name",
@@ -225,7 +220,7 @@ const columns = [
     sorter: (a, b) => a.name.localeCompare(b.name),
     customFilterDropdown: true,
     onFilter: (value, record) =>
-      record.name.toLowerCase().includes(value.toLowerCase()),
+        record.name.toLowerCase().includes(value.toLowerCase()),
     onFilterDropdownOpenChange: (visible) => {
       if (visible) {
         setTimeout(() => {
@@ -240,7 +235,7 @@ const columns = [
     sorter: (a, b) => a.description.localeCompare(b.description),
     customFilterDropdown: true,
     onFilter: (value, record) =>
-      record.description.toLowerCase().includes(value.toLowerCase()),
+        record.description.toLowerCase().includes(value.toLowerCase()),
     onFilterDropdownOpenChange: (visible) => {
       if (visible) {
         setTimeout(() => {
@@ -263,17 +258,13 @@ const handleAddBrand = () => {
 const handleEditBrand = (brandId) => {
   selectedBrandId.value = brandId;
   isEditModalOpen.value = true;
-  console.log("brandId", brandId);
-  console.log("selectedBrandId", selectedBrandId.value);
 };
 
 const handleDeleteBrand = async (brandId) => {
   try {
     await brandStore.deleteBrand(brandId);
-    console.log("Brand deleted successfully:", brandId);
   } catch (error) {
     console.error("Error deleting brand:", error);
-    // TODO: Implement user-friendly error handling
   }
 };
 
@@ -294,12 +285,10 @@ const handleSubmitSuccess = () => {
 
 const handleSearch = (selectedKeys, confirm, dataIndex) => {
   confirm();
-  // TODO: Implement search functionality
 };
 
 const handleReset = (clearFilters) => {
   clearFilters({ confirm: true });
-  // TODO: Reset search state
 };
 
 const exportToExcel = () => {
@@ -324,22 +313,23 @@ const exportToPDF = () => {
 </script>
 
 <style scoped>
-.div-container {
+.brand-container {
   background-color: #f0f2f5;
   padding: 24px;
   border-radius: 8px;
 }
 
-.div-header-card {
+.header-card {
   margin-bottom: 24px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
 }
 
-.div-header {
+.header {
   padding: 16px;
 }
 
-.div-header h1 {
+.header h1 {
   font-size: 24px;
   font-weight: 600;
   color: #001529;
@@ -349,17 +339,21 @@ const exportToPDF = () => {
   font-size: 14px;
   height: 36px;
   margin-right: 8px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .export-btn {
   height: 36px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.div-table-container {
+.table-container {
   background-color: #ffffff;
   padding: 24px;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 :deep(.ant-table) {
@@ -391,32 +385,29 @@ const exportToPDF = () => {
   width: 200px;
   margin-bottom: 8px;
   display: block;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .custom-filter-dropdown button {
   width: 100px;
   margin-right: 8px;
-}
-
-.actions-btn {
-  background-color: #f0f0f0;
-  border-color: #d9d9d9;
-}
-
-.actions-btn:hover {
-  background-color: #e6e6e6;
-  border-color: #d9d9d9;
-}
-
-.edit-link, .delete-link {
-  color: #001529;
-}
-
-.edit-link:hover, .delete-link:hover {
-  color: #ff4d4f;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .text-primary {
   color: #1890ff;
+}
+
+
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.action-buttons .ant-btn-link {
+  padding: 0;
 }
 </style>

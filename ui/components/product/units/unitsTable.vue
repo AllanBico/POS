@@ -64,29 +64,38 @@
         <!-- Custom render for operation column -->
         <template #bodyCell="{ column, record, index }">
           <template v-if="column.dataIndex === 'operation'">
-            <a-dropdown :trigger="['click']">
-              <template #overlay>
-                <a-menu>
-                  <a-menu-item key="edit">
-                    <a @click="handleEdit(record.id)" class="edit-link">
-                      <EditOutlined /> Edit
-                    </a>
-                  </a-menu-item>
-                  <a-menu-item key="delete">
-                    <a-popconfirm
-                      :title="`Are you sure you want to delete this unit: ${record.name}?`"
-                      ok-text="Yes"
-                      cancel-text="No"
-                      @confirm="handleDelete(record.id)"
-                    >
-                      <a class="delete-link"><DeleteOutlined /> Delete</a>
-                    </a-popconfirm>
-                  </a-menu-item>
-                </a-menu>
-              </template>
-              <a-button class="actions-btn"> Actions <DownOutlined /> </a-button>
-            </a-dropdown>
+            <div class="action-buttons">
+              <a-tooltip title="Edit">
+                <a-button
+                    type="link"
+                    class="edit-btn"
+                    @click="handleEdit(record.id)"
+                    :style="{ color: '#1890ff' }"
+                >
+                  <template #icon><EditOutlined /></template>
+                </a-button>
+              </a-tooltip>
+              <a-popconfirm
+                  :title="`Are you sure you want to delete this unit: ${record.name}?`"
+                  ok-text="Yes"
+                  cancel-text="No"
+                  @confirm="handleDelete(record.id)"
+                  placement="topRight"
+              >
+                <a-tooltip title="Delete">
+                  <a-button
+                      type="link"
+                      class="delete-btn"
+                      :style="{ color: '#ff4d4f' }"
+                  >
+                    <template #icon><DeleteOutlined /></template>
+                  </a-button>
+                </a-tooltip>
+              </a-popconfirm>
+
+            </div>
           </template>
+
           <template v-else-if="column.dataIndex === 'index'">
             {{ index + 1 }}
           </template>

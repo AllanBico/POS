@@ -49,6 +49,7 @@ export const useSerialNumberStore = defineStore('serialNumber', {
                 } else {
                     this.serialNumber = data.value;
                 }
+                return data.value;
             } catch (err) {
                 console.error(err);
                 this.error = 'Failed to fetch serial numbers';

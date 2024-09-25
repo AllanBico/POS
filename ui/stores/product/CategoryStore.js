@@ -9,6 +9,7 @@ export const useCategoryStore = defineStore('category', {
         error: null,
         loading: false, // Loading state to track ongoing requests
     }),
+
     getters: {
         CategoryById: (state) => (id) => state.categories.find(category => category.id === id) || null,
     },
@@ -49,6 +50,7 @@ export const useCategoryStore = defineStore('category', {
             this.setLoading(true);
             const { $toast } = useNuxtApp();
             const config = useRuntimeConfig();
+            const socketId = useState('socketId').value;  // Get the socketId from state
             const apiUrl = `${config.public.baseURL}/api/categories`;
 
             try {
@@ -56,6 +58,9 @@ export const useCategoryStore = defineStore('category', {
                     method: 'POST',
                     body: category,
                     credentials: 'include',
+                    headers: {
+                        'x-socket-id': socketId,
+                    },
                 });
                 if (error.value) throw error.value;
                 this.categories.push(data.value);
@@ -70,6 +75,7 @@ export const useCategoryStore = defineStore('category', {
             this.setLoading(true);
             console.log("category",category)
             const { $toast } = useNuxtApp();
+            const socketId = useState('socketId').value;  // Get the socketId from state
             const config = useRuntimeConfig();
             const apiUrl = `${config.public.baseURL}/api/categories/${id}`;
 
@@ -78,6 +84,9 @@ export const useCategoryStore = defineStore('category', {
                     method: 'PUT',
                     body: category,
                     credentials: 'include',
+                    headers: {
+                        'x-socket-id': socketId,
+                    },
                 });
                 if (error.value) throw error.value;
                 const index = this.categories.findIndex(cat => cat.id === category.id);
@@ -92,6 +101,7 @@ export const useCategoryStore = defineStore('category', {
         async deleteCategory(id) {
             this.setLoading(true);
             const { $toast } = useNuxtApp();
+            const socketId = useState('socketId').value;  // Get the socketId from state
             const config = useRuntimeConfig();
             const apiUrl = `${config.public.baseURL}/api/categories/${id}`;
 
@@ -99,6 +109,9 @@ export const useCategoryStore = defineStore('category', {
                 const { error } = await useFetch(apiUrl, {
                     method: 'DELETE',
                     credentials: 'include',
+                    headers: {
+                        'x-socket-id': socketId,
+                    },
                 });
                 if (error.value) throw error.value;
                 this.categories = this.categories.filter(cat => cat.id !== id);
@@ -122,6 +135,7 @@ export const useCategoryStore = defineStore('category', {
             }
         },
         async socketDeleteCategory(id) {
+            console.log("delete init")
             const index = this.categories.findIndex(category => category.id === id);
             if (index !== -1) this.categories.splice(index, 1);
         },

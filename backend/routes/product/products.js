@@ -10,6 +10,7 @@ const authenticateToken = require("../../middleware/auth");
 const sequelize = require('../../config/db');
 
 router.post('/', authenticateToken, async (req, res) => {
+
     try {
         const {
             name,
@@ -125,7 +126,13 @@ router.post('/', authenticateToken, async (req, res) => {
 
 // Get all Products
 router.get('/', authenticateToken, async (req, res) => {
+
+
     try {
+        const socketId = req.headers['x-socket-id'];  // Access the socketId from the request headers
+
+        // You can now use the `socketId` for any additional logic (e.g., emitting events)
+        console.log('Socket ID:', socketId);
         const products = await Product.findAll({
             include: [
                 {model: Variant, as: 'variants'},
@@ -191,92 +198,91 @@ router.get('/:id', authenticateToken, async (req, res) => {
 router.put('/:id', authenticateToken, async (req, res) => {
     const transaction = await sequelize.transaction();
     try {
+        const socketId = req.headers['x-socket-id'];  // Access the socketId from the request headers
+
+        // You can now use the `socketId` for any additional logic (e.g., emitting events)
+        console.log('Socket ID:', socketId);
         const {
             name, isComposition, description, categoryId, subcategoryId,
             vatType, brandId, lowStockAlert, unitId, selectedTaxes
         } = req.body;
 
-        // Validate required fields
+        // Check if required fields are missing
+        const missingFields = [];
         const requiredFields = { name, description, categoryId, subcategoryId, vatType, brandId, lowStockAlert, unitId };
+
         for (const [key, value] of Object.entries(requiredFields)) {
-            if (value === undefined || value === null) {
-                await transaction.rollback(); // Ensure rollback on error
-                return res.status(400).json({ error: `Missing required field: ${key}` });
-            }
+            if (!value) missingFields.push(key);
         }
 
-        // Update product
-        const [updatedCount, [updatedProduct]] = await Product.update({
-            name, description, price: 0, categoryId, subcategoryId, vatType,
-            brandId, lowStockAlert, unitId, isComposition
-        }, {
-            where: { id: req.params.id },
-            returning: true,
-            transaction
-        });
+        if (missingFields.length > 0) {
+            await transaction.rollback();
+            return res.status(400).json({ error: `Missing required fields: ${missingFields.join(', ')}` });
+        }
 
-        if (updatedCount === 0) {
-            await transaction.rollback(); // Ensure rollback if no product is updated
+        // Attempt to update the product
+        const updatedProduct = await Product.findOne({ where: { id: req.params.id }, transaction });
+
+        if (!updatedProduct) {
+            await transaction.rollback();
+            console.error(`Error updating product with id ${req.params.id}: Product not found`);
             return res.status(404).json({ error: 'Product not found' });
         }
 
+        await updatedProduct.update({
+            name, description, price: 0, categoryId, subcategoryId, vatType,
+            brandId, lowStockAlert, unitId, isComposition
+        }, { transaction });
+
         // Handle taxes if provided
         if (Array.isArray(selectedTaxes)) {
+            // Fetch existing taxes associated with the product
             const existingTaxes = await ProductTax.findAll({
                 where: { productId: updatedProduct.id },
                 transaction
             });
 
-            const taxesToKeep = new Set();
-            const taxesToCreate = [];
-            const taxesToUpdate = [];
+            const existingTaxIds = existingTaxes.map(tax => tax.taxId);
+            const newTaxes = selectedTaxes.filter(tax => !existingTaxIds.includes(tax.value));
+            const taxesToKeep = selectedTaxes.map(tax => tax.value);
+            const taxesToUpdate = existingTaxes.filter(tax => taxesToKeep.includes(tax.taxId));
 
-            // Identify taxes to create or update
-            selectedTaxes.forEach((tax, index) => {
-                const existingTax = existingTaxes.find(et => et.taxId === tax.value);
-                if (existingTax) {
-                    taxesToUpdate.push({ ...existingTax, priority: index });
-                    taxesToKeep.add(existingTax.id);
-                } else {
-                    taxesToCreate.push({
-                        productId: updatedProduct.id,
-                        taxId: tax.value,
-                        priority: index
-                    });
-                }
-            });
+            // Update existing taxes
+            for (const tax of taxesToUpdate) {
+                const updatedTax = selectedTaxes.find(t => t.value === tax.taxId);
+                await tax.update({ priority: selectedTaxes.indexOf(updatedTax) }, { transaction });
+            }
 
-            // Execute tax operations within a try-catch block
-            try {
-                await Promise.all([
-                    ProductTax.bulkCreate(taxesToCreate, { transaction }), // Create new taxes
-                    ...taxesToUpdate.map(tax => tax.save({ transaction })), // Update existing taxes
-                    ProductTax.destroy({ // Remove taxes not in selected list
-                        where: {
-                            productId: updatedProduct.id,
-                            id: { [Op.notIn]: Array.from(taxesToKeep) }
-                        },
-                        transaction
-                    })
-                ]);
-            } catch (bulkError) {
-                // Catch bulk insert/update errors
-                console.error('Error during bulk tax operations:', bulkError);
-                await transaction.rollback();
-                return res.status(500).json({ error: 'Failed to update product taxes.' });
+            // Create new taxes
+            if (newTaxes.length > 0) {
+                const taxesToCreate = newTaxes.map((tax, index) => ({
+                    productId: updatedProduct.id,
+                    taxId: tax.value || null,
+                    priority: index
+                }));
+                console.log("taxesToCreate", taxesToCreate);
+                await ProductTax.bulkCreate(taxesToCreate.filter(tax => tax.taxId !== null), { transaction });
+            }
+
+            // Remove taxes that are no longer associated with the product
+            const taxesToRemove = existingTaxes.filter(tax => !taxesToKeep.includes(tax.taxId));
+            for (const tax of taxesToRemove) {
+                await tax.destroy({ transaction });
             }
         }
 
-        // Commit transaction if everything is successful
+        // Commit the transaction
         await transaction.commit();
         res.status(200).json(updatedProduct);
+
     } catch (error) {
-        // Ensure rollback only happens once
+        // Rollback transaction and handle the error
         if (transaction) await transaction.rollback();
         console.error(`Error updating product with id ${req.params.id}:`, error);
         res.status(500).json({ error: 'An error occurred while updating the product.' });
     }
 });
+
 
 
 // Delete a Product

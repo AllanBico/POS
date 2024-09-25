@@ -32,6 +32,11 @@ const SerialNumber = sequelize.define('SerialNumber', {
         },
         onDelete: 'SET NULL',
     },
+    status: {
+        type: DataTypes.ENUM('available', 'reserved', 'sold', 'returned','inactive'),
+        allowNull: false,
+        defaultValue: 'available', // Set default status to 'available'
+    }
 }, {
     timestamps: true,
     underscored: true,

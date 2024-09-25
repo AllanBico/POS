@@ -13,7 +13,7 @@ router.post('/', upload.single('image'), async (req, res) => {
     try {
         const { variantId } = req.body;
         console.log("req.file", req.file);
-
+        console.log("req.body",req.body)
         if (!variantId) {
             return res.status(400).json({ message: 'variantId is required' });
         }

@@ -1,187 +1,371 @@
 <template>
-  <div>
-    <a-modal v-model:open="open" title="Add Payment Method" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
-             cancel-text="Cancel">
+  <div class="payment-method-container">
+    <!-- Modals -->
+    <a-modal
+      v-model:open="open"
+      title="Add Payment Method"
+      :footer="null"
+      :maskClosable="false"
+    >
       <payment-method-add-modal @submit-success="handleSubmitSuccess"></payment-method-add-modal>
-      <template #footer>
-      </template>
     </a-modal>
-    <a-modal v-model:open="edit_open" title="Edit User" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
-             cancel-text="Cancel">
-      <payment-method-edit-modal @submit-success="handleSubmitSuccess" :payment_id="payment_id"></payment-method-edit-modal>
-      <template #footer>
-      </template>
-    </a-modal>
-  </div>
-  <div>
-  </div>
-  <div class="coupons-container">
-    <a-card title="Payment Methods" bordered={false}>
-      <div class="header-controls">
-        <div class="actions">
-          <a-button type="primary" @click="handleAdd" :icon="h(PlusOutlined)">Add New</a-button>
-        </div>
-      </div>
 
-      <a-table
-          :columns="columns"
-          :data-source="paymentMethodStore.paymentMethods"
-          :pagination="pagination"
-          :rowKey="id"
-          bordered
-          size="small"
-          @change="onChange"
+    <a-modal
+      v-model:open="edit_open"
+      title="Edit Payment Method"
+      :footer="null"
+      :maskClosable="false"
+    >
+      <payment-method-edit-modal
+        @submit-success="handleSubmitSuccess"
+        :payment_id="payment_id"
+      ></payment-method-edit-modal>
+    </a-modal>
+
+    <!-- Header -->
+    <a-card class="header-card" :bordered="false">
+      <a-page-header
+        class="header"
+        title="Payment Methods"
+        sub-title="Manage and organize your payment methods"
       >
+        <template #extra>
+          <a-button
+            class="add-payment-method-btn"
+            type="primary"
+            @click="handleAdd"
+            :icon="h(PlusOutlined)"
+          >
+            Add Payment Method
+          </a-button>
+          <a-dropdown>
+            <template #overlay>
+              <a-menu>
+                <a-menu-item key="1" @click="exportToExcel">
+                  <FileExcelOutlined /> Excel
+                </a-menu-item>
+                <a-menu-item key="2" @click="exportToPDF">
+                  <FilePdfOutlined /> PDF
+                </a-menu-item>
+              </a-menu>
+            </template>
+            <a-button class="export-btn">
+              Export <DownOutlined />
+            </a-button>
+          </a-dropdown>
+        </template>
+      </a-page-header>
+    </a-card>
+
+    <!-- Payment Methods table -->
+    <div class="table-container">
+      <a-table
+        :dataSource="paymentMethodStore.paymentMethods"
+        :columns="columns"
+        :pagination="{
+          pageSize: 10,
+          showSizeChanger: true,
+          showQuickJumper: true,
+        }"
+        :rowKey="(record) => record.id"
+        :loading="paymentMethodStore.loading"
+        size="middle"
+        @change="onChange"
+      >
+        <!-- Custom filter dropdown template -->
         <template
-            #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }"
+          #customFilterDropdown="{
+            setSelectedKeys,
+            selectedKeys,
+            confirm,
+            clearFilters,
+            column,
+          }"
         >
-          <div style="padding: 8px">
+          <div class="custom-filter-dropdown">
             <a-input
-                ref="searchInput"
-                :placeholder="`Search ${column.dataIndex}`"
-                :value="selectedKeys[0]"
-                style="width: 188px; margin-bottom: 8px; display: block"
-                @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
-                @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex)"
+              ref="searchInput"
+              :placeholder="`Search ${column.title}`"
+              :value="selectedKeys[0]"
+              @change="
+                (e) => setSelectedKeys(e.target.value ? [e.target.value] : [])
+              "
+              @pressEnter="
+                handleSearch(selectedKeys, confirm, column.dataIndex)
+              "
             />
             <a-button
-                type="primary"
-                size="small"
-                style="width: 90px; margin-right: 8px"
-                @click="handleSearch(selectedKeys, confirm, column.dataIndex)"
+              type="primary"
+              @click="handleSearch(selectedKeys, confirm, column.dataIndex)"
             >
               <template #icon><SearchOutlined /></template>
               Search
             </a-button>
-            <a-button size="small" style="width: 90px" @click="handleReset(clearFilters)">
+            <a-button @click="handleReset(clearFilters)">
               Reset
             </a-button>
           </div>
         </template>
-        <template #customFilterIcon="{ filtered }">
-          <search-outlined :style="{ color: filtered ? '#108ee9' : undefined }" />
-        </template>
-        <template #bodyCell="{ column, text, record }">
-          <template v-if="column.dataIndex === 'operation'">
-            <a-tooltip title="Edit" placement="bottom">
-              <a-button @click="onEdit(record.id)" style="margin-right: 3px" :icon="h(EditOutlined)"/>
-            </a-tooltip>
-            <a-popconfirm
-                v-if="paymentMethodStore.paymentMethods.length"
-                title="Sure to delete?"
-                @confirm="onDelete(record.id)">
-              <a-tooltip title="Delete" placement="bottom">
-                <a-button :icon="h(DeleteOutlined)"/>
-              </a-tooltip>
-            </a-popconfirm>
 
+        <!-- Custom filter icon -->
+        <template #customFilterIcon="{ filtered }">
+          <search-outlined :class="{ 'text-primary': filtered }" />
+        </template>
+
+        <!-- Custom render for operation column -->
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.dataIndex === 'operation'">
+            <div class="action-buttons">
+              <a-tooltip title="Edit">
+                <a-button
+                  type="link"
+                  class="edit-btn"
+                  @click="onEdit(record.id)"
+                  :style="{ color: '#1890ff' }"
+                >
+                  <template #icon><EditOutlined /></template>
+                </a-button>
+              </a-tooltip>
+              <a-popconfirm
+                :title="`Are you sure you want to delete this payment method?`"
+                ok-text="Yes"
+                cancel-text="No"
+                @confirm="onDelete(record.id)"
+                placement="topRight"
+              >
+                <a-tooltip title="Delete">
+                  <a-button
+                    type="link"
+                    class="delete-btn"
+                    :style="{ color: '#ff4d4f' }"
+                  >
+                    <template #icon><DeleteOutlined /></template>
+                  </a-button>
+                </a-tooltip>
+              </a-popconfirm>
+            </div>
           </template>
         </template>
       </a-table>
-    </a-card>
+    </div>
   </div>
 </template>
 
 <script setup>
-import {computed, reactive, ref} from 'vue';
+import { ref } from 'vue';
 import { usePaymentMethodStore } from '~/stores/PaymentMethodStore.js';
-import {DeleteOutlined, EditOutlined,PlusOutlined} from "@ant-design/icons-vue";
 import PaymentMethodAddModal from "~/components/expenses/paymentMethodAddModal.vue";
 import PaymentMethodEditModal from "~/components/expenses/paymentMethodEditModal.vue";
+import {
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+  SearchOutlined,
+  DownOutlined,
+  FileExcelOutlined,
+  FilePdfOutlined,
+} from "@ant-design/icons-vue";
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+
 const paymentMethodStore = usePaymentMethodStore();
+paymentMethodStore.fetchPaymentMethods();
+
 const open = ref(false);
 const edit_open = ref(false);
-let payment_id = ref(null)
-paymentMethodStore.fetchPaymentMethods()
-console.log("paymentMethodStore.categories", paymentMethodStore.paymentMethods)
+const payment_id = ref(null);
+const searchInput = ref(null);
+
 const columns = [
   {
     title: 'Name',
     dataIndex: 'name',
     key: 'name',
-    width: '30%',
     sorter: (a, b) => a.name.localeCompare(b.name),
-    sortDirections: ['descend', 'ascend'],
     customFilterDropdown: true,
-    onFilter: (value, record) => record.name.toString().toLowerCase().includes(value.toLowerCase()),
-    onFilterDropdownOpenChange: visible => {
+    onFilter: (value, record) =>
+      record.name.toLowerCase().includes(value.toLowerCase()),
+    onFilterDropdownOpenChange: (visible) => {
       if (visible) {
         setTimeout(() => {
-          searchInput.value.focus();
+          searchInput.value?.focus();
         }, 100);
       }
     },
-  }
-  ,
+  },
   {
     title: 'Description',
     dataIndex: 'description',
     key: 'description',
     sorter: (a, b) => a.description.localeCompare(b.description),
-    sortDirections: ['descend', 'ascend'],
     customFilterDropdown: true,
-    onFilter: (value, record) => record.description.toString().toLowerCase().includes(value.toLowerCase()),
-    onFilterDropdownOpenChange: visible => {
+    onFilter: (value, record) =>
+      record.description.toLowerCase().includes(value.toLowerCase()),
+    onFilterDropdownOpenChange: (visible) => {
       if (visible) {
         setTimeout(() => {
-          searchInput.value.focus();
+          searchInput.value?.focus();
         }, 100);
       }
     },
   },
   {
-    title: 'operation',
+    title: 'Operation',
     dataIndex: 'operation',
     key: 'operation',
   },
 ];
 
-const pagination = ref({pageSize: 10});
-const edit = key => {
-};
-const save = key => {
-};
-const onDelete = async key => {
-  await paymentMethodStore.deletePaymentMethod(key)
-  console.log("deleted", key)
-};
-const onEdit = async key => {
-  console.log("edit", key)
-  payment_id = parseInt(key)
-  console.log("user_id", payment_id)
-  edit_open.value = true
-  console.log("done")
-};
-
 const handleAdd = () => {
   open.value = true;
 };
-const handleOk = () => {
-  open.value = false;
-  // Optionally handle any additional logic here
+
+const onEdit = (id) => {
+  payment_id.value = id;
+  edit_open.value = true;
 };
-const handleCancel = () => {
-  open.value = false;
-  edit_open.value = false;
+
+const onDelete = async (id) => {
+  try {
+    await paymentMethodStore.deletePaymentMethod(id);
+  } catch (error) {
+    console.error("Error deleting payment method:", error);
+  }
 };
+
 const handleSubmitSuccess = () => {
   open.value = false;
   edit_open.value = false;
 };
+
 const onChange = (pagination, filters, sorter) => {
   console.log('params', pagination, filters, sorter);
 };
+
 const handleSearch = (selectedKeys, confirm, dataIndex) => {
   confirm();
-  state.searchText = selectedKeys[0];
-  state.searchedColumn = dataIndex;
 };
-const handleReset = clearFilters => {
-  clearFilters({
-    confirm: true,
+
+const handleReset = (clearFilters) => {
+  clearFilters({ confirm: true });
+};
+
+const exportToExcel = () => {
+  const data = paymentMethodStore.paymentMethods.map(method => ({
+    Name: method.name,
+    Description: method.description
+  }));
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Payment Methods");
+  XLSX.writeFile(wb, "payment_methods.xlsx");
+};
+
+const exportToPDF = () => {
+  const doc = new jsPDF();
+  doc.autoTable({
+    head: [['Name', 'Description']],
+    body: paymentMethodStore.paymentMethods.map(method => [method.name, method.description]),
   });
-  state.searchText = '';
+  doc.save('payment_methods.pdf');
 };
 </script>
 
+<style scoped>
+.payment-method-container {
+  background-color: #f0f2f5;
+  padding: 24px;
+  border-radius: 8px;
+}
 
+.header-card {
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.header {
+  padding: 16px;
+}
+
+.header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #001529;
+}
+
+.add-payment-method-btn {
+  font-size: 14px;
+  height: 36px;
+  margin-right: 8px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.export-btn {
+  height: 36px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.table-container {
+  background-color: #ffffff;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+:deep(.ant-table) {
+  font-size: 14px;
+}
+
+:deep(.ant-table-thead > tr > th) {
+  background-color: #fafafa;
+  color: #001529;
+  font-weight: 600;
+}
+
+:deep(.ant-table-tbody > tr > td) {
+  padding: 12px 16px;
+}
+
+:deep(.ant-table-tbody > tr:hover > td) {
+  background-color: #f5f5f5;
+}
+
+.custom-filter-dropdown {
+  padding: 8px;
+  border-radius: 4px;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.custom-filter-dropdown input {
+  width: 200px;
+  margin-bottom: 8px;
+  display: block;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.custom-filter-dropdown button {
+  width: 100px;
+  margin-right: 8px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.text-primary {
+  color: #1890ff;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.action-buttons .ant-btn-link {
+  padding: 0;
+}
+</style>

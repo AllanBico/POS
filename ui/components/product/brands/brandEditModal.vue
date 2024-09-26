@@ -99,7 +99,7 @@ const validateNotEmpty = (rule, value) => {
 const handleSubmit = async () => {
   error.value = null; // Reset error before submission
   try {
-    await form.value.validate();
+    //await form.value.validate();
     await updateBrand();
   } catch (validationError) {
     error.value = 'Please correct the errors in the form';

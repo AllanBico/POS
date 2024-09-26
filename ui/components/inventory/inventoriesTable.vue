@@ -1,126 +1,207 @@
 <template>
-  <div>
-    <a-modal v-model:open="open" title="Add Product" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
-             cancel-text="Cancel">
+  <div class="inventory-container">
+    <!-- Modals -->
+    <a-modal
+      v-model:open="open"
+      title="Add Inventory"
+      :footer="null"
+      :maskClosable="false"
+    >
       <attribute-add-modal @submit-success="handleSubmitSuccess"></attribute-add-modal>
-      <template #footer>
-      </template>
     </a-modal>
-    <a-modal v-model:open="edit_open" title="Edit Product" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
-             cancel-text="Cancel">
-      <attribute-edit-modal @submit-success="handleSubmitSuccess" :attribute_id="attribute_id"></attribute-edit-modal>
-      <template #footer>
-      </template>
+
+    <a-modal
+      v-model:open="edit_open"
+      title="Edit Inventory"
+      :footer="null"
+      :maskClosable="false"
+    >
+      <attribute-edit-modal
+        @submit-success="handleSubmitSuccess"
+        :attribute_id="attribute_id"
+      ></attribute-edit-modal>
     </a-modal>
-  </div>
-  <div>
-  </div>
-  <div class="coupons-container">
-    <a-card bordered={false}>
-      <div class="header-controls">
-        <a-input-search
-            placeholder="Search"
-            style="width: 200px;"
-        />
 
-        <div class="actions">
-          <a-button type="primary" :icon="h(PlusOutlined)">
-            <nuxt-link to="/product/create-product">Add New</nuxt-link>
-          </a-button>
-
-        </div>
-      </div>
-
-      <a-table
-          :columns="columns"
-          :data-source="inventoryStore.inventories"
-          :pagination="pagination"
-          :rowKey="id"
-          bordered
-          size="small"
-          @change="onChange"
+    <!-- Header -->
+    <a-card class="header-card" :bordered="false">
+      <a-page-header
+        class="header"
+        title="Inventories"
+        sub-title="Manage and organize your product inventories"
       >
+        <template #extra>
+          <a-button
+            class="add-inventory-btn"
+            type="primary"
+            @click="handleAdd"
+            :icon="h(PlusOutlined)"
+          >
+            Add Inventory
+          </a-button>
+          <a-dropdown>
+            <template #overlay>
+              <a-menu>
+                <a-menu-item key="1" @click="exportToExcel">
+                  <FileExcelOutlined /> Excel
+                </a-menu-item>
+                <a-menu-item key="2" @click="exportToPDF">
+                  <FilePdfOutlined /> PDF
+                </a-menu-item>
+              </a-menu>
+            </template>
+            <a-button class="export-btn">
+              Export <DownOutlined />
+            </a-button>
+          </a-dropdown>
+        </template>
+      </a-page-header>
+    </a-card>
+
+    <!-- Inventories table -->
+    <div class="table-container">
+      <a-table
+        :dataSource="inventoryStore.inventories"
+        :columns="columns"
+        :pagination="pagination"
+        :rowKey="record => record.id"
+        :loading="loading"
+        size="middle"
+        @change="onChange"
+      >
+        <!-- Custom filter dropdown template -->
         <template
-            #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }"
+          #customFilterDropdown="{
+            setSelectedKeys,
+            selectedKeys,
+            confirm,
+            clearFilters,
+            column,
+          }"
         >
-          <div style="padding: 8px">
+          <div class="custom-filter-dropdown">
             <a-input
-                ref="searchInput"
-                :placeholder="`Search ${column.dataIndex}`"
-                :value="selectedKeys[0]"
-                style="width: 188px; margin-bottom: 8px; display: block"
-                @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
-                @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex)"
+              ref="searchInput"
+              :placeholder="`Search ${column.title}`"
+              :value="selectedKeys[0]"
+              @change="
+                (e) => setSelectedKeys(e.target.value ? [e.target.value] : [])
+              "
+              @pressEnter="
+                handleSearch(selectedKeys, confirm, column.dataIndex)
+              "
             />
             <a-button
-                type="primary"
-                size="small"
-                style="width: 90px; margin-right: 8px"
-                @click="handleSearch(selectedKeys, confirm, column.dataIndex)"
+              type="primary"
+              @click="handleSearch(selectedKeys, confirm, column.dataIndex)"
             >
-              <template #icon>
-                <SearchOutlined/>
-              </template>
+              <template #icon><SearchOutlined /></template>
               Search
             </a-button>
-            <a-button size="small" style="width: 90px" @click="handleReset(clearFilters)">
+            <a-button @click="handleReset(clearFilters)">
               Reset
             </a-button>
           </div>
         </template>
+
+        <!-- Custom filter icon -->
         <template #customFilterIcon="{ filtered }">
-          <search-outlined :style="{ color: filtered ? '#108ee9' : undefined }"/>
+          <search-outlined :class="{ 'text-primary': filtered }" />
         </template>
-        <template #bodyCell="{ column, text, record }">
+
+        <!-- Custom render for operation column -->
+        <template #bodyCell="{ column, record }">
           <template v-if="column.dataIndex === 'inventories'">
-            <span v-for="(inventory, index) in record.inventories">
-              <a-tag color="blue"
-                     style="margin-bottom: 1px;">{{ inventory?.warehouse?.name || inventory?.store?.name}} : {{inventory.quantity}} </a-tag>
+            <span v-for="(inventory, index) in record.inventories" :key="index">
+              <a-tag color="blue" style="margin-bottom: 1px;">
+                {{ inventory?.warehouse?.name || inventory?.store?.name }} : {{ inventory.quantity }}
+              </a-tag>
             </span>
           </template>
           <template v-if="column.dataIndex === 'operation'">
-            <a-dropdown :trigger="['click']">
-              <a class="ant-dropdown-link" @click.prevent>
-                Actions
-                <DownOutlined/>
-              </a>
-              <template #overlay>
-                <a-menu>
-
-                  <a-menu-item>
-                    <a href="javascript:;" @click="onEdit(record.id)">edit</a>
-                  </a-menu-item>
-                  <a-menu-item>
-                    <a-popconfirm
-                        v-if="inventoryStore.inventories.length"
-                        :title="'Delete ' + record.sku +' ?'"
-                        @confirm="onDelete(record.id)">
-                      <a href="javascript:;">delete</a>
-                    </a-popconfirm>
-                  </a-menu-item>
-                </a-menu>
-              </template>
-            </a-dropdown>
+            <div class="action-buttons">
+              <a-tooltip title="Edit">
+                <a-button
+                  type="link"
+                  class="edit-btn"
+                  @click="onEdit(record.id)"
+                  :style="{ color: '#1890ff' }"
+                >
+                  <template #icon><EditOutlined /></template>
+                </a-button>
+              </a-tooltip>
+              <a-popconfirm
+                :title="`Are you sure you want to delete ${record.sku}?`"
+                ok-text="Yes"
+                cancel-text="No"
+                @confirm="onDelete(record.id)"
+                placement="topRight"
+              >
+                <a-tooltip title="Delete">
+                  <a-button
+                    type="link"
+                    class="delete-btn"
+                    :style="{ color: '#ff4d4f' }"
+                  >
+                    <template #icon><DeleteOutlined /></template>
+                  </a-button>
+                </a-tooltip>
+              </a-popconfirm>
+              <a-dropdown>
+                <template #overlay>
+                  <a-menu>
+                    <a-menu-item key="view">
+                      <EyeOutlined /> View Details
+                    </a-menu-item>
+                    <a-menu-item key="duplicate">
+                      <CopyOutlined /> Duplicate
+                    </a-menu-item>
+                    <a-menu-item key="archive">
+                      <InboxOutlined /> Archive
+                    </a-menu-item>
+                  </a-menu>
+                </template>
+                <a-button type="link">
+                  <MoreOutlined style="font-size: 16px;" />
+                </a-button>
+              </a-dropdown>
+            </div>
           </template>
         </template>
       </a-table>
-    </a-card>
+    </div>
   </div>
 </template>
 
 <script setup>
-import {ref} from 'vue';
-import {DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons-vue";
-import {useInventoryStore} from '~/stores/invetory/InventoryStore.js';
-const inventoryStore = useInventoryStore();
+import { ref } from 'vue';
+import { useInventoryStore } from '~/stores/invetory/InventoryStore.js';
 import AttributeAddModal from "~/components/product/attributes/attributeAddModal.vue";
 import AttributeEditModal from "~/components/product/attributes/attributeEditModal.vue";
+import {
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+  SearchOutlined,
+  DownOutlined,
+  FileExcelOutlined,
+  FilePdfOutlined,
+  EyeOutlined,
+  CopyOutlined,
+  InboxOutlined,
+  MoreOutlined,
+} from "@ant-design/icons-vue";
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+
+const inventoryStore = useInventoryStore();
 const loading = ref(false);
 const open = ref(false);
 const edit_open = ref(false);
-let attribute_id = ref(null)
-inventoryStore.fetchInventories()
-console.log("inventoryStore.inventories", inventoryStore.inventories)
+let attribute_id = ref(null);
+
+inventoryStore.fetchInventories();
+
 const columns = [
   {
     title: 'Product',
@@ -153,92 +234,178 @@ const columns = [
     customRender: ({record}) => record.variant.Product ? record.variant.Product.subcategory.name : '',
     key: 'subcategoryId',
   },
-  //
-  // {
-  //   title: 'VAT',
-  //   customRender: ({record}) => record.Product ? record.Product.VATType : 'N/A',
-  //   key: 'VATType',
-  // },
   {
-    title: 'inventories',
+    title: 'Inventories',
     dataIndex: 'inventories',
     key: 'inventories',
-  },{
-    title: 'operation',
+  },
+  {
+    title: 'Operation',
     dataIndex: 'operation',
     key: 'operation',
   },
 ];
 
 const pagination = ref({pageSize: 10});
-const edit = key => {
-};
-const save = key => {
-};
+
 const onDelete = async key => {
-  await productStore.deleteVariant(key)
-  console.log("deleted", key)
-};
-const onEdit = async key => {
-  console.log("edit", key)
-  attribute_id = parseInt(key)
-  console.log("attribute_id", attribute_id)
-  edit_open.value = true
-  console.log("done")
+  await inventoryStore.deleteInventory(key);
 };
 
-const onValues = async key => {
-  await router.push({name: 'attribute-values-id', params: {id: key}});
+const onEdit = async key => {
+  attribute_id.value = parseInt(key);
+  edit_open.value = true;
 };
 
 const handleAdd = () => {
   open.value = true;
 };
-const handleOk = () => {
-  open.value = false;
-  // Optionally handle any additional logic here
-};
-const handleCancel = () => {
-  open.value = false;
-  edit_open.value = false;
-};
+
 const handleSubmitSuccess = () => {
   open.value = false;
   edit_open.value = false;
 };
+
 const onChange = (pagination, filters, sorter) => {
   console.log('params', pagination, filters, sorter);
 };
+
 const handleSearch = (selectedKeys, confirm, dataIndex) => {
   confirm();
-  state.searchText = selectedKeys[0];
-  state.searchedColumn = dataIndex;
+  // Implement search functionality
 };
+
 const handleReset = clearFilters => {
   clearFilters({
     confirm: true,
   });
-  state.searchText = '';
+  // Reset search
+};
+
+const exportToExcel = () => {
+  const data = inventoryStore.inventories.map(inventory => ({
+    Product: inventory.variant.Product ? inventory.variant.Product.name : '',
+    SKU: inventory.variant ? inventory.variant.sku : '',
+    Quantity: inventory.variant ? inventory.variant.stockQuantity : '',
+    Category: inventory.variant.Product ? inventory.variant.Product.category.name : '',
+    Subcategory: inventory.variant.Product ? inventory.variant.Product.subcategory.name : '',
+  }));
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Inventories");
+  XLSX.writeFile(wb, "inventories.xlsx");
+};
+
+const exportToPDF = () => {
+  const doc = new jsPDF();
+  doc.autoTable({
+    head: [['Product', 'SKU', 'Quantity', 'Category', 'Subcategory']],
+    body: inventoryStore.inventories.map(inventory => [
+      inventory.variant.Product ? inventory.variant.Product.name : '',
+      inventory.variant ? inventory.variant.sku : '',
+      inventory.variant ? inventory.variant.stockQuantity : '',
+      inventory.variant.Product ? inventory.variant.Product.category.name : '',
+      inventory.variant.Product ? inventory.variant.Product.subcategory.name : '',
+    ]),
+  });
+  doc.save('inventories.pdf');
 };
 </script>
 
 <style scoped>
-.coupons-container {
-  padding: 20px;
+.inventory-container {
+  background-color: #f0f2f5;
+  padding: 24px;
+  border-radius: 8px;
 }
 
-.header-controls {
+.header-card {
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.header {
+  padding: 16px;
+}
+
+.header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #001529;
+}
+
+.add-inventory-btn {
+  font-size: 14px;
+  height: 36px;
+  margin-right: 8px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.export-btn {
+  height: 36px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.table-container {
+  background-color: #ffffff;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+:deep(.ant-table) {
+  font-size: 14px;
+}
+
+:deep(.ant-table-thead > tr > th) {
+  background-color: #fafafa;
+  color: #001529;
+  font-weight: 600;
+}
+
+:deep(.ant-table-tbody > tr > td) {
+  padding: 12px 16px;
+}
+
+:deep(.ant-table-tbody > tr:hover > td) {
+  background-color: #f5f5f5;
+}
+
+.custom-filter-dropdown {
+  padding: 8px;
+  border-radius: 4px;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.custom-filter-dropdown input {
+  width: 200px;
+  margin-bottom: 8px;
+  display: block;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.custom-filter-dropdown button {
+  width: 100px;
+  margin-right: 8px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.text-primary {
+  color: #1890ff;
+}
+
+.action-buttons {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
+  gap: 8px;
 }
 
-.actions {
-  display: flex;
-  align-items: end;
-}
-
-.actions a-button {
-  margin-left: 2px;
+.action-buttons .ant-btn-link {
+  padding: 0;
 }
 </style>

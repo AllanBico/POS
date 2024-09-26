@@ -44,7 +44,7 @@ const Inventory = sequelize.define('Inventory', {
     },
     minimumStock: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
         defaultValue: 0, // This could be used for low-stock alerts
     },
     reorderPoint: {

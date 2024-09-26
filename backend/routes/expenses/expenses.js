@@ -8,9 +8,9 @@ router.get('/',authenticateToken, async (req, res) => {
     try {
         const expenses = await Expense.findAll({
             include: [
-                { model: ExpenseCategory, as: 'ExpenseCategory' },
-                { model: PaymentMethod, as: 'PaymentMethod' },
-                { model: Supplier, as: 'Supplier' }
+                { model: ExpenseCategory, as: 'expenseCategory' },
+                { model: PaymentMethod, as: 'paymentMethod' },
+                { model: Supplier, as: 'supplier' }
             ]
         });
         res.json(expenses);

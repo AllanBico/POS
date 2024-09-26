@@ -15,14 +15,14 @@
     </a-modal>
     <a-modal
       v-model:open="edit_open"
-      title="Edit Product"
+      title="Edit Variant"
       @ok="handleOk"
       @cancel="handleCancel"
       ok-text="Submit"
       cancel-text="Cancel"
       :maskClosable="false"
     >
-      <attribute-edit-modal @submit-success="handleSubmitSuccess" :attribute_id="attribute_id"></attribute-edit-modal>
+      <variants-edit-modal @submit-success="handleSubmitSuccess"  :variant-id="variant_id"></variants-edit-modal>
       <template #footer> </template>
     </a-modal>
 
@@ -162,12 +162,20 @@
               <a-dropdown>
                 <template #overlay>
                   <a-menu>
-                    <a-menu-item key="view" @click="onCompositionView(record.id)">
+                    <a-menu-item
+                        v-if="record?.Product?.isComposition"
+                        key="view" @click="onCompositionView(record.id)">
                       <EyeOutlined /> Composition View
                     </a-menu-item>
-                    <a-menu-item key="composition" @click="onComposition(record.id)">
+                    <a-menu-item
+                        v-if="record?.Product?.isComposition"
+                        key="composition"
+                        @click="onComposition(record.id)"
+                    >
                       <CopyOutlined /> Composition
                     </a-menu-item>
+
+
                     <a-menu-item key="serial" @click="onSerial(record.id)">
                       <CopyOutlined /> Serial Numbers
                     </a-menu-item>
@@ -199,19 +207,19 @@ import {
 } from "@ant-design/icons-vue";
 import {useProductStore} from '~/stores/product/ProductStore.js';
 import AttributeAddModal from "~/components/product/attributes/attributeAddModal.vue";
-import AttributeEditModal from "~/components/product/attributes/attributeEditModal.vue";
 import createProduct from "~/components/product/products/createProduct.vue";
 import {useTabsStore} from '~/stores/tabsStore.js';
 import compositionForm from "~/components/product/products/compositionForm.vue";
 import compositionView from "~/components/product/products/compositionView.vue";
 import variantSerial from "~/components/product/products/variants/variantSerial.vue";
+import VariantsEditModal from "~/components/product/products/variants/variantsEditModal.vue";
 
 const productStore = useProductStore();
 const tabsStore = useTabsStore();
 const loading = ref(false);
 const open = ref(false);
 const edit_open = ref(false);
-let attribute_id = ref(null)
+let variant_id = ref(null)
 productStore.fetchVariants()
 console.log("productStore.variants", productStore.variants)
 const columns = [
@@ -332,8 +340,8 @@ const onDelete = async key => {
 };
 const onEdit = async key => {
   console.log("edit", key)
-  attribute_id = parseInt(key)
-  console.log("attribute_id", attribute_id)
+  variant_id = parseInt(key)
+  console.log("variant_id", variant_id)
   edit_open.value = true
   console.log("done")
 };

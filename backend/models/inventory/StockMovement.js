@@ -28,7 +28,7 @@ const StockMovement = sequelize.define('StockMovement', {
         // e.g., 'Stock In (From Supplier)', 'Return from Client', etc.
     },
     sourceType: {
-        type: DataTypes.ENUM('warehouse', 'client', 'supplier', 'store'),
+        type: DataTypes.ENUM('warehouse', 'client', 'supplier', 'store', 'opening_balance'),
         allowNull: true,
     },
     sourceId: {

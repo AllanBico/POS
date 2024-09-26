@@ -35,10 +35,10 @@
           </a-button>
         </template>
         <template v-else-if="column.dataIndex === 'sku'">
-          <a-input v-model:value="record.sku" placeholder="Enter SKU" />
+          <a-input v-model:value="record.sku" placeholder="Enter SKU" required />
         </template>
         <template v-else-if="column.dataIndex === 'price'">
-          <a-input-number v-model:value="record.price" placeholder="Enter price" :min="0" :step="0.01" />
+          <a-input-number v-model:value="record.price" placeholder="Enter price" :min="0" :step="0.01" required />
         </template>
         <template v-else-if="column.dataIndex === 'stockQuantity'">
           <a-input-number v-model:value="record.stockQuantity" placeholder="Enter stock quantity" :min="0" :step="1" />
@@ -57,6 +57,28 @@
           >
             <a-button icon="upload">Upload Image</a-button>
           </a-upload>
+        </template>
+        <template v-else-if="column.dataIndex === 'destinationType'">
+          <a-select v-model:value="record.destinationType" placeholder="Select Destination Type" required>
+            <a-select-option value="warehouse">Warehouse</a-select-option>
+            <a-select-option value="store">Store</a-select-option>
+          </a-select>
+        </template>
+        <template v-else-if="column.dataIndex === 'destinationId'">
+          <a-select
+            v-model:value="record.destinationId"
+            placeholder="Select Destination"
+            v-if="record.destinationType"
+            required
+          >
+            <a-select-option
+              v-for="option in getDestinationOptions(record.destinationType)"
+              :key="option.id"
+              :value="option.id"
+            >
+              {{ option.name }}
+            </a-select-option>
+          </a-select>
         </template>
         <template v-else-if="column.dataIndex === 'action'">
           <a-button @click="removeVariant(index)" type="text" danger>
@@ -85,13 +107,15 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue';
+import { ref, reactive, computed } from 'vue';
 import { useProductStore } from '@/stores/product/ProductStore.js';
 import { useAttributesStore } from '@/stores/product/AttributeStore.js';
+import { useStoreStore } from '~/stores/storesStore.js';
+import { useWarehouseStore } from '~/stores/WarehouseStore.js';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons-vue';
 import AttributeAddModal from '~/components/product/attributes/attributeAddModal.vue';
 import AttributeValueAddModal from '~/components/product/attributes/attributeValueAddModal.vue';
-
+const { $toast } = useNuxtApp();
 const props = defineProps({
   productId: {
     type: Number,
@@ -103,8 +127,14 @@ const emit = defineEmits(['submit-success', 'update:isVisible']);
 
 const productStore = useProductStore();
 const attributesStore = useAttributesStore();
-attributesStore.fetchAttributes()
-attributesStore.fetchAttributeValues()
+const storeStore = useStoreStore();
+const warehouseStore = useWarehouseStore();
+
+attributesStore.fetchAttributes();
+attributesStore.fetchAttributeValues();
+storeStore.fetchStores();
+warehouseStore.fetchWarehouses();
+
 const loading = ref(false);
 const variants = ref([createEmptyVariant()]);
 const attributes = ref([]);
@@ -150,6 +180,16 @@ const columns = [
     key: 'image',
   },
   {
+    title: 'Destination Type',
+    dataIndex: 'destinationType',
+    key: 'destinationType',
+  },
+  {
+    title: 'Destination',
+    dataIndex: 'destinationId',
+    key: 'destinationId',
+  },
+  {
     title: 'Action',
     dataIndex: 'action',
     key: 'action',
@@ -164,6 +204,8 @@ function createEmptyVariant() {
     code: '',
     partNumber: '',
     image: null,
+    destinationType: null,
+    destinationId: null,
     attributes: [{ attributeId: null, valueId: null, attributeValues: [] }]
   };
 }
@@ -205,20 +247,21 @@ function handleModalCancel() {
 
 function handleAttributeAddSuccess() {
   handleModalOk();
-  // Refresh attributes list
   fetchAttributes();
 }
 
 function handleAttributeValueAddSuccess() {
   handleModalOk();
-  // Refresh attribute values for the current attribute
-  // You may need to implement this based on your current attribute selection
 }
 
 async function handleImageUpload({ file }, variantIndex) {
-  // Implement image upload logic here
-  // For now, we'll just use a placeholder
   variants.value[variantIndex].image = file;
+}
+
+function getDestinationOptions(destinationType) {
+  return destinationType === 'warehouse'
+    ? warehouseStore.warehouses
+    : storeStore.stores;
 }
 
 async function handleSubmit() {
@@ -226,19 +269,23 @@ async function handleSubmit() {
     loading.value = true;
 
     for (const variant of variants.value) {
+      if (!variant.destinationType || !variant.destinationId || !variant.sku || !variant.price) {
+        throw new Error('Please fill in all required fields (Destination Type, Destination, SKU, and Price) for all variants.');
+      }
+
       variant.productId = props.productId;
-      console.log("variant",variant)
+      console.log("variant", variant);
       const createdVariant = await productStore.createVariant(variant);
       for (const attribute of variant.attributes) {
         const newVariantAttributeValue = {
           attributeValueId: attribute.valueId,
           variantId: createdVariant.id,
         };
-        console.log("newVariantAttributeValue",newVariantAttributeValue)
+        console.log("newVariantAttributeValue", newVariantAttributeValue);
         await productStore.createVariantAttributeValue(newVariantAttributeValue);
       }
       if (variant.image) {
-        console.log("createdVariant.id, variant.image",createdVariant.id, variant.image)
+        console.log("createdVariant.id, variant.image", createdVariant.id, variant.image);
         await productStore.uploadImage(createdVariant.id, variant.image);
       }
     }
@@ -246,6 +293,10 @@ async function handleSubmit() {
     emit('submit-success');
   } catch (error) {
     console.error('Error creating variants:', error);
+    // Show error message to user
+    // You can use your preferred method to show errors, e.g., Ant Design message component
+    $toast.error(error.message);
+    // message.error(error.message);
   } finally {
     loading.value = false;
   }
@@ -259,7 +310,6 @@ async function fetchAttributes() {
   attributes.value = attributesStore.attributes;
 }
 
-// Initial fetch of attributes
 fetchAttributes();
 </script>
 

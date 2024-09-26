@@ -1,94 +1,202 @@
 <template>
   <div class="stock-adjustments-container">
-    <a-card title="Stock Adjustments" bordered={false}>
-      <div class="header-controls">
-        <div class="actions">
-          <a-button type="primary" @click="onCreate" :icon="h(PlusOutlined)">Add New</a-button>
-        </div>
-      </div>
+    <!-- Modals -->
+    <a-modal
+      v-model:open="isAddModalOpen"
+      title="Create Stock Adjustment"
+      :footer="null"
+      :maskClosable="false"
+    >
+      <stock-adjustment-add-modal @submit-success="handleSubmitSuccess"></stock-adjustment-add-modal>
+    </a-modal>
 
-      <a-table
-          :columns="columns"
-          :data-source="stockAdjustmentStore.stockAdjustments"
-          :pagination="pagination"
-          :rowKey="id"
-          bordered
-          size="small"
-          @change="onChange"
+    <a-modal
+      v-model:open="isEditModalOpen"
+      title="Edit Stock Adjustment"
+      :footer="null"
+      :maskClosable="false"
+    >
+      <stock-adjustment-edit-modal
+        @submit-success="handleSubmitSuccess"
+        :selectedStockAdjustmentId="selectedStockAdjustmentId"
+      ></stock-adjustment-edit-modal>
+    </a-modal>
+
+    <!-- Header -->
+    <a-card class="header-card" :bordered="false">
+      <a-page-header
+        class="header"
+        title="Stock Adjustments"
+        sub-title="Manage and organize your stock adjustments"
       >
-        <template #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }">
-          <div style="padding: 8px">
+        <template #extra>
+          <a-button
+            class="add-stock-adjustment-btn"
+            type="primary"
+            @click="handleAddStockAdjustment"
+            :icon="h(PlusOutlined)"
+          >
+            Create Stock Adjustment
+          </a-button>
+          <a-dropdown>
+            <template #overlay>
+              <a-menu>
+                <a-menu-item key="1" @click="exportToExcel">
+                  <FileExcelOutlined /> Excel
+                </a-menu-item>
+                <a-menu-item key="2" @click="exportToPDF">
+                  <FilePdfOutlined /> PDF
+                </a-menu-item>
+              </a-menu>
+            </template>
+            <a-button class="export-btn">
+              Export <DownOutlined />
+            </a-button>
+          </a-dropdown>
+        </template>
+      </a-page-header>
+    </a-card>
+
+    <!-- Stock Adjustments table -->
+    <div class="table-container">
+      <a-table
+        :dataSource="stockAdjustmentStore.stockAdjustments"
+        :columns="columns"
+        :pagination="{
+          pageSize: 10,
+          showSizeChanger: true,
+          showQuickJumper: true,
+        }"
+        :rowKey="(record) => record.id"
+        :loading="stockAdjustmentStore.loading"
+        size="middle"
+        @change="handleTableChange"
+      >
+        <!-- Custom filter dropdown template -->
+        <template
+          #customFilterDropdown="{
+            setSelectedKeys,
+            selectedKeys,
+            confirm,
+            clearFilters,
+            column,
+          }"
+        >
+          <div class="custom-filter-dropdown">
             <a-input
-                ref="searchInput"
-                :placeholder="`Search ${column.dataIndex}`"
-                :value="selectedKeys[0]"
-                style="width: 188px; margin-bottom: 8px; display: block"
-                @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
-                @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex)"
+              ref="searchInput"
+              :placeholder="`Search ${column.title}`"
+              :value="selectedKeys[0]"
+              @change="(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])"
+              @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex)"
             />
             <a-button
-                type="primary"
-                size="small"
-                style="width: 90px; margin-right: 8px"
-                @click="handleSearch(selectedKeys, confirm, column.dataIndex)"
+              type="primary"
+              @click="handleSearch(selectedKeys, confirm, column.dataIndex)"
             >
               <template #icon><SearchOutlined /></template>
               Search
             </a-button>
-            <a-button size="small" style="width: 90px" @click="handleReset(clearFilters)">
+            <a-button @click="handleReset(clearFilters)">
               Reset
             </a-button>
           </div>
         </template>
+
+        <!-- Custom filter icon -->
         <template #customFilterIcon="{ filtered }">
-          <search-outlined :style="{ color: filtered ? '#108ee9' : undefined }" />
+          <search-outlined :class="{ 'text-primary': filtered }" />
         </template>
-        <template #bodyCell="{ column, text, record }">
-          <template v-if="column.dataIndex === 'adjustmentQuantity'">
-            {{record.adjustmentQuantity}} {{record?.variant?.Product?.Unit?.abbreviation}}
-          </template>
-          <template v-if="column.dataIndex === 'reason'">
-            {{record.reason}}
-          </template>
-          <template v-if="column.dataIndex === 'status'">
-            <span>
-              <a-tag v-if="record.status === 'pending'" color="processing">Pending</a-tag>
-              <a-tag v-if="record.status === 'approved'" color="success">Approved</a-tag>
-            </span>
-          </template>
+
+        <!-- Custom render for operation column -->
+        <template #bodyCell="{ column, record }">
           <template v-if="column.dataIndex === 'operation'">
-            <a-tooltip title="Edit" placement="bottom">
-              <a-button @click="onEdit(record.id)" style="margin-right: 3px" :icon="h(EditOutlined)"/>
-            </a-tooltip>
-            <a-popconfirm
-                v-if="stockAdjustmentStore.stockAdjustments.length"
-                title="Sure to delete?"
-                @confirm="onDelete(record.id)"
-            >
-              <a-tooltip title="Delete" placement="bottom">
-                <a-button :icon="h(DeleteOutlined)"/>
+            <div class="action-buttons">
+              <a-tooltip title="Edit">
+                <a-button
+                  type="link"
+                  class="edit-btn"
+                  @click="handleEditStockAdjustment(record.id)"
+                  :style="{ color: '#1890ff' }"
+                >
+                  <template #icon><EditOutlined /></template>
+                </a-button>
               </a-tooltip>
-            </a-popconfirm>
+              <a-popconfirm
+                :title="`Are you sure you want to delete this stock adjustment?`"
+                ok-text="Yes"
+                cancel-text="No"
+                @confirm="handleDeleteStockAdjustment(record.id)"
+                placement="topRight"
+              >
+                <a-tooltip title="Delete">
+                  <a-button
+                    type="link"
+                    class="delete-btn"
+                    :style="{ color: '#ff4d4f' }"
+                  >
+                    <template #icon><DeleteOutlined /></template>
+                  </a-button>
+                </a-tooltip>
+              </a-popconfirm>
+              <a-dropdown>
+                <template #overlay>
+                  <a-menu>
+                    <a-menu-item key="view">
+                      <EyeOutlined /> View Details
+                    </a-menu-item>
+                    <a-menu-item key="approve">
+                      <CheckOutlined /> Approve
+                    </a-menu-item>
+                    <a-menu-item key="archive">
+                      <InboxOutlined /> Archive
+                    </a-menu-item>
+                  </a-menu>
+                </template>
+                <a-button type="link">
+                  <MoreOutlined style="font-size: 16px;" />
+                </a-button>
+              </a-dropdown>
+            </div>
           </template>
         </template>
       </a-table>
-    </a-card>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { computed, ref, onMounted } from 'vue';
-import { useStockAdjustmentStore } from '~/stores/invetory/stockAdjustmentStore.js'; // Adjust the path if necessary
-import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined } from "@ant-design/icons-vue";
-import { useTabsStore } from "~/stores/tabsStore.js";
+import { ref, onMounted } from 'vue';
+import { useStockAdjustmentStore } from '~/stores/invetory/stockAdjustmentStore.js';
 
-const tabsStore = useTabsStore();
+import {
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+  SearchOutlined,
+  DownOutlined,
+  FileExcelOutlined,
+  FilePdfOutlined,
+  EyeOutlined,
+  CheckOutlined,
+  InboxOutlined,
+  MoreOutlined,
+} from "@ant-design/icons-vue";
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+
+// Initialize stock adjustment store and fetch stock adjustments
 const stockAdjustmentStore = useStockAdjustmentStore();
-const open = ref(false);
-const edit_open = ref(false);
-const stockAdjustmentId = ref(null);
+stockAdjustmentStore.fetchStockAdjustments();
+
+// Reactive variables
+const isAddModalOpen = ref(false);
+const isEditModalOpen = ref(false);
+const selectedStockAdjustmentId = ref(null);
 const searchInput = ref(null);
 
+// Table columns configuration
 const columns = [
   {
     title: 'Date',
@@ -125,12 +233,13 @@ const columns = [
     title: 'Reason',
     dataIndex: 'reason',
     key: 'reason',
-  },{
+  },
+  {
     title: 'Type',
     dataIndex: 'type',
     key: 'type',
-  }
-  ,{
+  },
+  {
     title: 'Raised By',
     customRender: ({ record }) => record?.createdByUser ? record?.createdByUser?.name : '',
     key: 'createdByUser',
@@ -139,7 +248,8 @@ const columns = [
     title: 'Status',
     dataIndex: 'status',
     key: 'status',
-  },{
+  },
+  {
     title: 'Approved By',
     customRender: ({ record }) => record?.approvedByUser ? record?.approvedByUser?.name : '',
     key: 'approvedByUser',
@@ -151,69 +261,181 @@ const columns = [
   },
 ];
 
-const pagination = ref({ pageSize: 10 });
-
-const fetchStockAdjustments = async () => {
-  await stockAdjustmentStore.fetchStockAdjustments();
+// Event handlers
+const handleAddStockAdjustment = () => {
+  isAddModalOpen.value = true;
 };
 
-const onDelete = async key => {
-  await stockAdjustmentStore.deleteStockAdjustment(key);
-  console.log("Deleted", key);
+const handleEditStockAdjustment = (stockAdjustmentId) => {
+  selectedStockAdjustmentId.value = stockAdjustmentId;
+  isEditModalOpen.value = true;
 };
 
-const onEdit = async key => {
-  await stockAdjustmentStore.approveStockAdjustment(parseInt(key))
-};
-
-const onView = async key => {
-  // tabsStore.addTab('Stock Adjustment Detail', stockAdjustmentDetail, { stock_adjustment_id: key });
-};
-
-const onCreate = async () => {
-  // tabsStore.addTab('Create Stock Adjustment', stockAdjustmentCreate);
-};
-
-const handleAdd = () => {
-  open.value = true;
-};
-
-const handleOk = () => {
-  open.value = false;
-  // Optionally handle any additional logic here
-};
-
-const handleCancel = () => {
-  open.value = false;
-  edit_open.value = false;
+const handleDeleteStockAdjustment = async (stockAdjustmentId) => {
+  try {
+    await stockAdjustmentStore.deleteStockAdjustment(stockAdjustmentId);
+  } catch (error) {
+    console.error("Error deleting stock adjustment:", error);
+  }
 };
 
 const handleSubmitSuccess = () => {
-  open.value = false;
-  edit_open.value = false;
-};
-
-const onChange = (pagination, filters, sorter) => {
-  console.log('Params', pagination, filters, sorter);
+  isAddModalOpen.value = false;
+  isEditModalOpen.value = false;
 };
 
 const handleSearch = (selectedKeys, confirm, dataIndex) => {
   confirm();
 };
 
-const handleReset = clearFilters => {
+const handleReset = (clearFilters) => {
   clearFilters({ confirm: true });
 };
 
+const handleTableChange = (pagination, filters, sorter) => {
+  console.log('Table changed:', pagination, filters, sorter);
+};
+
+const exportToExcel = () => {
+  const data = stockAdjustmentStore.stockAdjustments.map(adjustment => ({
+    Date: adjustment.date,
+    Product: adjustment.variant?.Product?.name,
+    'Variant SKU': adjustment.variant?.sku,
+    Store: adjustment.store?.name,
+    Warehouse: adjustment.warehouse?.name,
+    'Adjustment Quantity': adjustment.adjustmentQuantity,
+    Reason: adjustment.reason,
+    Type: adjustment.type,
+    'Raised By': adjustment.createdByUser?.name,
+    Status: adjustment.status,
+    'Approved By': adjustment.approvedByUser?.name,
+  }));
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Stock Adjustments");
+  XLSX.writeFile(wb, "stock_adjustments.xlsx");
+};
+
+const exportToPDF = () => {
+  const doc = new jsPDF();
+  doc.autoTable({
+    head: [['Date', 'Product', 'Variant SKU', 'Store', 'Warehouse', 'Adjustment Quantity', 'Reason', 'Type', 'Raised By', 'Status', 'Approved By']],
+    body: stockAdjustmentStore.stockAdjustments.map(adjustment => [
+      adjustment.date,
+      adjustment.variant?.Product?.name,
+      adjustment.variant?.sku,
+      adjustment.store?.name,
+      adjustment.warehouse?.name,
+      adjustment.adjustmentQuantity,
+      adjustment.reason,
+      adjustment.type,
+      adjustment.createdByUser?.name,
+      adjustment.status,
+      adjustment.approvedByUser?.name,
+    ]),
+  });
+  doc.save('stock_adjustments.pdf');
+};
+
 onMounted(() => {
-  fetchStockAdjustments();
+  stockAdjustmentStore.fetchStockAdjustments();
 });
-console.log("stockAdjustmentStore.stockAdjustments", stockAdjustmentStore.stockAdjustments);
 </script>
 
 <style scoped>
 .stock-adjustments-container {
-  max-width: 100%;
-  margin: 0 auto;
+  background-color: #f0f2f5;
+  padding: 24px;
+  border-radius: 8px;
+}
+
+.header-card {
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.header {
+  padding: 16px;
+}
+
+.header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #001529;
+}
+
+.add-stock-adjustment-btn {
+  font-size: 14px;
+  height: 36px;
+  margin-right: 8px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.export-btn {
+  height: 36px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.table-container {
+  background-color: #ffffff;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+:deep(.ant-table) {
+  font-size: 14px;
+}
+
+:deep(.ant-table-thead > tr > th) {
+  background-color: #fafafa;
+  color: #001529;
+  font-weight: 600;
+}
+
+:deep(.ant-table-tbody > tr > td) {
+  padding: 12px 16px;
+}
+
+:deep(.ant-table-tbody > tr:hover > td) {
+  background-color: #f5f5f5;
+}
+
+.custom-filter-dropdown {
+  padding: 8px;
+  border-radius: 4px;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.custom-filter-dropdown input {
+  width: 200px;
+  margin-bottom: 8px;
+  display: block;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.custom-filter-dropdown button {
+  width: 100px;
+  margin-right: 8px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.text-primary {
+  color: #1890ff;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.action-buttons .ant-btn-link {
+  padding: 0;
 }
 </style>

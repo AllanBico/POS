@@ -23,7 +23,7 @@ module.exports = {
         allowNull: false,
       },
       transaction_type: {
-        type: Sequelize.ENUM('stock_in', 'return_from_client', 'return_to_supplier', 'adjustment', 'transfer'),
+        type: Sequelize.ENUM('stock_in', 'return_from_client', 'return_to_supplier', 'adjustment', 'transfer','opening_balance'),
         allowNull: false,
       },
       source_type: {

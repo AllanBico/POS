@@ -29,7 +29,7 @@
 <script setup>
 import { ref, reactive } from 'vue';
 import { useProductStore } from '~/stores/product/ProductStore.js'; // Update path as needed
-
+const emit = defineEmits(['submit-success']);
 const productStore = useProductStore();
 productStore.fetchVariants()
 const variants = productStore.variants; // Assuming variants are already fetched
@@ -68,7 +68,7 @@ const submitForm = async () => {
     console.log("variantId.value, ingredientRows",props.variant_id, ingredientRows)
     // Call Pinia action to submit composition
     await productStore.createComposition(props.variant_id, ingredientRows);
-    console.log('Composition added successfully');
+    emit('submit-success');
   } catch (error) {
     console.error('Error adding composition', error);
   }

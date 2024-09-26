@@ -3,22 +3,72 @@ const router = express.Router();
 const { Product, Variant, Category, Subcategory, Unit, Attribute, AttributeValue, VariantAttributeValue,
     Inventory,
     Warehouse,
-    Store
+    Store, StockMovement
 } = require('../../models/associations');
 const authenticateToken = require("../../middleware/auth");
-
+const sequelize = require('../../config/db');
 
 // Create a Variant
-router.post('/',authenticateToken, async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
+    const t = await sequelize.transaction();
     try {
-        const { sku, price, stockQuantity, productId ,partNumber,code} = req.body;
-        console.log("sku, price, stockQuantity, productId",sku, price, stockQuantity, productId,partNumber,code)
-        const variant = await Variant.create({ sku, price, stockQuantity, productId,partNumber,code });
+        const { sku, price, stockQuantity, productId, partNumber, code, destinationType, destinationId } = req.body;
+
+        // Defensive checks
+        if (!sku || !price || !stockQuantity || !productId || !destinationType || !destinationId) {
+            throw new Error('Missing required fields');
+        }
+
+        if (stockQuantity <= 0) {
+            throw new Error('Stock quantity must be greater than zero');
+        }
+
+        if (price < 0) {
+            throw new Error('Price must be a positive number');
+        }
+
+        console.log("sku, price, stockQuantity, productId", sku, price, stockQuantity, productId, partNumber, code, destinationType, destinationId);
+
+        // Creating variant
+        const variant = await Variant.create(
+            { sku, price, stockQuantity, productId, partNumber, code },
+            { transaction: t }
+        );
+
+        // Creating stock movement
+        const stockMovement = await StockMovement.create({
+            variantId: variant.id,
+            quantity: stockQuantity,
+            transactionType: "opening_balance",
+            sourceType: 'opening_balance',
+            destinationType,
+            destinationId,
+            transactionDate: new Date().toISOString().split('T')[0],
+            createdBy:req.user.id,
+        }, { transaction: t });
+
+        // Creating inventory record
+        const newInventory = await Inventory.create({
+            variantId: variant.id,
+            warehouseId: destinationType === 'warehouse' ? destinationId : null,
+            storeId: destinationType === 'store' ? destinationId : null,
+            quantity: stockQuantity,
+            costPrice: price,
+        }, { transaction: t });
+
+        // If everything passes, commit the transaction
+        await t.commit();
+
         res.status(201).json(variant);
     } catch (error) {
+        // Rollback transaction in case of error
+        if (t) await t.rollback();
+
+        console.error('Error creating variant or inventory:', error);
         res.status(500).json({ error: error.message });
     }
 });
+
 
 // Get all Variants
 router.get('/',authenticateToken, async (req, res) => {

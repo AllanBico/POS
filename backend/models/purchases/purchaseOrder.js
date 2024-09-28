@@ -44,7 +44,7 @@ const PurchaseOrder = sequelize.define('PurchaseOrder', {
         allowNull: true,
     },
     status: {
-        type: DataTypes.ENUM('pending', 'received', 'cancelled','ordered'),
+        type: DataTypes.ENUM('pending', 'received', 'cancelled','ordered','partial'),
         defaultValue: 'pending',
     },
     totalAmount: {

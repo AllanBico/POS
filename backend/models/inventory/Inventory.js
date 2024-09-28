@@ -38,12 +38,12 @@ const Inventory = sequelize.define('Inventory', {
         onDelete: 'SET NULL',
     },
     quantity: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
         defaultValue: 0,
     },
     minimumStock: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.DECIMAL(10, 2),
         allowNull: true,
         defaultValue: 0, // This could be used for low-stock alerts
     },

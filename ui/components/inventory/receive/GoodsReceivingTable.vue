@@ -8,14 +8,14 @@
         sub-title="Manage and organize your received goods"
       >
         <template #extra>
-          <a-button
-            class="add-goods-btn"
-            type="primary"
-            @click="handleAdd"
-            :icon="h(PlusOutlined)"
-          >
-            Add Goods Received
-          </a-button>
+<!--          <a-button-->
+<!--            class="add-goods-btn"-->
+<!--            type="primary"-->
+<!--            @click="handleAdd"-->
+<!--            :icon="h(PlusOutlined)"-->
+<!--          >-->
+<!--            Add Goods Received-->
+<!--          </a-button>-->
           <a-dropdown>
             <template #overlay>
               <a-menu>
@@ -88,6 +88,22 @@
 
         <!-- Custom render for operation column -->
         <template #bodyCell="{ column, record }">
+          <template v-if="column.dataIndex === 'receivedDate'">
+            {{ formatDate(record.receivedDate) }}
+          </template>
+          <template v-if="column.dataIndex === 'status'">
+            <a-tag
+              :color="
+                record.status === 'pending'
+                  ? 'orange'
+                  : record.status === 'complete'
+                  ? 'green'
+                  : 'blue'
+              "
+            >
+              {{ record.status }}
+            </a-tag>
+          </template>
           <template v-if="column.dataIndex === 'operation'">
             <div class="action-buttons">
               <a-tooltip title="View">
@@ -152,7 +168,7 @@ import {
 import GoodsReceivingForm from "~/components/inventory/receive/GoodsReceivingAdd.vue";
 import goodReceivedEdit from "~/components/inventory/receive/goodReceivedEdit.vue";
 import goodsReceivedView from "~/components/inventory/receive/goodReceivedView.vue";
-
+const { initDateFormat, formatDate } = useDateFormatter();
 const goodsReceivingStore = useGoodsReceivingStore();
 const goodsReceivedList = ref([]);
 const tabsStore = useTabsStore();
@@ -175,6 +191,11 @@ const columns = [
     customRender: ({record}) => record.warehouse ? record.warehouse.name : '',
     sorter: (a, b) => a.warehouse.name.localeCompare(b.warehouse.name),
     customFilterDropdown: true,
+  },{
+    title: 'Store',
+    customRender: ({record}) => record.store ? record.store.name : '',
+    sorter: (a, b) => a.store.name.localeCompare(b.store.name),
+    customFilterDropdown: true,
   },
   {
     title: 'Status',
@@ -193,6 +214,7 @@ const onEdit = async key => {
 };
 
 const onView = async key => {
+  console.log("id ",key)
   tabsStore.addTab('Good Received', goodsReceivedView, { id: key });
 };
 

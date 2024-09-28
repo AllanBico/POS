@@ -6,6 +6,7 @@ const RolePermission = sequelize.define('RolePermission', {
     roleId: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        field: 'role_id',
         references: {
             model: 'Roles', // Table name for Role model
             key: 'id',
@@ -15,6 +16,7 @@ const RolePermission = sequelize.define('RolePermission', {
     permissionId: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        field: 'permission_id',
         references: {
             model: 'Permissions', // Table name for Permission model
             key: 'id',

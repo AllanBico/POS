@@ -35,6 +35,10 @@ const GoodsReceivedLineItem = sequelize.define('GoodsReceivedLineItem', {
         type: DataTypes.ENUM('fully_received', 'partially_received'),
         defaultValue: 'fully_received',
     },
+    note: {  // New column for additional notes
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
 }, {
     timestamps: true,
     underscored: true,

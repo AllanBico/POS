@@ -162,11 +162,9 @@ User.belongsToMany(Role, { through: UserRole });
 Role.belongsToMany(User, { through: UserRole });
 
 // Role <-> Permission association
-Role.belongsToMany(Permission, { through: RolePermission });
-Permission.belongsToMany(Role, { through: RolePermission });
+Role.belongsToMany(Permission, { through: RolePermission, foreignKey: 'roleId' });
+Permission.belongsToMany(Role, { through: RolePermission, foreignKey: 'permissionId' });
 
-Role.belongsToMany(Permission, { through: RolePermission, foreignKey: 'RoleId' });
-Permission.belongsToMany(Role, { through: RolePermission, foreignKey: 'PermissionId' });
 
 // StockTake <-> Product (each stock take is associated with a product)
 StockTake.belongsTo(Variant, { foreignKey: 'variant_id', as: 'variant' });

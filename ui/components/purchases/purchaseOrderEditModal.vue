@@ -50,10 +50,9 @@
 
       <!-- Order Date -->
       <a-form-item label="Order Date" name="orderDate">
-        <a-date-picker v-model:value="formValues.orderDate" value-format="YYYY-MM-DD" />
+        <a-date-picker v-model:value="formValues.orderDate" :value-format="dateFormat" />
       </a-form-item>
 
-      <!-- Line Items Table -->
       <a-table
           :columns="columns"
           :dataSource="formValues.lineItems"
@@ -115,14 +114,15 @@ import { useSupplierStore } from '~/stores/product/SupplierStore.js';
 import { useWarehouseStore } from '~/stores/WarehouseStore.js';
 import { useProductStore } from '~/stores/product/ProductStore.js';
 import { useStoreStore } from '~/stores/storesStore.js';
-
+import {useSettingsStore} from "~/stores/settingsStore.js";
+const settingsStore = useSettingsStore();
 const props = defineProps({
   visible: Boolean,
   purchaseOrderId: Number,
 });
 
 const emit = defineEmits(['submit-success']);
-
+const dateFormat = settingsStore.getSettingByKey('default_date_format') || 'DD/MM/YYYY';
 const form = ref(null);
 const formValues = reactive({
   supplierId: null,

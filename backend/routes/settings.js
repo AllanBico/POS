@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Setting = require('../models/setting');
+const Setting = require('../models/Setting');
 const authenticateToken = require('../middleware/auth');
 
 // Get all settings
@@ -14,20 +14,39 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // Update a setting by ID
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/', authenticateToken, async (req, res) => {
     try {
-        const { value } = req.body;
-        const setting = await Setting.findByPk(req.params.id);
-        if (!setting) {
-            return res.status(404).json({ error: 'Setting not found' });
-        }
+        const updatedSettings = req.body;
+        console.log("Received settings:", updatedSettings);
 
-        setting.value = value;
-        await setting.save();
-        res.status(200).json(setting);
+        const updatePromises = Object.entries(updatedSettings).map(async ([key, value]) => {
+            console.log(`Updating setting: ${key} = ${value}`);
+
+            const [setting, created] = await Setting.findOrCreate({
+                where: { key },
+                defaults: {
+                    value,
+                }
+            });
+
+            if (!created) {
+                setting.value = value;
+                await setting.save();
+            }
+
+            return setting;
+        });
+
+        const updatedSettingsResult = await Promise.all(updatePromises);
+
+        res.status(200).json({
+            updatedSettingsResult
+        });
     } catch (error) {
+        console.error('Error updating settings:', error);
         res.status(400).json({ error: error.message });
     }
 });
+
 
 module.exports = router;

@@ -1,90 +1,115 @@
 const express = require('express');
 const router = express.Router();
-const { GoodsReceived, PurchaseOrder, Warehouse, GoodsReceivedLineItem, Variant,Store, Supplier,SerialNumber,Inventory,StockMovement} = require('../../models/associations');
+const { PurchaseOrderLineItem,GoodsReceived, PurchaseOrder, Warehouse, GoodsReceivedLineItem, Variant,Store, Supplier,SerialNumber,Inventory,StockMovement} = require('../../models/associations');
 const authenticateToken = require("../../middleware/auth");
 const sequelize = require('../../config/db');
 // Create a Goods Received (GRN)
 router.post('/', authenticateToken, async (req, res) => {
+    console.log('Received Goods Received request body:', JSON.stringify(req.body, null, 2));
     const transaction = await sequelize.transaction(); // Create a transaction
+    console.log('Transaction started');
+
     try {
         const { purchaseOrderId, warehouseId, receivedDate, storeId, lineItems } = req.body;
 
         // Validate the request body
-        const requiredFields = [
-            'purchaseOrderId',
-            'receivedDate',
-            'lineItems',
-        ];
-
+        const requiredFields = ['purchaseOrderId', 'receivedDate', 'lineItems'];
         const missingFields = requiredFields.filter(field => !req.body[field]);
 
         if (missingFields.length > 0) {
-            console.log(`Missing required fields: ${missingFields.join(', ')}`)
+            console.log(`Missing required fields: ${missingFields.join(', ')}`);
             return res.status(400).json({ error: `Missing required fields: ${missingFields.join(', ')}` });
         }
 
+        console.log(`Validated request body for purchaseOrderId: ${purchaseOrderId}`);
+
         // Validate each line item and its serial numbers
         for (const item of lineItems) {
+            console.log(`Validating line item for variantId: ${item.variantId}`);
             if (!item.variantId || !item.quantity) {
-                console.log('Invalid line item')
+                console.log(`Invalid line item: variantId: ${item.variantId}, quantity: ${item.quantity}`);
                 return res.status(400).json({ error: 'Invalid line item' });
             }
-            if (item.serialNumbers && item.serialNumbers.length > 0) {
-                if (item.serialNumbers.length !== item.quantity) {
-                    console.log('The number of serial numbers must match the quantity')
-                    return res.status(400).json({ error: 'The number of serial numbers must match the quantity' });
-                }
-            }
+            // if (item.serialNumbers && item.serialNumbers.length > 0 && item.serialNumbers.length !== item.quantity) {
+            //     console.log(`Mismatch in serial numbers for variantId: ${item.variantId}. Expected: ${item.quantity}, Found: ${item.serialNumbers.length}`);
+            //     return res.status(400).json({ error: 'The number of serial numbers must match the quantity' });
+            // }
         }
 
-        // Create the Goods Received entry within the transaction
+        console.log('Creating Goods Received Note...');
         const goodsReceived = await GoodsReceived.create({
             purchaseOrderId,
             warehouseId,
             receivedDate,
             storeId,
         }, { transaction });
+        console.log('Goods Received Note created with ID:', goodsReceived.id);
 
-        // Create line items and their associated serial numbers within the transaction
+        let allItemsFullyReceived = true;
+
+        console.log(`Processing ${lineItems.length} line items...`);
         const createdLineItems = await Promise.all(lineItems.map(async (item) => {
+            console.log(`Processing line item for variantId: ${item.variantId}`);
+
             const variant = await Variant.findByPk(item.variantId, { transaction });
             if (!variant) {
-                console.log(`Variant with id ${item.variantId} not found`)
+                console.error(`Variant with id ${item.variantId} not found`);
                 throw new Error(`Variant with id ${item.variantId} not found`);
             }
 
+            // Fetch the corresponding PurchaseOrderLineItem and update the receivedQuantity
+            const purchaseOrderLineItem = await PurchaseOrderLineItem.findOne({
+                where: { purchaseOrderId, variantId: item.variantId },
+                transaction,
+            });
+
+            if (!purchaseOrderLineItem) {
+                console.error(`PurchaseOrderLineItem not found for variantId ${item.variantId}`);
+                throw new Error(`PurchaseOrderLineItem not found for variantId ${item.variantId}`);
+            }
+
+            console.log(`Updating receivedQuantity for PurchaseOrderLineItem for variantId: ${item.variantId}`);
+            purchaseOrderLineItem.receivedQuantity += item.receivedQuantity;
+
+            if (purchaseOrderLineItem.receivedQuantity > purchaseOrderLineItem.quantity) {
+                console.error(`Received quantity exceeds ordered quantity for variantId ${item.variantId}`);
+                throw new Error(`Received quantity exceeds ordered quantity for variantId ${item.variantId}`);
+            }
+
+            await purchaseOrderLineItem.save({ transaction });
+
+            if (purchaseOrderLineItem.receivedQuantity !== purchaseOrderLineItem.quantity) {
+                console.log(`Partial receipt for variantId: ${item.variantId}`);
+                allItemsFullyReceived = false;
+            }
 
             const lineItem = await GoodsReceivedLineItem.create({
                 variantId: item.variantId,
-                receivedQuantity: item.quantity,
-                goodsReceivedId: goodsReceived?.id,
+                receivedQuantity: item.quantity, // Received in this transaction
+                goodsReceivedId: goodsReceived.id,
+                note: item.note,
+                status: item.quantity !== item.expectedQuantity ? 'partially_received' : 'fully_received',
             }, { transaction });
-            let destinationType = null;
-            let destinationId = null;
-            if (warehouseId) {
-                destinationType = 'warehouse';
-                destinationId =warehouseId;
-            } else if (storeId) {
-                destinationType = 'store';
-                destinationId = storeId;
-            }
-            // Create a StockMovement record
+
+            console.log(`Created GoodsReceivedLineItem for variantId: ${item.variantId}`);
+
+            let destinationType = warehouseId ? 'warehouse' : 'store';
+            let destinationId = warehouseId || storeId;
+
+            console.log(`Creating StockMovement for variantId: ${item.variantId}`);
             const stockMovement = await StockMovement.create({
                 variantId: item.variantId,
                 quantity: item.quantity,
                 transactionType: 'stock_in',
-                sourceType: 'supplier', // Assuming the source is a supplier (you can adjust as necessary)
-                sourceId: purchaseOrderId, // Use purchase order as source for this case
-                destinationType: destinationType, // Assuming the destination is a warehouse
-                destinationId: destinationId, // This is the destination warehouse
-                destinationStoreId: storeId,
-                sourceStoreId: null,
+                sourceType: 'supplier',
+                sourceId: purchaseOrderId,
+                destinationType,
+                destinationId,
                 transactionDate: receivedDate,
-                sourceWarehouseId: null,
-                destinationWarehouseId: warehouseId,
-                //createdBy: req.user.id,
-                createdBy: 7,
+                createdBy: req.user.id || 7, // Adjust the user id accordingly
             }, { transaction });
+
+            console.log(`StockMovement created for variantId: ${item.variantId}`);
 
             let inventory = await Inventory.findOne({
                 where: {
@@ -95,11 +120,11 @@ router.post('/', authenticateToken, async (req, res) => {
             });
 
             if (inventory) {
-                // If inventory exists, update the quantity
+                console.log(`Updating inventory for variantId: ${item.variantId}`);
                 inventory.quantity += item.quantity;
                 await inventory.save({ transaction });
             } else {
-                // If no inventory exists, create a new record
+                console.log(`Creating new inventory record for variantId: ${item.variantId}`);
                 inventory = await Inventory.create({
                     variantId: item.variantId,
                     warehouseId: destinationType === 'warehouse' ? destinationId : null,
@@ -107,11 +132,12 @@ router.post('/', authenticateToken, async (req, res) => {
                     quantity: item.quantity,
                 }, { transaction });
             }
-            console.log("inventory updated",inventory)
+
             await variant.incrementStock(item.quantity, transaction);
 
             // If serial numbers are provided, create entries for them
             if (item.serialNumbers && item.serialNumbers.length > 0) {
+                console.log(`Processing ${item.serialNumbers.length} serial numbers for variantId: ${item.variantId}`);
                 await Promise.all(item.serialNumbers.map(async (serialNumber) => {
                     await SerialNumber.create({
                         serialNumber: serialNumber,
@@ -124,15 +150,31 @@ router.post('/', authenticateToken, async (req, res) => {
             return lineItem;
         }));
 
+        console.log('Finished processing line items');
+
+        // Determine the status of the purchase order
+        const purchaseOrderStatus = allItemsFullyReceived ? 'received' : 'partial';
+        console.log(`Updating purchase order status to: ${purchaseOrderStatus}`);
+
+        // Update the Purchase Order status
+        await PurchaseOrder.update(
+            { status: purchaseOrderStatus },
+            { where: { id: purchaseOrderId }, transaction }
+        );
+
+        console.log('Purchase Order status updated');
+
         // Commit the transaction after all operations are successful
         await transaction.commit();
+        console.log('Transaction committed successfully');
 
         res.status(201).json({ goodsReceived, lineItems: createdLineItems });
 
     } catch (error) {
         if (transaction) await transaction.rollback();
-        console.error("error.message",error.message)
-        res.status(500).json({ error: error });
+        console.error('Error occurred, transaction rolled back:', error.message);
+        console.error(error.stack); // Log the stack trace for more details
+        res.status(500).json({ error: error.message });
     }
 });
 

@@ -1,5 +1,5 @@
-import { defineStore } from 'pinia';
-import { useRuntimeConfig } from '#app';
+import {defineStore} from 'pinia';
+import {useRuntimeConfig} from '#app';
 
 export const useSettingsStore = defineStore('settings', {
     state: () => ({
@@ -11,7 +11,7 @@ export const useSettingsStore = defineStore('settings', {
             const config = useRuntimeConfig();
             const apiUrl = `${config.public.baseURL}/api/settings`;
             try {
-                const { data } = await useFetch(apiUrl, {
+                const {data} = await useFetch(apiUrl, {
                     credentials: 'include',
                 });
                 this.settings = data.value; // Ensure it's an array
@@ -19,30 +19,29 @@ export const useSettingsStore = defineStore('settings', {
                 this.error = error;
             }
         },
-        async updateSetting(updatedSettings) {
+        async updateSettings(updatedSettings) {
             const config = useRuntimeConfig();
+            const apiUrl = `${config.public.baseURL}/api/settings`;
+            console.log('updatedSettings', updatedSettings);
+
+            // Convert Map to a plain object
+            const settingsObject = Object.fromEntries(updatedSettings);
+
             try {
-                const payload = Object.keys(updatedSettings).map(key => ({
-                    key,
-                    value: updatedSettings[key],
-                }));
-
-                await Promise.all(
-                    payload.map(setting =>
-                        useFetch(`${config.public.baseURL}/api/settings/${setting.key}`, {
-                            method: 'PUT',
-                            body: { value: JSON.stringify(setting.value) }, // Assuming values need to be JSON-encoded
-                            credentials: 'include',
-                        })
-                    )
-                );
-
-                // Refetch settings after update
-                await this.fetchSettings();
+                const {data} = await useFetch(apiUrl, {
+                    method: 'PUT',
+                    credentials: 'include',
+                    body: JSON.stringify(settingsObject),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                this.settings = data.value;
             } catch (error) {
-                console.error('Failed to update settings:', error);
+                this.error = error;
             }
         },
+
 
         async uploadFile(file) {
             const config = useRuntimeConfig();
@@ -50,7 +49,7 @@ export const useSettingsStore = defineStore('settings', {
             formData.append('file', file);
 
             try {
-                const { data } = await useFetch(`${config.public.baseURL}/api/upload`, {
+                const {data} = await useFetch(`${config.public.baseURL}/api/upload`, {
                     method: 'POST',
                     body: formData,
                     credentials: 'include',

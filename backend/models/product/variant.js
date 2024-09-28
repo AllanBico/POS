@@ -18,8 +18,8 @@ const Variant = sequelize.define('Variant', {
         allowNull: false,
     },
     stockQuantity: {
-        type: DataTypes.INTEGER,
-        defaultValue: 0,
+        type: DataTypes.DECIMAL(10, 2), // Changed from INTEGER to DECIMAL
+        defaultValue: 0.00,
     },
     code: {
         type: DataTypes.STRING,

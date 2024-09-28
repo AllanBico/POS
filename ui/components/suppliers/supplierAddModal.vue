@@ -15,6 +15,12 @@
     <a-form-item label="Address">
       <a-textarea :rows="4" v-model:value="form.address"/>
     </a-form-item>
+    <a-form-item label="Postal Code">
+      <a-input v-model:value="form.postalCode"/>
+    </a-form-item>
+    <a-form-item label="Tax ID">
+      <a-input v-model:value="form.taxIdentificationNumber"/>
+    </a-form-item>
     <a-form-item label="Status">
       <a-switch v-model:checked="form.status" checked-children="Active" un-checked-children="Inactive"/>
     </a-form-item>
@@ -38,6 +44,8 @@ const form = ref({
   email: '',
   phone: '',
   address: '',
+  postalCode:'',
+  taxIdentificationNumber:'',
   status: 'true',
 });
 
@@ -58,11 +66,13 @@ const handleSubmit = async () => {
       email: '',
       phone: '',
       address: '',
+      postalCode:'',
+      taxIdentificationNumber:'',
       status: 'active',
     };
 
     // Reset form
-    form.value = { name: '', contact: '', email: '', phone: '', address: '' };
+    form.value = { taxIdentificationNumber:'',postalCode:'',name: '', contact: '', email: '', phone: '', address: '' };
     // Emit event to close the modal if needed
     emit('submit-success');
   } catch (error) {

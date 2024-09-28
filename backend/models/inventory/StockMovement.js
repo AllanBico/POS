@@ -19,7 +19,7 @@ const StockMovement = sequelize.define('StockMovement', {
         onDelete: 'CASCADE',
     },
     quantity: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
     },
     transactionType: {

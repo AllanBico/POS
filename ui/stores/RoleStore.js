@@ -33,6 +33,29 @@ export const useRoleStore = defineStore('rolePermission', {
                 this.loading = false;
             }
         },
+        async fetchRolesPermissions(roleId) {
+            this.loading = true;
+            this.error = null;
+            try {
+                const config = useRuntimeConfig();
+                const apiUrl = `${config.public.baseURL}/api/permissions/roles-permissions/${roleId}`;
+                const { data, error } = await useFetch(apiUrl, { credentials: 'include' });
+                if (error.value) throw new Error(error.value.message);
+
+                // Flatten the array if it's nested, otherwise keep it as is
+                const flattenedData = Array.isArray(data.value)
+                    ? data.value.flat(Infinity)
+                    : data.value;
+
+                // If data is empty just return an empty list
+                return flattenedData || [];
+            } catch (err) {
+                this.error = err.message;
+            } finally {
+                this.loading = false;
+            }
+        },
+
 
         // Fetch all permissions
         async fetchPermissions() {
@@ -140,20 +163,21 @@ export const useRoleStore = defineStore('rolePermission', {
         },
 
         // Update an existing permission
-        async updatePermission(permissionId, permissionName) {
+        async updatePermission(permissionId, permissions) {
             this.loading = true;
             this.error = null;
+            console.log("store permissions", permissions)
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/permissions/${permissionId}`;
                 const { data, error } = await useFetch(apiUrl, {
                     method: 'PUT',
-                    body: { name: permissionName },
+                    body: { permissions: permissions },
                     credentials: 'include',
                 });
                 if (error.value) throw new Error(error.value.message);
-                const index = this.permissions.findIndex((perm) => perm.id === permissionId);
-                this.permissions[index] = data.value;
+                // const index = this.permissions.findIndex((perm) => perm.id === permissionId);
+                // this.permissions[index] = data.value;
             } catch (err) {
                 this.error = err.message;
             } finally {

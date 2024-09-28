@@ -11,6 +11,7 @@ export const useProductStore = defineStore('product', {
         variantAttributeValues: [],
         error: null,
         compositions: [],
+        composition: null,
         loading: false,
     }),
     getters: {
@@ -21,6 +22,7 @@ export const useProductStore = defineStore('product', {
          * @return {Object|null} The product with the given ID, or null if not found.
          */
         productById: (state) => (id) => state.products.find(product => product.id === id) || null,
+        compositionById: (state) => (id) => state.compositions.find(composition => composition.id === id) || null,
         variantById: (state) => (id) => {
             const variant = state.variants.find(variant => variant.id === id) || null;
             return variant;
@@ -435,9 +437,11 @@ export const useProductStore = defineStore('product', {
                 const config = useRuntimeConfig();
                 const apiUrl = `${config.public.baseURL}/api/compositions/variant/${variantId}`;
                 const {data, error} = await useFetch(apiUrl, {credentials: 'include'});
-                if (error.value) throw error.value;
-                // Assuming you want to store the compositions somewhere in the store
-                // You may need to define a `compositions` array in the state if not already present
+                if (error.value) {
+                    console.log("error.value", error)
+                    throw error.value
+                };
+
                 this.compositions = data.value;
                 return data.value;
             } catch (err) {
@@ -486,5 +490,32 @@ export const useProductStore = defineStore('product', {
                 $toast.error('Error deleting composition');
             }
         },
+        async updateCompositionQuantity(compositionId, newQuantity) {
+            const { $toast } = useNuxtApp();
+            try {
+                const config = useRuntimeConfig();
+                const apiUrl = `${config.public.baseURL}/api/compositions/${compositionId}`;
+                const { data, error } = await useFetch(apiUrl, {
+                    method: 'PUT',
+                    body: JSON.stringify({ quantity: newQuantity }),
+                    credentials: 'include',
+                });
+                if (error.value) throw error.value;
+
+                // Update the composition in the local state
+                const index = this.compositions.findIndex(comp => comp.id === compositionId);
+                if (index !== -1) {
+                    this.compositions[index] = { ...this.compositions[index], quantity: newQuantity };
+                }
+
+                $toast.success('Composition quantity updated successfully');
+                return data.value;
+            } catch (err) {
+                this.error = err;
+                console.error('Error updating composition quantity:', err);
+                $toast.error('Error updating composition quantity');
+            }
+        },
+
     },
 });

@@ -41,8 +41,9 @@ const GoodsReceivedNote = sequelize.define('GoodsReceivedNote', {
     },
     status: {
         type: DataTypes.ENUM('pending', 'complete', 'partial'),
-        defaultValue: 'pending',
+        defaultValue: 'complete',
     },
+
 }, {
     timestamps: true,
     underscored: true,

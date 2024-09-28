@@ -1,7 +1,7 @@
 <template>
   <a-modal
       v-model:open="open"
-      title="Add Attribute"
+      title="Add Composition"
       @ok="handleOk"
       @cancel="handleCancel"
       ok-text="Submit"
@@ -10,12 +10,25 @@
       :footer="null"
   >
     <composition-form @submit-success="handleSubmitSuccess" :variant_id="variant_id"></composition-form></a-modal>
+  <a-modal
+      v-model:open="edit_open"
+      title="Edit Composition"
+      @ok="handleOk"
+      @cancel="handleCancel"
+      ok-text="Submit"
+      cancel-text="Cancel"
+      :maskClosable="false"
+      :footer="null"
+  >
+    <edit-composition-quantity ref="editQuantityModal" :composition-id="selectedCompositionId" @submit-success="handleSubmitSuccess" />
+
+  </a-modal>
   <div class="composition-container">
     <!-- Header -->
     <a-card class="header-card" :bordered="false">
       <a-page-header
           class="header"
-          title="Compositions"
+          :title="`${variant?.Product?.name || 'Unknown Product'} (${variant?.sku || 'No SKU'}) Compositions`"
           sub-title="Manage and organize your product compositions"
       >
         <template #extra>
@@ -49,7 +62,7 @@
     <!-- Compositions table -->
     <div class="table-container">
       <a-table
-          :dataSource="compositions"
+          :dataSource="productStore.compositions"
           :columns="columns"
           :pagination="{
           pageSize: 10,
@@ -103,23 +116,16 @@
 
         <!-- Custom render for operation column -->
         <template #bodyCell="{ column, record }">
+          <template v-if="column.dataIndex === 'quantity'">
+            {{record.quantity}} {{record?.ingredientVariant?.Product?.Unit?.abbreviation}}
+          </template>
           <template v-if="column.dataIndex === 'operation'">
             <div class="action-buttons">
-              <a-tooltip title="View">
-                <a-button
-                    type="link"
-                    class="view-btn"
-                    @click="viewComposition(record.id)"
-                    :style="{ color: '#1890ff' }"
-                >
-                  <template #icon><EyeOutlined /></template>
-                </a-button>
-              </a-tooltip>
               <a-tooltip title="Edit">
                 <a-button
                     type="link"
                     class="edit-btn"
-                    @click="handleEditComposition(record.id)"
+                    @click="handleEditQuantity(record.id)"
                     :style="{ color: '#1890ff' }"
                 >
                   <template #icon><EditOutlined /></template>
@@ -148,6 +154,8 @@
       </a-table>
     </div>
   </div>
+
+
 </template>
 
 <script setup>
@@ -163,11 +171,14 @@ import {
   FileExcelOutlined,
   FilePdfOutlined,
 } from "@ant-design/icons-vue";
+
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import CompositionForm from "~/components/product/products/compositionForm.vue";
+import EditCompositionQuantity from "~/components/product/products/EditCompositionQuantity.vue";
 const open = ref(false);
+const edit_open = ref(false);
 const productStore = useProductStore();
 const props = defineProps({
   variant_id: {
@@ -179,11 +190,21 @@ const props = defineProps({
 const compositions = ref([]);
 const loading = ref(true);
 const searchInput = ref(null);
-
+const variant = computed(() => {
+  return productStore.variantById(parseInt(props.variant_id))
+})
 const columns = [
   {
-    title: 'Ingredient Variant ID',
-    dataIndex: 'ingredientVariantId',
+    title: 'Product',
+    customRender: ({record}) => record?.ingredientVariant ? record?.ingredientVariant?.Product?.name : '',
+    key: 'Product',
+    sorter: (a, b) => a.Product - b.Product,
+    customFilterDropdown: true,
+    onFilter: (value, record) => record.Product.toString().includes(value),
+  },
+  {
+    title: 'Variant',
+    customRender: ({record}) => record?.ingredientVariant ? record?.ingredientVariant?.sku : '',
     key: 'ingredientVariantId',
     sorter: (a, b) => a.ingredientVariantId - b.ingredientVariantId,
     customFilterDropdown: true,
@@ -228,7 +249,7 @@ const handleEditComposition = (id) => {
 };
 
 const handleDeleteComposition = async (id) => {
-  // Implement delete composition logic
+  await productStore.deleteComposition(parseInt(id))
 };
 
 const handleTableChange = (pagination, filters, sorter) => {
@@ -271,14 +292,28 @@ const exportToPDF = () => {
 
 const handleOk = () => {
   open.value = false;
+  edit_open.value = false;
 };
 const handleCancel = () => {
   open.value = false;
+  edit_open.value = false;
 };
 const handleSubmitSuccess = () => {
   open.value = false;
+  edit_open.value = false;
 };
 
+const selectedCompositionId = ref(null);
+
+const handleEditQuantity = (id) => {
+  selectedCompositionId.value = id;
+  edit_open.value = true
+};
+
+const handleQuantityUpdate = (newQuantity) => {
+  // Update the local data or refetch the compositions
+  fetchCompositions();
+};
 </script>
 
 <style scoped>

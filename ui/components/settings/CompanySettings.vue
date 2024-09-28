@@ -45,10 +45,7 @@ const fileList = ref({
   icon: [],
 });
 
-// Fetch settings on page load
 onMounted(async () => {
-  await settingsStore.fetchSettings();
-
   form.value.companyName = settingsStore.getSettingByKey('company_name');
   form.value.companyEmail = settingsStore.getSettingByKey('company_email');
   form.value.companyPhone = settingsStore.getSettingByKey('company_phone');
@@ -85,16 +82,20 @@ const saveCompanySettings = async () => {
   }
 
   // Prepare updated settings
-  const updates = {
-    company_name: form.value.companyName,
-    company_email: form.value.companyEmail,
-    company_phone: form.value.companyPhone,
-    company_logo: companyLogoUrl,
-    company_icon: companyIconUrl,
-  };
+  const updates = new Map();
+  updates.set('company_name', form.value.companyName);
+  updates.set('company_email', form.value.companyEmail);
+  updates.set('company_phone', form.value.companyPhone);
+
+  if (companyLogoUrl) {
+    updates.set('company_logo', companyLogoUrl);
+  }
+  if (companyIconUrl) {
+    updates.set('company_icon', companyIconUrl);
+  }
 
   // Update settings in the store
-  await settingsStore.updateSetting(updates);
+  settingsStore.updateSettings(updates);
 };
 </script>
 

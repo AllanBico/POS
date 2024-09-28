@@ -31,7 +31,7 @@ router.get('/:id',authenticateToken, asyncHandler(async (req, res) => {
 // Create a new supplier
 router.post('/',authenticateToken, asyncHandler(async (req, res) => {
     const { body } = req;
-    if (!body.name || !body.contact || !body.email || !body.phone) {
+    if (!body.name || !body.contact || !body.email ) {
         return res.status(400).json({ error: 'Missing required fields' });
     }
 

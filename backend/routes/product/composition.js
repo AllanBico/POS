@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { Composition, Variant,Product } = require('../models/associations');
-const authenticateToken = require("../middleware/auth"); // Ensure correct paths
+const { Composition, Variant,Product, Unit} = require('../../models/associations');
+const authenticateToken = require("../../middleware/auth"); // Ensure correct paths
 
 // Create Composition
 router.post('/', authenticateToken, async (req, res) => {
@@ -89,13 +89,11 @@ router.get('/:id',authenticateToken, async (req, res) => {
 // Update Composition
 router.put('/:id',authenticateToken, async (req, res) => {
     try {
-        const { productVariantId, ingredientVariantId, quantity } = req.body;
+        const {  quantity } = req.body;
         const composition = await Composition.findByPk(req.params.id);
         if (!composition) return res.status(404).json({ error: 'Composition not found' });
 
         await composition.update({
-            productVariantId,
-            ingredientVariantId,
             quantity,
         });
 
@@ -132,19 +130,15 @@ router.get('/variant/:productVariantId', authenticateToken, async (req, res) => 
             include: [
                 { 
                     model: Variant, 
-                    as: 'productVariant'
-                },
-                { 
-                    model: Variant, 
                     as: 'ingredientVariant',
-                    include: [{ model: Product, as: 'Product' }]
+                    include: [{ model: Product, as: 'Product', include:[{model:Unit, as:'Unit'}] }]
                 }
             ]
         });
 
 
         if (compositions.length === 0) {
-            return res.status(404).json({ error: 'No compositions found for this product variant.' });
+            return res.status(200).json(compositions);
         }
 
         res.status(200).json(compositions);

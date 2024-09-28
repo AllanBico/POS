@@ -111,7 +111,10 @@ import {
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-
+import {useTabsStore} from "~/stores/tabsStore.js";
+import attributesValuesTable from "~/components/product/attributes/attributesValuesTable.vue";
+import invoice from "~/components/sales/invoice.vue";
+const tabsStore = useTabsStore();
 // Props
 const props = defineProps({
   orderId: {
@@ -180,7 +183,7 @@ const handlePrint = (type) => {
   // Here you can implement different logic for invoice and receipt
   if (type === 'invoice') {
     console.log('Printing invoice');
-    // Implement invoice printing logic
+    tabsStore.addTab('Invoice', invoice, { orderId: props.orderId });
   } else if (type === 'receipt') {
     console.log('Printing receipt');
     // Implement receipt printing logic

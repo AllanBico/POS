@@ -103,7 +103,7 @@ const theme = reactive({
 
 
 </script>
-<style>
+<style scoped>
 html {
   padding: 0;
   margin: 0;

@@ -31,6 +31,11 @@ const PurchaseOrderLineItem = sequelize.define('PurchaseOrderLineItem', {
         type: DataTypes.INTEGER,
         allowNull: false,
     },
+    receivedQuantity: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0, // Initial value can be set to 0 if no items are received yet
+        allowNull: false,
+    },
     price: {
         type: DataTypes.FLOAT,
         allowNull: false,

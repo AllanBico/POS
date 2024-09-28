@@ -1,4 +1,3 @@
-// models/SupplierStore.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../../config/db'); // Adjust the path as necessary
 
@@ -27,6 +26,14 @@ const Supplier = sequelize.define('Supplier', {
     },
     address: {
         type: DataTypes.TEXT,
+        allowNull: true,
+    },
+    postalCode: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    taxIdentificationNumber: {
+        type: DataTypes.STRING,
         allowNull: true,
     },
     status: {

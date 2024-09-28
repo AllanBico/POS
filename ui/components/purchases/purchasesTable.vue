@@ -1,179 +1,244 @@
 <template>
-  <div>
-    <a-modal v-model:open="open" title="Create Purchase Order" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
-             cancel-text="Cancel" width="100%"
-             wrap-class-name="full-modal">
-      <purchase-order-add-modal @submit-success="handleSubmitSuccess"></purchase-order-add-modal>
-      <template #footer>
-      </template>
-    </a-modal>
-    <a-modal v-model:open="edit_open" title="Edit User" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
-             cancel-text="Cancel" width="100%"
-             wrap-class-name="full-modal">
-      <purchase-order-edit-modal @submit-success="handleSubmitSuccess"
-                                 :purchaseOrderId="purchase_order_id"></purchase-order-edit-modal>
-      <template #footer>
-      </template>
-    </a-modal>
-  </div>
-  <div>
-  </div>
-  <div class="coupons-container">
-    <a-card title="Purchase Orders" bordered={false}>
-      <div class="header-controls">
-        <div class="actions">
-          <a-button type="primary" @click="handleAdd" :icon="h(PlusOutlined)">Add New</a-button>
-        </div>
-      </div>
+  <div class="purchase-orders-container">
+    <!-- Modals -->
+    <a-modal
+      v-model:open="open"
+      title="Create Purchase Order"
+      :footer="null"
+      :maskClosable="false"
+      width="100%"
+      wrap-class-name="full-modal"
 
-      <a-table
-          :columns="columns"
-          :data-source="purchaseOrderStore.purchaseOrders"
-          :pagination="pagination"
-          :rowKey="id"
-          bordered
-          size="small"
-          @change="onChange"
+    >
+      <purchase-order-add-modal @submit-success="handleSubmitSuccess"></purchase-order-add-modal>
+    </a-modal>
+
+    <a-modal
+      v-model:open="edit_open"
+      title="Edit Purchase Order"
+      :footer="null"
+      :maskClosable="false"
+      width="100%"
+      wrap-class-name="full-modal"
+    >
+      <purchase-order-edit-modal
+        @submit-success="handleSubmitSuccess"
+        :purchaseOrderId="purchase_order_id"
+      ></purchase-order-edit-modal>
+    </a-modal>
+
+    <!-- Header -->
+    <a-card class="header-card" :bordered="false">
+      <a-page-header
+        class="header"
+        title="Purchase Orders"
+        sub-title="Manage and organize your purchase orders"
       >
+        <template #extra>
+          <a-button
+            class="add-purchase-order-btn"
+            type="primary"
+            @click="handleAdd"
+            :icon="h(PlusOutlined)"
+          >
+            Create Purchase Order
+          </a-button>
+          <a-dropdown>
+            <template #overlay>
+              <a-menu>
+                <a-menu-item key="1" @click="exportToExcel">
+                  <FileExcelOutlined /> Excel
+                </a-menu-item>
+                <a-menu-item key="2" @click="exportToPDF">
+                  <FilePdfOutlined /> PDF
+                </a-menu-item>
+              </a-menu>
+            </template>
+            <a-button class="export-btn">
+              Export <DownOutlined />
+            </a-button>
+          </a-dropdown>
+        </template>
+      </a-page-header>
+    </a-card>
+
+    <!-- Purchase Orders table -->
+    <div class="table-container">
+      <a-table
+        :dataSource="purchaseOrderStore.purchaseOrders"
+        :columns="columns"
+        :pagination="pagination"
+        :rowKey="(record) => record.id"
+        :loading="purchaseOrderStore.loading"
+        size="middle"
+        @change="onChange"
+      >
+        <!-- Custom filter dropdown template -->
         <template
-            #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }"
+          #customFilterDropdown="{
+            setSelectedKeys,
+            selectedKeys,
+            confirm,
+            clearFilters,
+            column,
+          }"
         >
-          <div style="padding: 8px">
+          <div class="custom-filter-dropdown">
             <a-input
-                ref="searchInput"
-                :placeholder="`Search ${column.dataIndex}`"
-                :value="selectedKeys[0]"
-                style="width: 188px; margin-bottom: 8px; display: block"
-                @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
-                @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex)"
+              ref="searchInput"
+              :placeholder="`Search ${column.title}`"
+              :value="selectedKeys[0]"
+              @change="
+                (e) => setSelectedKeys(e.target.value ? [e.target.value] : [])
+              "
+              @pressEnter="
+                handleSearch(selectedKeys, confirm, column.dataIndex)
+              "
             />
             <a-button
-                type="primary"
-                size="small"
-                style="width: 90px; margin-right: 8px"
-                @click="handleSearch(selectedKeys, confirm, column.dataIndex)"
+              type="primary"
+              @click="handleSearch(selectedKeys, confirm, column.dataIndex)"
             >
-              <template #icon>
-                <SearchOutlined/>
-              </template>
+              <template #icon><SearchOutlined /></template>
               Search
             </a-button>
-            <a-button size="small" style="width: 90px" @click="handleReset(clearFilters)">
+            <a-button @click="handleReset(clearFilters)">
               Reset
             </a-button>
           </div>
         </template>
+
+        <!-- Custom filter icon -->
         <template #customFilterIcon="{ filtered }">
-          <search-outlined :style="{ color: filtered ? '#108ee9' : undefined }"/>
+          <search-outlined :class="{ 'text-primary': filtered }" />
         </template>
-        <template #bodyCell="{ column, text, record }">
+
+        <!-- Custom render for operation column -->
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.dataIndex === 'orderDate'">
+            {{ formatDate(record.orderDate) }}
+          </template>
           <template v-if="column.dataIndex === 'operation'">
-            <a-tooltip title="Values" placement="bottom">
-              <a-button @click="onValues(record.id)" style="margin-right: 3px" :icon="h(OrderedListOutlined)"/>
-            </a-tooltip>
-            <a-tooltip title="Receive" placement="bottom">
-              <a-button @click="receiveGoods(record.id)" style="margin-right: 3px" :icon="h(EyeOutlined)"/>
-            </a-tooltip>
-            <a-tooltip title="Edit" placement="bottom">
-              <a-button @click="onEdit(record.id)" style="margin-right: 3px" :icon="h(EditOutlined)"/>
-            </a-tooltip>
-            <a-popconfirm
-                v-if="purchaseOrderStore.purchaseOrders.length"
-                title="Sure to delete?"
-                @confirm="onDelete(record.id)">
-              <a-tooltip title="Delete" placement="bottom">
-                <a-button :icon="h(DeleteOutlined)"/>
+            <div class="action-buttons">
+              <a-tooltip title="View">
+                <a-button
+                  type="link"
+                  class="values-btn"
+                  @click="onValues(record.id)"
+                  :style="{ color: '#1890ff' }"
+                ><template #icon><EyeOutlined /></template>
+
+                </a-button>
               </a-tooltip>
-            </a-popconfirm>
+<!--              <a-tooltip v-if="['ordered', 'partial'].includes(record.status)" title="Receive">-->
+              <a-tooltip  title="Receive">
+                <a-button
+                  type="link"
+                  class="receive-btn"
+                  @click="receiveGoods(record.id)"
+                  :style="{ color: '#52c41a' }"
+                >
+                  <template #icon><OrderedListOutlined /></template>
+                </a-button>
+              </a-tooltip>
+              <a-tooltip title="Edit">
+                <a-button
+                  type="link"
+                  class="edit-btn"
+                  @click="onEdit(record.id)"
+                  :style="{ color: '#faad14' }"
+                >
+                  <template #icon><EditOutlined /></template>
+                </a-button>
+              </a-tooltip>
+              <a-popconfirm
+                :title="`Are you sure you want to delete this purchase order?`"
+                ok-text="Yes"
+                cancel-text="No"
+                @confirm="onDelete(record.id)"
+                placement="topRight"
+              >
+                <a-tooltip title="Delete">
+                  <a-button
+                    type="link"
+                    class="delete-btn"
+                    :style="{ color: '#ff4d4f' }"
+                  >
+                    <template #icon><DeleteOutlined /></template>
+                  </a-button>
+                </a-tooltip>
+              </a-popconfirm>
+            </div>
           </template>
         </template>
       </a-table>
-    </a-card>
+    </div>
   </div>
 </template>
 
 <script setup>
-import {computed, reactive, ref} from 'vue';
-import {usePurchaseOrderStore} from '~/stores/purchases/PurchaseOrderStore.js';
-import {DeleteOutlined, EditOutlined, OrderedListOutlined, PlusOutlined,EyeOutlined} from "@ant-design/icons-vue";
+import { ref } from 'vue';
+import { usePurchaseOrderStore } from '~/stores/purchases/PurchaseOrderStore.js';
+import { useTabsStore } from "~/stores/tabsStore.js";
 import PurchaseOrderAddModal from "~/components/purchases/purchaseOrderAddModal.vue";
 import PurchaseOrderEditModal from "~/components/purchases/purchaseOrderEditModal.vue";
-import {useTabsStore} from "~/stores/tabsStore.js";
 import purchaseOrderView from "~/components/purchases/purchaseOrderView.vue";
 import GoodsReceivingForm from "~/components/inventory/receive/GoodsReceivingAdd.vue";
+const { initDateFormat, formatDate } = useDateFormatter();
+
+import {
+  DeleteOutlined,
+  EditOutlined,
+  OrderedListOutlined,
+  PlusOutlined,
+  EyeOutlined,
+  SearchOutlined,
+  DownOutlined,
+  FileExcelOutlined,
+  FilePdfOutlined,
+} from "@ant-design/icons-vue";
+
 const tabsStore = useTabsStore();
 const purchaseOrderStore = usePurchaseOrderStore();
 const open = ref(false);
 const edit_open = ref(false);
-let purchase_order_id = ref(null)
-purchaseOrderStore.fetchPurchaseOrders()
-console.log("purchaseOrderStore.purchaseOrders", purchaseOrderStore.purchaseOrders)
+let purchase_order_id = ref(null);
+
+purchaseOrderStore.fetchPurchaseOrders();
+console.log("purchaseOrderStore.purchaseOrders",purchaseOrderStore.purchaseOrders)
+// Table columns configuration
 const columns = [
   {
     title: 'Order Date',
     dataIndex: 'orderDate',
     key: 'orderDate',
     sorter: (a, b) => a.orderDate.localeCompare(b.orderDate),
-    sortDirections: ['descend', 'ascend'],
     customFilterDropdown: true,
     onFilter: (value, record) => record.orderDate.toString().toLowerCase().includes(value.toLowerCase()),
-    onFilterDropdownOpenChange: visible => {
-      if (visible) {
-        setTimeout(() => {
-          searchInput.value.focus();
-        }, 100);
-      }
-    },
-  }
-  ,
+  },
   {
     title: 'Supplier',
     customRender: ({record}) => record.supplier ? record.supplier.name : '',
     key: 'supplier',
     sorter: (a, b) => a.supplier.localeCompare(b.supplier),
-    sortDirections: ['descend', 'ascend'],
     customFilterDropdown: true,
     onFilter: (value, record) => record.supplier.toString().toLowerCase().includes(value.toLowerCase()),
-    onFilterDropdownOpenChange: visible => {
-      if (visible) {
-        setTimeout(() => {
-          searchInput.value.focus();
-        }, 100);
-      }
-    },
-  }
-  ,
-  {
-    title: 'Warehouse',
-    customRender: ({record}) => record.warehouse ? record.warehouse.name : '',
-    key: 'description',
-    sorter: (a, b) => a.warehouse.localeCompare(b.warehouse),
-    sortDirections: ['descend', 'ascend'],
-    customFilterDropdown: true,
-    onFilter: (value, record) => record.warehouse.toString().toLowerCase().includes(value.toLowerCase()),
-    onFilterDropdownOpenChange: visible => {
-      if (visible) {
-        setTimeout(() => {
-          searchInput.value.focus();
-        }, 100);
-      }
-    },
   },
   {
     title: 'Warehouse',
+    customRender: ({record}) => record.warehouse ? record.warehouse.name : '',
+    key: 'warehouse',
+    sorter: (a, b) => a.warehouse.localeCompare(b.warehouse),
+    customFilterDropdown: true,
+    onFilter: (value, record) => record.warehouse.toString().toLowerCase().includes(value.toLowerCase()),
+  },
+  {
+    title: 'Store',
     customRender: ({record}) => record.store ? record.store.name : '',
-    key: 'description',
+    key: 'store',
     sorter: (a, b) => a.store.localeCompare(b.store),
-    sortDirections: ['descend', 'ascend'],
     customFilterDropdown: true,
     onFilter: (value, record) => record.store.toString().toLowerCase().includes(value.toLowerCase()),
-    onFilterDropdownOpenChange: visible => {
-      if (visible) {
-        setTimeout(() => {
-          searchInput.value.focus();
-        }, 100);
-      }
-    },
   },
   {
     title: 'Status',
@@ -181,64 +246,155 @@ const columns = [
     key: 'status',
   },
   {
-    title: 'operation',
+    title: 'Operation',
     dataIndex: 'operation',
     key: 'operation',
   },
 ];
 
+const pagination = ref({pageSize: 10});
+
+// Event handlers
 const onValues = async key => {
   tabsStore.addTab('Purchase Order', purchaseOrderView, { purchaseOrderId: key });
 };
+
 const receiveGoods = async key => {
-  tabsStore.addTab('Receive Goods', GoodsReceivingForm, { purchaseOrderId: key });
+    tabsStore.addTab('Receive Goods', GoodsReceivingForm, { purchaseOrderId: key });
+
 };
-const pagination = ref({pageSize: 10});
-const edit = key => {
-};
-const save = key => {
-};
+
 const onDelete = async key => {
-  await purchaseOrderStore.deletePurchaseOrder(key)
-  console.log("deleted", key)
+  await purchaseOrderStore.deletePurchaseOrder(key);
 };
+
 const onEdit = async key => {
-  console.log("edit", key)
-  purchase_order_id = parseInt(key)
-  console.log("user_id", purchase_order_id)
-  edit_open.value = true
-  console.log("done")
+  purchase_order_id.value = parseInt(key);
+  edit_open.value = true;
 };
 
 const handleAdd = () => {
   open.value = true;
 };
-const handleOk = () => {
-  open.value = false;
-  // Optionally handle any additional logic here
-};
-const handleCancel = () => {
-  open.value = false;
-  edit_open.value = false;
-};
+
 const handleSubmitSuccess = () => {
   open.value = false;
   edit_open.value = false;
 };
+
 const onChange = (pagination, filters, sorter) => {
   console.log('params', pagination, filters, sorter);
 };
+
 const handleSearch = (selectedKeys, confirm, dataIndex) => {
   confirm();
-  state.searchText = selectedKeys[0];
-  state.searchedColumn = dataIndex;
 };
-const handleReset = clearFilters => {
-  clearFilters({
-    confirm: true,
-  });
-  state.searchText = '';
+
+const handleReset = (clearFilters) => {
+  clearFilters({ confirm: true });
 };
+
+// TODO: Implement these functions
+const exportToExcel = () => {
+  // Implementation for exporting to Excel
+};
+
+const exportToPDF = () => {
+  // Implementation for exporting to PDF
+};
+onMounted(async () => {
+  await initDateFormat();
+});
 </script>
 
+<style scoped>
+.purchase-orders-container {
+  background-color: #f0f2f5;
+  padding: 24px;
+  border-radius: 8px;
+}
 
+.header-card {
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.header {
+  padding: 16px;
+}
+
+.add-purchase-order-btn {
+  font-size: 14px;
+  height: 36px;
+  margin-right: 8px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.export-btn {
+  height: 36px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.table-container {
+  background-color: #ffffff;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+:deep(.ant-table) {
+  font-size: 14px;
+}
+
+:deep(.ant-table-thead > tr > th) {
+  background-color: #fafafa;
+  color: #001529;
+  font-weight: 600;
+}
+
+:deep(.ant-table-tbody > tr > td) {
+  padding: 12px 16px;
+}
+
+:deep(.ant-table-tbody > tr:hover > td) {
+  background-color: #f5f5f5;
+}
+
+.custom-filter-dropdown {
+  padding: 8px;
+  border-radius: 4px;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.custom-filter-dropdown input {
+  width: 200px;
+  margin-bottom: 8px;
+  display: block;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.custom-filter-dropdown button {
+  width: 100px;
+  margin-right: 8px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.text-primary {
+  color: #1890ff;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.action-buttons .ant-btn-link {
+  padding: 0;
+}
+</style>

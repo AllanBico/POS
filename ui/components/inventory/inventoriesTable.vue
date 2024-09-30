@@ -30,14 +30,14 @@
         sub-title="Manage and organize your product inventories"
       >
         <template #extra>
-          <a-button
-            class="add-inventory-btn"
-            type="primary"
-            @click="handleAdd"
-            :icon="h(PlusOutlined)"
-          >
-            Add Inventory
-          </a-button>
+<!--          <a-button-->
+<!--            class="add-inventory-btn"-->
+<!--            type="primary"-->
+<!--            @click="handleAdd"-->
+<!--            :icon="h(PlusOutlined)"-->
+<!--          >-->
+<!--            Add Inventory-->
+<!--          </a-button>-->
           <a-dropdown>
             <template #overlay>
               <a-menu>

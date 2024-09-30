@@ -35,6 +35,10 @@ const GoodsReceivedLineItem = sequelize.define('GoodsReceivedLineItem', {
         type: DataTypes.ENUM('fully_received', 'partially_received'),
         defaultValue: 'fully_received',
     },
+    batchNumber: {
+        type: DataTypes.STRING,
+        allowNull: true, // Used for non-serialized, batch-tracked items
+    },
     note: {  // New column for additional notes
         type: DataTypes.TEXT,
         allowNull: true,
@@ -42,6 +46,14 @@ const GoodsReceivedLineItem = sequelize.define('GoodsReceivedLineItem', {
 }, {
     timestamps: true,
     underscored: true,
+    hooks: {
+        beforeCreate: (goodsReceivedLineItem, options) => {
+            const datePart = new Date().toISOString().split('T')[0].replace(/-/g, '');
+            const warehouseId = goodsReceivedLineItem.variantId || '00'; // Use a default value if null
+            const randomSuffix = Math.floor(1000 + Math.random() * 9000); // Random 4-digit number
+            goodsReceivedLineItem.batchNumber = `${datePart}-${warehouseId}-${randomSuffix}`;
+        },
+    },
 });
 
 module.exports = GoodsReceivedLineItem;

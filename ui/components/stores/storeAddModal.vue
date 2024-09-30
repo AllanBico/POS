@@ -1,65 +1,98 @@
 <template>
-  <a-form :form="form" @submit.prevent="handleSubmit">
-    <a-form-item label="Name" :rules="[{ required: true, message: 'Please input the store name!' }]">
-      <a-input v-model:value="form.name"/>
-    </a-form-item>
-    <a-form-item label="Location" :rules="[{ required: true, message: 'Please input the store location!' }]">
-      <a-input v-model:value="form.location"/>
-    </a-form-item>
-    <a-form-item label="Description">
-      <a-textarea :rows="4" v-model:value="form.description"/>
-    </a-form-item>
-    <a-form-item>
-      <a-button type="primary" html-type="submit">Submit</a-button>
-    </a-form-item>
-  </a-form>
-</template>
+  <div class="store-add-modal">
+    <h3>Create Store</h3>
+    <a-divider style="margin-bottom: 11px; margin-top: 11px" />
+    <a-form :model="form" @submit.prevent="handleSubmit" layout="vertical">
+      <a-form-item
+        name="name"
+        label="Store Name"
+        :rules="[{ required: true, message: 'Please input the store name!' }]"
+      >
+        <a-input
+          v-model:value="form.name"
+          placeholder="Enter store name"
+          :maxLength="50"
+        >
+        </a-input>
+      </a-form-item>
 
+      <a-form-item
+        name="location"
+        label="Location"
+        :rules="[{ required: true, message: 'Please input the store location!' }]"
+      >
+        <a-input
+          v-model:value="form.location"
+          placeholder="Enter store location"
+          :maxLength="100"
+        >
+        </a-input>
+      </a-form-item>
+
+      <a-form-item name="description" label="Description">
+        <a-textarea
+          v-model:value="form.description"
+          :rows="4"
+          placeholder="Enter store description"
+          :maxLength="500"
+        />
+      </a-form-item>
+
+      <a-form-item>
+        <a-button
+          type="primary"
+          html-type="submit"
+          :loading="loading"
+          block
+          size="large"
+        >
+          <template #icon><PlusOutlined /></template>
+          Add Store
+        </a-button>
+      </a-form-item>
+    </a-form>
+  </div>
+</template>
 
 <script setup>
 import { ref } from 'vue';
 import { useStoreStore } from '~/stores/storesStore.js';
+import { ShopOutlined, EnvironmentOutlined, PlusOutlined } from '@ant-design/icons-vue';
 
 const storeStore = useStoreStore();
 const emit = defineEmits(['submit-success']);
-const { $toast } = useNuxtApp()
+const { $toast } = useNuxtApp();
 const loading = ref(false);
 const form = ref({
   name: '',
-  location:'',
+  location: '',
   description: '',
 });
 
-
 const handleSubmit = async () => {
   try {
-    // Validate that all fields are filled
-    if (!form.value.name || !form.value.location ) {
-      throw new Error('All fields are required.');
+    if (!form.value.name || !form.value.location) {
+      throw new Error('Store name and location are required.');
     }
-    loading.value = true
+    loading.value = true;
 
-    // Call the store method to add the user
     await storeStore.createStore({
       name: form.value.name,
       description: form.value.description,
       location: form.value.location
     });
 
-    // Reset form
-    form.value = { name: '',location:'', description: '' };
-    // Emit event to close the modal if needed
+    form.value = { name: '', location: '', description: '' };
     emit('submit-success');
+    $toast.success('Store added successfully!');
   } catch (error) {
-    loading.value = false
     console.error('Error Adding Store:', error);
-    $toast.error('Error Creating Store')
-    // Optionally, show an error message to the user
+    $toast.error(error.message || 'Error Creating Store');
+  } finally {
+    loading.value = false;
   }
 };
 </script>
 
-
 <style scoped>
-/* Add any custom styles if needed */
 </style>

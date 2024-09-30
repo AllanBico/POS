@@ -1,8 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { PurchaseOrderLineItem,GoodsReceived, PurchaseOrder, Warehouse, GoodsReceivedLineItem, Variant,Store, Supplier,SerialNumber,Inventory,StockMovement} = require('../../models/associations');
+const { PurchaseOrderLineItem,GoodsReceived, PurchaseOrder, Warehouse, GoodsReceivedLineItem, Variant,Store, Supplier,SerialNumber,Inventory,StockMovement,
+    ProductWarranty,
+    ProductExpiry
+} = require('../../models/associations');
 const authenticateToken = require("../../middleware/auth");
 const sequelize = require('../../config/db');
+const { Op } = require('sequelize');
+
 // Create a Goods Received (GRN)
 router.post('/', authenticateToken, async (req, res) => {
     console.log('Received Goods Received request body:', JSON.stringify(req.body, null, 2));
@@ -145,6 +150,26 @@ router.post('/', authenticateToken, async (req, res) => {
                         stockMovementId: stockMovement.id,
                     }, { transaction });
                 }));
+            }
+
+            // Process warranty information
+            if (item.warrantyTypeId && item.warrantyStartDate && item.warrantyEndDate) {
+                console.log(`Processing warranty information for variantId: ${item.variantId}`);
+                await ProductWarranty.create({
+                    goodsReceivedLineItemId: lineItem.id,
+                    warrantyTypeId: item.warrantyTypeId,
+                    warrantyStartDate: item.warrantyStartDate,
+                    warrantyEndDate: item.warrantyEndDate,
+                }, { transaction });
+            }
+
+            // Process expiry information
+            if (item.expiryDate) {
+                console.log(`Processing expiry information for variantId: ${item.variantId}`);
+                await ProductExpiry.create({
+                    goodsReceivedLineItemId: lineItem.id,
+                    expiryDate: item.expiryDate,
+                }, { transaction });
             }
 
             return lineItem;
@@ -292,6 +317,59 @@ router.delete('/:id',authenticateToken, async (req, res) => {
         res.status(200).json({ message: 'Goods Received entry deleted successfully' });
     } catch (error) {
         res.status(500).json({ error: error.message });
+    }
+});
+
+// Search for Goods Received Line Items by batch number
+router.post('/search/batch', authenticateToken, async (req, res) => {
+    try {
+        const { batchNumber } = req.body;
+        console.log('Batch Number:', batchNumber);
+        if (!batchNumber) {
+            return res.status(400).json({ error: 'Batch number is required' });
+        }
+
+        const lineItems = await GoodsReceivedLineItem.findAll({
+            where: {
+                batchNumber: {
+                    [Op.like]: `%${batchNumber}%`
+                }
+            },
+            include: [
+                {
+                    model: Variant,
+                    as: 'variant'
+                },
+                {
+                    model: GoodsReceived,
+                    as: 'goodsReceived',
+                    include: [
+                        {
+                            model: PurchaseOrder,
+                            as: 'purchaseOrder',
+                            include: [{ model: Supplier, as: 'supplier' }]
+                        },
+                        {
+                            model: Warehouse,
+                            as: 'warehouse'
+                        },
+                        {
+                            model: Store,
+                            as: 'store'
+                        }
+                    ]
+                }
+            ]
+        });
+
+        if (lineItems.length === 0) {
+            return res.status(404).json([]);
+        }
+        console.log("lineItems:", lineItems);
+        res.status(200).json(lineItems);
+    } catch (error) {
+        console.error('Error searching for batch number:', error);
+        res.status(500).json({ error: 'An error occurred while searching for the batch number' });
     }
 });
 

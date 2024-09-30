@@ -1,60 +1,116 @@
 <template>
-  <a-form :form="form" @submit.prevent="handleSubmit">
-    <a-form-item
-        label="Name"
-        :rules="[{ required: true, message: 'Please input your name!' }]"
-    >
-      <a-input v-model:value="form.name" />
-    </a-form-item>
-    <a-form-item
+  <div class="customer-add-modal">
+    <h3>Create Customer</h3>
+    <a-divider style="margin-bottom: 11px; margin-top: 11px" />
+    <a-form :model="form" @submit.prevent="handleSubmit" layout="vertical">
+      <a-form-item
+        name="name"
+        label="Customer Name"
+        :rules="[{ required: true, message: 'Please input the customer name!' }]"
+      >
+        <a-input
+          v-model:value="form.name"
+          placeholder="Enter customer name"
+          :maxLength="50"
+        >
+        </a-input>
+      </a-form-item>
+
+      <a-form-item
+        name="email"
         label="Email"
-        :rules="[{ required: true, message: 'Please input your email!' }]"
-    >
-      <a-input v-model:value="form.email" />
-    </a-form-item>
-    <a-form-item
+        :rules="[
+          { required: true, message: 'Please input the customer email!' },
+          { type: 'email', message: 'Please enter a valid email!' }
+        ]"
+      >
+        <a-input
+          v-model:value="form.email"
+          placeholder="Enter customer email"
+          :maxLength="100"
+        >
+        </a-input>
+      </a-form-item>
+
+      <a-form-item
+        name="phone"
         label="Phone"
-        :rules="[{ required: true, message: 'Please input your phone number!' }]"
-    >
-      <a-input v-model:value="form.phone" />
-    </a-form-item>
-    <a-form-item label="Address">
-      <a-input v-model:value="form.address" />
-    </a-form-item>
-    <a-form-item label="City">
-      <a-input v-model:value="form.city" />
-    </a-form-item>
-    <a-form-item label="Country">
-      <a-select
+        :rules="[{ required: true, message: 'Please input the customer phone number!' }]"
+      >
+        <a-input
+          v-model:value="form.phone"
+          placeholder="Enter customer phone"
+          :maxLength="20"
+        >
+        </a-input>
+      </a-form-item>
+
+      <a-form-item name="address" label="Address">
+        <a-input
+          v-model:value="form.address"
+          placeholder="Enter customer address"
+          :maxLength="200"
+        >
+        </a-input>
+      </a-form-item>
+
+      <a-form-item name="city" label="City">
+        <a-input
+          v-model:value="form.city"
+          placeholder="Enter customer city"
+          :maxLength="100"
+        >
+        </a-input>
+      </a-form-item>
+
+      <a-form-item name="country" label="Country">
+        <a-select
           v-model:value="form.country"
           placeholder="Select a country"
           show-search
           :filter-option="filterOption"
           @change="onCountryChange"
           :options="countries.map((country) => ({ value: country, label: country }))"
-      />
-    </a-form-item>
-    <a-form-item label="Description">
-      <a-textarea :rows="4" v-model:value="form.description" />
-    </a-form-item>
-    <a-form-item>
-      <a-button type="primary" html-type="submit" :loading="loading">
-        Submit
-      </a-button>
-    </a-form-item>
-  </a-form>
-</template>
+        >
+        </a-select>
+      </a-form-item>
 
+      <a-form-item name="description" label="Description">
+        <a-textarea
+          v-model:value="form.description"
+          :rows="4"
+          placeholder="Enter customer description"
+          :maxLength="500"
+        />
+      </a-form-item>
+
+      <a-form-item>
+        <a-button
+          type="primary"
+          html-type="submit"
+          :loading="loading"
+          block
+          size="large"
+        >
+          <template #icon><PlusOutlined /></template>
+          Add Customer
+        </a-button>
+      </a-form-item>
+    </a-form>
+  </div>
+</template>
 
 <script setup>
 import { ref } from 'vue';
 import { useCustomerStore } from '~/stores/CustomerStore.js';
 import { getNames } from 'country-list';
+import { PlusOutlined } from '@ant-design/icons-vue';
 
 const customerStore = useCustomerStore();
 const emit = defineEmits(['submit-success']);
-const countries = ref(getNames());
+const { $toast } = useNuxtApp();
 const loading = ref(false);
+const countries = ref(getNames());
 const form = ref({
   name: '',
   email: '',
@@ -66,9 +122,14 @@ const form = ref({
 });
 
 const handleSubmit = async () => {
-  loading.value = true;
   try {
+    if (!form.value.name || !form.value.email || !form.value.phone) {
+      throw new Error('Customer name, email, and phone are required.');
+    }
+    loading.value = true;
+
     await customerStore.createCustomer(form.value);
+
     form.value = {
       name: '',
       email: '',
@@ -79,10 +140,12 @@ const handleSubmit = async () => {
       description: '',
     };
     emit('submit-success');
-    loading.value = false;
+    $toast.success('Customer added successfully!');
   } catch (error) {
+    console.error('Error Adding Customer:', error);
+    $toast.error(error.message || 'Error Creating Customer');
+  } finally {
     loading.value = false;
-    console.error('Error creating customer:', error);
   }
 };
 
@@ -99,7 +162,5 @@ const onCountryChange = (value) => {
 };
 </script>
 
-
 <style scoped>
-/* Add any custom styles if needed */
 </style>

@@ -38,6 +38,8 @@ const SalesOrderLineItem = require('./sales/salesOrderLineItem')
 const VariantImage = require('./product/VariantImage')
 const Payment = require('./sales/Payment')
 const ProductTax = require('./ProductTax')
+const ProductWarranty = require('./product/ProductWarranty')
+const ProductExpiry = require('./product/ProductExpiry')
 // Define associations AFTER model initialization
 
 // SalesOrder <-> Customer
@@ -203,7 +205,19 @@ ProductTax.belongsTo(Product, { foreignKey: 'ProductId' });
 Taxes.hasMany(ProductTax, { foreignKey: 'TaxId', as: 'taxes' });
 ProductTax.belongsTo(Taxes, { foreignKey: 'TaxId' });
 
+ProductWarranty.belongsTo(GoodsReceivedLineItem, { foreignKey: 'goodsReceivedLineItemId', onDelete: 'CASCADE' });
+GoodsReceivedLineItem.hasMany(ProductWarranty, { foreignKey: 'goodsReceivedLineItemId' });
+
+ProductWarranty.belongsTo(Warranty, { foreignKey: 'warrantyTypeId', onDelete: 'SET NULL' });
+Warranty.hasMany(ProductWarranty, { foreignKey: 'warrantyTypeId' });
+
+// ProductExpiry associations
+ProductExpiry.belongsTo(GoodsReceivedLineItem, { foreignKey: 'goodsReceivedLineItemId', onDelete: 'CASCADE' });
+GoodsReceivedLineItem.hasMany(ProductExpiry, { foreignKey: 'goodsReceivedLineItemId' });
+
 module.exports = {
+    ProductExpiry,
+    ProductWarranty,
     Product,
     Variant,
     Brand,

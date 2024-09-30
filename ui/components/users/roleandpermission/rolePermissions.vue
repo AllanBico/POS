@@ -64,12 +64,12 @@ const roleStore = useRoleStore();
 const selectedPermissions = ref({});
 
 const columns = [
-  { title: 'Modules', dataIndex: 'module', key: 'module' },
-  { title: 'Create', dataIndex: 'create', key: 'create' },
-  { title: 'Edit', dataIndex: 'update', key: 'update' },
-  { title: 'View', dataIndex: 'read', key: 'read' },
-  { title: 'Delete', dataIndex: 'delete', key: 'delete' },
-  { title: 'Allow All', dataIndex: 'allowAll', key: 'allowAll' },
+  { title: 'Modules', dataIndex: 'module', key: 'module' , align: 'left'},
+  { title: 'Create', dataIndex: 'create', key: 'create', align: 'center' },
+  { title: 'Edit', dataIndex: 'update', key: 'update', align: 'center' },
+  { title: 'View', dataIndex: 'read', key: 'read', align: 'center' },
+  { title: 'Delete', dataIndex: 'delete', key: 'delete', align: 'center' },
+  { title: 'Allow All', dataIndex: 'allowAll', key: 'allowAll', align: 'center' },
 ];
 
 const permissionTableData = computed(() => {
@@ -208,10 +208,12 @@ watch(() => props.roleId, (newRoleId) => {
   background-color: #fafafa;
   color: #001529;
   font-weight: 600;
+  text-align: center;
 }
 
 :deep(.ant-table-tbody > tr > td) {
   padding: 12px 16px;
+  text-align: center;
 }
 
 :deep(.ant-table-tbody > tr:hover > td) {

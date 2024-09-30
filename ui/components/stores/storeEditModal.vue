@@ -1,74 +1,139 @@
 <template>
-  <a-form :form="form" @submit.prevent="handleSubmit">
-    <a-form-item label="Name" :rules="[{ required: true, message: 'Please input warehouse name!' }]">
-      <a-input v-model:value="form.name"/>
-    </a-form-item>
-    <a-form-item label="Location" :rules="[{ required: true, message: 'Please input warehouse location!' }]">
-      <a-input v-model:value="form.location"/>
-    </a-form-item>
-    <a-form-item label="Description">
-      <a-textarea :rows="4" v-model:value="form.description"/>
-    </a-form-item>
-    <a-form-item>
-      <a-button type="primary" :loading="loading" html-type="submit">Submit</a-button>
-    </a-form-item>
-  </a-form>
+  <div class="store-edit-modal">
+    <h3>Update Store</h3>
+    <a-divider style="margin-bottom: 11px; margin-top: 11px" />
+    <a-form :form="form" @submit.prevent="handleSubmit" layout="vertical">
+      <a-row :gutter="16">
+        <a-col :span="24">
+          <a-form-item
+            label="Store Name"
+            :rules="[{ required: true, message: 'Please input the store name!' }]"
+          >
+            <a-input
+              v-model:value="form.name"
+              placeholder="Enter store name"
+              :maxLength="50"
+            >
+
+            </a-input>
+          </a-form-item>
+        </a-col>
+      </a-row>
+
+      <a-row :gutter="16">
+        <a-col :span="24">
+          <a-form-item
+            label="Location"
+            :rules="[{ required: true, message: 'Please input the store location!' }]"
+          >
+            <a-input
+              v-model:value="form.location"
+              placeholder="Enter store location"
+              :maxLength="100"
+            >
+            </a-input>
+          </a-form-item>
+        </a-col>
+      </a-row>
+
+      <a-row :gutter="16">
+        <a-col :span="24">
+          <a-form-item label="Description">
+            <a-textarea
+              v-model:value="form.description"
+              :rows="4"
+              placeholder="Enter store description"
+              :maxLength="500"
+            />
+          </a-form-item>
+        </a-col>
+      </a-row>
+
+      <a-form-item>
+        <a-button
+          type="primary"
+          html-type="submit"
+          :loading="loading"
+          block
+          size="large"
+        >
+          <template #icon><EditOutlined /></template>
+          Update Store
+        </a-button>
+      </a-form-item>
+    </a-form>
+  </div>
 </template>
+
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { useStoreStore } from '~/stores/storesStore.js';
+import { ShopOutlined, EnvironmentOutlined, EditOutlined } from '@ant-design/icons-vue';
+
 const storeStore = useStoreStore();
-const loading = ref(false);
 const emit = defineEmits(['submit-success']);
+const { $toast } = useNuxtApp();
+const loading = ref(false);
 const props = defineProps({
   store_id: {
     type: Number,
     required: true,
   },
 });
-const storeId = ref(props.store_id); // Make storeId reactive
+const storeId = ref(props.store_id);
 const form = ref({
   name: '',
-  location:'',
+  location: '',
   description: '',
 });
 
-const error = ref(null);
-
 const fetchStore = async () => {
   try {
+    loading.value = true;
     const fetchedStore = storeStore.StoreById(storeId.value);
     if (fetchedStore) {
-      form.value = { ...fetchedStore }; // Populate the form with existing user data
+      form.value = { ...fetchedStore };
     } else {
-      error.value = 'Store not found';
+      throw new Error('Store not found');
     }
-  } catch (err) {
-    error.value = err.message || 'Failed to load Store';
+  } catch (error) {
+    console.error('Error Fetching Store:', error);
+    $toast.error(error.message || 'Failed to load Store');
+  } finally {
+    loading.value = false;
   }
 };
 
-// Watch for changes in storeId prop to refetch user data
-watch(() => props.store_id, (newstoreId) => {
-  storeId.value = newstoreId;
+watch(() => props.store_id, (newStoreId) => {
+  storeId.value = newStoreId;
   fetchStore();
 }, { immediate: true });
 
 const handleSubmit = async () => {
   try {
-    await storeStore.updateStore(storeId.value, form.value);
-
-
-    if (storeStore.error) {
-      error.value = storeStore.error;
-    } else {
-      emit('submit-success');
+    if (!form.value.name || !form.value.location) {
+      throw new Error('Store name and location are required.');
     }
-  } catch (err) {
-    error.value = err.message || 'Failed to update Store';
+    loading.value = true;
+
+    await storeStore.updateStore(storeId.value, {
+      name: form.value.name,
+      description: form.value.description,
+      location: form.value.location
+    });
+
+    emit('submit-success');
+    $toast.success('Store updated successfully!');
+  } catch (error) {
+    console.error('Error Updating Store:', error);
+    $toast.error(error.message || 'Error Updating Store');
+  } finally {
+    loading.value = false;
   }
 };
 
-// Initial fetch on mount
 onMounted(fetchStore);
 </script>
+
+<style scoped>
+</style>

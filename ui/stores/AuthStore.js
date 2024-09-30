@@ -7,7 +7,6 @@ export const useAuthStore = defineStore('auth', () => {
     // Use cookies to store the token and user information
     const tokenCookie = useCookie('token');
     const userCookie = useCookie('user');
-
     const token = ref(tokenCookie.value || null);
     const user = ref(userCookie.value || null);
     const isAuthenticated = ref(!!token.value);
@@ -57,8 +56,7 @@ export const useAuthStore = defineStore('auth', () => {
             // Store the token and user data received from the backend
             setToken(data.value);
             error.value = null;
-            console.log("login end");
-            navigateTo('/users');
+            navigateTo('/');
 
         } catch (err) {
             console.error('Login error:', err);
@@ -68,6 +66,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     const logout = () => {
         removeToken();
+        navigateTo('/login')
     };
 
     return {

@@ -1,168 +1,349 @@
 <template>
-  <div>
-    <a-modal v-model:open="open" title="Add User" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
-             cancel-text="Cancel">
-      <WarrantyAddModal  @submit-success="handleSubmitSuccess"></WarrantyAddModal>
-      <template #footer>
-      </template>
+  <div class="div-container">
+    <!-- Modals -->
+    <a-modal
+      v-model:open="isAddModalOpen"
+      @ok="handleModalOk"
+      @cancel="handleModalCancel"
+      ok-text="Submit"
+      cancel-text="Cancel"
+      :maskClosable="false"
+    >
+      <warranty-add-modal @submit-success="handleSubmitSuccess"></warranty-add-modal>
+      <template #footer> </template>
     </a-modal>
-    <a-modal v-model:open="edit_open" title="Edit User" @ok="handleOk" @cancel="handleCancel" ok-text="Submit"
-             cancel-text="Cancel">
-      <WarrantyEditModal @submit-success="handleSubmitSuccess" :warranty_id="warranty_id"></WarrantyEditModal>
-      <template #footer>
-      </template>
-    </a-modal>
-  </div>
-  <div>
-  </div>
-  <a-button class="editable-add-btn" style="margin-bottom: 1px ;margin-top: 1px ;" @click="handleAdd">Add</a-button>
-  <a-table bordered :data-source="WarrantyStore.warranties" :columns="columns">
 
-    <template #bodyCell="{ column, text, record }">
-      <template v-if="column.dataIndex === 'status'">
-        <span>
-          <a-tag
-              :key="record.id"
-              :color="record.status ? 'success' : 'error'"
+    <a-modal
+      v-model:open="isEditModalOpen"
+      @ok="handleModalOk"
+      @cancel="handleModalCancel"
+      ok-text="Submit"
+      cancel-text="Cancel"
+      :maskClosable="false"
+    >
+      <warranty-edit-modal
+        @submit-success="handleSubmitSuccess"
+        :warranty_id="selectedWarrantyId"
+      ></warranty-edit-modal>
+      <template #footer> </template>
+    </a-modal>
+
+    <!-- Header -->
+    <a-card class="div-header-card" :bordered="false">
+      <a-page-header
+        class="div-header"
+        title="Warranties"
+        sub-title="Manage and organize your warranties"
+      >
+        <template #extra>
+          <a-button
+            class="add-warranty-btn"
+            type="primary"
+            @click="handleAddWarranty"
+            :icon="h(PlusOutlined)"
           >
-          {{ record.status ? 'Active' : 'Inactive' }}
-        </a-tag>
+            Add New
+          </a-button>
+        </template>
+      </a-page-header>
+    </a-card>
 
-        </span>
-      </template>
-      <template v-else-if="column.dataIndex === 'operation'">
-        <a-tooltip  title="Edit" placement="bottom">
-          <a-button @click="onEdit(record.id)" style="margin-right: 3px"  :icon="h(EditOutlined)" />
-        </a-tooltip>
-        <a-popconfirm
-            v-if="WarrantyStore.warranties.length"
-            title="Sure to delete?"
-            @confirm="onDelete(record.id)" >
-          <a-tooltip title="Delete" placement="bottom">
-            <a-button  :icon="h(DeleteOutlined)" />
-          </a-tooltip>
-        </a-popconfirm>
-      </template>
-    </template>
-  </a-table>
+    <!-- Warranties table -->
+    <div class="div-table-container">
+      <a-table
+        :dataSource="warrantyStore.warranties"
+        :columns="columns"
+        :pagination="{
+          pageSize: 10,
+          showSizeChanger: true,
+          showQuickJumper: true,
+        }"
+        :rowKey="(record) => record.id"
+        :loading="warrantyStore.loading"
+        size="middle"
+        @change="handleTableChange"
+      >
+        <!-- Custom filter dropdown template -->
+        <template
+          #customFilterDropdown="{
+            setSelectedKeys,
+            selectedKeys,
+            confirm,
+            clearFilters,
+            column,
+          }"
+        >
+          <div class="custom-filter-dropdown">
+            <a-input
+              ref="searchInput"
+              :placeholder="`Search ${column.title}`"
+              :value="selectedKeys[0]"
+              @change="
+                (e) => setSelectedKeys(e.target.value ? [e.target.value] : [])
+              "
+              @pressEnter="
+                handleSearch(selectedKeys, confirm, column.dataIndex)
+              "
+            />
+            <a-button
+              type="primary"
+              @click="handleSearch(selectedKeys, confirm, column.dataIndex)"
+            >
+              <template #icon><SearchOutlined /></template>
+              Search
+            </a-button>
+            <a-button @click="handleReset(clearFilters)">
+              Reset
+            </a-button>
+          </div>
+        </template>
+
+        <!-- Custom filter icon -->
+        <template #customFilterIcon="{ filtered }">
+          <search-outlined
+            :class="{ 'text-primary': filtered }"
+          />
+        </template>
+
+        <!-- Custom render for operation column -->
+        <template #bodyCell="{ column, record, index }">
+          <template v-if="column.dataIndex === 'operation'">
+            <div class="action-buttons">
+              <a-tooltip title="Edit">
+                <a-button
+                    type="link"
+                    class="edit-btn"
+                    @click="handleEditWarranty(record.id)"
+                    :style="{ color: '#1890ff' }"
+                >
+                  <template #icon><EditOutlined /></template>
+                </a-button>
+              </a-tooltip>
+              <a-popconfirm
+                  :title="`Are you sure you want to delete ${record.name}?`"
+                  ok-text="Yes"
+                  cancel-text="No"
+                  @confirm="handleDeleteWarranty(record.id)"
+                  placement="topRight"
+              >
+                <a-tooltip title="Delete">
+                  <a-button
+                      type="link"
+                      class="delete-btn"
+                      :style="{ color: '#ff4d4f' }"
+                  >
+                    <template #icon><DeleteOutlined /></template>
+                  </a-button>
+                </a-tooltip>
+              </a-popconfirm>
+            </div>
+          </template>
+
+          <template v-else-if="column.dataIndex === 'status'">
+            <span>
+              <a-tag
+                  :key="record.id"
+                  :color="record.status ? 'success' : 'error'"
+              >
+              {{ record.status ? 'Active' : 'Inactive' }}
+            </a-tag>
+            </span>
+          </template>
+
+          <template v-else-if="column.dataIndex === 'index'">
+            {{ index + 1 }}
+          </template>
+        </template>
+      </a-table>
+    </div>
+  </div>
 </template>
-<script setup>
-import {computed, reactive, ref} from 'vue';
-import {cloneDeep} from 'lodash-es';
 
-const open = ref(false);
-const edit_open = ref(false);
-let warranty_id = ref(null)
-import {useWarrantyStore} from '~/stores/product/WarrantyStore.js';
-import WarrantyAddModal from '~/components/warranties/warrantyAddModal.vue'
-import WarrantyEditModal from '~/components/warranties/WarrantyEditModal.vue'
-import {DeleteOutlined, EditOutlined} from "@ant-design/icons-vue";
-const WarrantyStore = useWarrantyStore();
-WarrantyStore.fetchWarranties()
-console.log("WarrantyStore.warranties",WarrantyStore.warranties)
+<script setup>
+import { ref } from "vue";
+import { useWarrantyStore } from "~/stores/product/WarrantyStore.js";
+import WarrantyAddModal from "~/components/warranties/warrantyAddModal.vue";
+import WarrantyEditModal from "~/components/warranties/warrantyEditModal.vue";
+import {
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+  SearchOutlined,
+} from "@ant-design/icons-vue";
+
+const warrantyStore = useWarrantyStore();
+warrantyStore.fetchWarranties();
+
+// Reactive variables
+const isAddModalOpen = ref(false);
+const isEditModalOpen = ref(false);
+const selectedWarrantyId = ref(null);
+const searchInput = ref(null);
+
+// Table columns configuration
 const columns = [
   {
-    title: 'Name',
-    dataIndex: 'name',
-    width: '30%',
+    title: "#",
+    dataIndex: "index",
+    width: "5%",
   },
   {
-    title: 'Description',
-    dataIndex: 'description',
+    title: "Name",
+    dataIndex: "name",
+    width: "20%",
+    sorter: (a, b) => a.name.localeCompare(b.name),
+    customFilterDropdown: true,
+    onFilter: (value, record) =>
+      record.name.toLowerCase().includes(value.toLowerCase()),
   },
   {
-    title: 'Duration',
-    dataIndex: 'duration',
+    title: "Description",
+    dataIndex: "description",
+    customFilterDropdown: true,
+    onFilter: (value, record) =>
+      record.description.toLowerCase().includes(value.toLowerCase()),
   },
   {
-    title: 'Period',
-    dataIndex: 'periods',
+    title: "Duration",
+    dataIndex: "duration",
+    sorter: (a, b) => a.duration - b.duration,
   },
   {
-    title: 'Status',
-    dataIndex: 'status',
+    title: "Period",
+    dataIndex: "periods",
   },
   {
-    title: 'operation',
-    dataIndex: 'operation',
+    title: "Status",
+    dataIndex: "status",
+  },
+  {
+    title: "Operation",
+    dataIndex: "operation",
   },
 ];
 
-
-const edit = key => {
-};
-const save = key => {
-};
-const onDelete = async key => {
-  await WarrantyStore.deleteWarranty(key)
-  console.log("deleted", key)
-};
-const onEdit = async key => {
-  console.log("edit", key)
-  warranty_id = parseInt(key)
-  console.log("warranty_id", warranty_id)
-  edit_open.value = true
-  console.log("done")
+// Event handlers
+const handleAddWarranty = () => {
+  isAddModalOpen.value = true;
 };
 
-const handleAdd = () => {
-  warranty_id.value = null;
-  open.value = true;
+const handleEditWarranty = (warrantyId) => {
+  selectedWarrantyId.value = warrantyId;
+  isEditModalOpen.value = true;
 };
-const handleOk = () => {
-  open.value = false;
-  // Optionally handle any additional logic here
+
+const handleDeleteWarranty = async (warrantyId) => {
+  try {
+    await warrantyStore.deleteWarranty(warrantyId);
+    console.log("Warranty deleted successfully:", warrantyId);
+  } catch (error) {
+    console.error("Error deleting warranty:", error);
+    // TODO: Implement user-friendly error handling
+  }
 };
-const handleCancel = () => {
-  open.value = false;
-  edit_open.value = false;
+
+const handleModalOk = () => {
+  isAddModalOpen.value = false;
+  isEditModalOpen.value = false;
 };
+
+const handleModalCancel = () => {
+  isAddModalOpen.value = false;
+  isEditModalOpen.value = false;
+};
+
 const handleSubmitSuccess = () => {
-  open.value = false;
-  edit_open.value = false;
+  isAddModalOpen.value = false;
+  isEditModalOpen.value = false;
+};
+
+const handleSearch = (selectedKeys, confirm, dataIndex) => {
+  confirm();
+  // TODO: Implement search functionality
+};
+
+const handleReset = (clearFilters) => {
+  clearFilters({ confirm: true });
+  // TODO: Reset search state
+};
+
+const handleTableChange = (pagination, filters, sorter) => {
+  // TODO: Implement table change handling
 };
 </script>
-<style lang="less" scoped>
-.editable-cell {
-  position: relative;
 
-  .editable-cell-input-wrapper,
-  .editable-cell-text-wrapper {
-    padding-right: 24px;
-  }
-
-  .editable-cell-text-wrapper {
-    padding: 5px 24px 5px 5px;
-  }
-
-  .editable-cell-icon,
-  .editable-cell-icon-check {
-    position: absolute;
-    right: 0;
-    width: 20px;
-    cursor: pointer;
-  }
-
-  .editable-cell-icon {
-    margin-top: 4px;
-    display: none;
-  }
-
-  .editable-cell-icon-check {
-    line-height: 28px;
-  }
-
-  .editable-cell-icon:hover,
-  .editable-cell-icon-check:hover {
-    color: #108ee9;
-  }
-
-  .editable-add-btn {
-    margin-bottom: 8px;
-  }
+<style scoped>
+.div-container {
+  background-color: #f0f2f5;
+  padding: 24px;
+  border-radius: 8px;
 }
 
-.editable-cell:hover .editable-cell-icon {
-  display: inline-block;
+.div-header-card {
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.div-header {
+  padding: 16px;
+}
+
+.div-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #001529;
+}
+
+.add-warranty-btn {
+  font-size: 14px;
+  height: 36px;
+  margin-right: 8px;
+}
+
+.div-table-container {
+  background-color: #ffffff;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+:deep(.ant-table) {
+  font-size: 14px;
+}
+
+:deep(.ant-table-thead > tr > th) {
+  background-color: #fafafa;
+  color: #001529;
+  font-weight: 600;
+}
+
+:deep(.ant-table-tbody > tr > td) {
+  padding: 12px 16px;
+}
+
+:deep(.ant-table-tbody > tr:hover > td) {
+  background-color: #f5f5f5;
+}
+
+.custom-filter-dropdown {
+  padding: 8px;
+  border-radius: 4px;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.custom-filter-dropdown input {
+  width: 200px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.custom-filter-dropdown button {
+  width: 100px;
+  margin-right: 8px;
+}
+
+.text-primary {
+  color: #1890ff;
 }
 </style>

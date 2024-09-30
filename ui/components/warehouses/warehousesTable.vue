@@ -3,7 +3,6 @@
     <!-- Modals -->
     <a-modal
       v-model:open="isAddModalOpen"
-      title="Add Warehouse"
       @ok="handleModalOk"
       @cancel="handleModalCancel"
       ok-text="Submit"
@@ -16,7 +15,6 @@
 
     <a-modal
       v-model:open="isEditModalOpen"
-      title="Edit Warehouse"
       @ok="handleModalOk"
       @cancel="handleModalCancel"
       ok-text="Submit"

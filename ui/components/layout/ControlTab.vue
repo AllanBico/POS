@@ -16,7 +16,7 @@
       <template #overlay>
         <a-menu>
           <a-menu-item key="settings">Settings</a-menu-item>
-          <a-menu-item key="logout">Logout</a-menu-item>
+          <a-menu-item key="logout" @click="logout">Logout</a-menu-item>
         </a-menu>
       </template>
       <a-avatar class="header-avatar" :icon="h(UserOutlined)" />
@@ -34,7 +34,7 @@
     <!-- Search input -->
     <a-input
         v-model:value="searchTerm"
-        placeholder="Search for products, customers, or serials..."
+        placeholder="Search for products, customers, serials, or batches..."
         @input="onSearch"
         class="command-palette-input"
         ref="searchInput"
@@ -94,6 +94,24 @@
           </template>
         </a-list>
       </div>
+
+      <!-- Batch results -->
+      <div v-if="BatchSearchResults?.length" class="result-section">
+        <h3 class="result-type">Batches</h3>
+        <a-list item-layout="horizontal" :data-source="BatchSearchResults" size="small">
+          <template #renderItem="{ item }">
+            <a-list-item>
+              <a-list-item-meta
+                  :description="`Product: ${item?.variant?.sku || 'N/A'} (${item?.variant?.Product?.name || 'N/A'})`"
+              >
+                <template #title>
+                  <span>{{ item.batchNumber }}</span>
+                </template>
+              </a-list-item-meta>
+            </a-list-item>
+          </template>
+        </a-list>
+      </div>
     </div>
 
     <!-- No results message -->
@@ -118,9 +136,12 @@ import { notification } from 'ant-design-vue';
 import Mousetrap from 'mousetrap';
 import { useTabsStore } from '~/stores/tabsStore.js';
 import productView from '~/components/product/products/productView.vue';
-
+import {useAuthStore} from "~/stores/AuthStore.js";
+import {useGoodsReceivingStore} from "~/stores/invetory/GoodsReceivingStore.js";
+const authStore = useAuthStore();
 const tabsStore = useTabsStore();
 const serialStore = useSerialNumberStore();
+const receivingStore = useGoodsReceivingStore();
 const productVariantStore = useProductStore();
 const customerStore = useCustomerStore();
 const isSearchModalVisible = ref(false);
@@ -129,6 +150,7 @@ const searchInput = ref(null);
 const searchResults = ref([]);
 const CustomerSearchResults = ref([]);
 const SerialSearchResults = ref([]);
+const BatchSearchResults = ref([]);
 
 // Open search modal
 const showSearchModal = () => {
@@ -144,10 +166,12 @@ const onSearch = async () => {
     searchResults.value = await productVariantStore.search(searchTerm.value);
     CustomerSearchResults.value = await customerStore.search(searchTerm.value);
     SerialSearchResults.value = await serialStore.search(searchTerm.value);
+    BatchSearchResults.value = await receivingStore.search(searchTerm.value);
   } else {
     searchResults.value = [];
     CustomerSearchResults.value = [];
     SerialSearchResults.value = [];
+    BatchSearchResults.value = [];
   }
 };
 
@@ -155,7 +179,8 @@ const onSearch = async () => {
 const hasResults = computed(() => {
   return searchResults.value.length > 0 ||
       CustomerSearchResults.value.length > 0 ||
-      SerialSearchResults.value.length > 0;
+      SerialSearchResults.value.length > 0 ||
+      BatchSearchResults?.value?.length > 0;
 });
 
 // Helper function to get product by ID from store
@@ -168,7 +193,9 @@ onMounted(async () => {
   await productVariantStore.fetchVariants();
   await productVariantStore.fetchProducts();
 });
-
+const logout = async () => {
+  await authStore.logout();
+}
 // Bind keyboard shortcut for opening search modal
 onMounted(() => {
   Mousetrap.bind('ctrl+q', (event) => {

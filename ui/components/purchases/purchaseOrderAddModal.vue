@@ -106,15 +106,13 @@
         <template #bodyCell="{ column, record }">
           <template v-if="column.dataIndex === 'variantId'">
             <a-select
-              v-model:value="record.variantId"
-              placeholder="Select Variant"
-              show-search
-              :filter-option="filterOption"
-              style="width: 100%"
+                v-model:value="record.variantId"
+                placeholder="Select Variant"
+                show-search
+                :filter-option="filterOption"
+                :options="variantOptions"
+                style="width: 100%"
             >
-              <a-select-option v-for="variant in variants" :key="variant.id" :value="variant.id">
-                {{ variant.Product.name }} ({{ variant.sku }})
-              </a-select-option>
             </a-select>
           </template>
           <template v-else-if="column.dataIndex === 'quantity'">
@@ -246,11 +244,19 @@ const removeItem = (id) => {
   formValues.lineItems = formValues.lineItems.filter(item => item.id !== id);
 };
 
-// Search filter for variants
+// Create `variantOptions` to transform variants into the {value, label} format
+const variantOptions = computed(() =>
+    variants.value.map(variant => ({
+      value: variant.id,
+      label: `${variant.Product.name} (${variant.sku})`
+    }))
+);
+
+// Define a filter option function for search
 const filterOption = (input, option) => {
-  const optionLabel = typeof option.children === 'string' ? option.children : option.children.toString();
-  return optionLabel.toLowerCase().includes(input.toLowerCase());
+  return option.label.toLowerCase().includes(input.toLowerCase());
 };
+
 
 // Get destination options based on selected type
 const getDestinationOptions = (destinationType) => {

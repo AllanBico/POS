@@ -50,6 +50,8 @@ const compositionsRoutes = require('./routes/product/composition');
 const paymentRoutes = require('./routes/sales/paymentRoutes');
 const orderRoutes = require('./routes/sales/salesOrderRoutes');
 const variantImageRoutes = require('./routes/product/variantImage');
+const productWarrantyRoutes = require('./routes/product/productWarranty');
+const productExpiryRoutes = require('./routes/product/productExpiry');
 //const authenticateToken = require('./middleware/auth');
 
 dotenv.config();
@@ -155,7 +157,8 @@ app.use('/api/compositions', compositionsRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/variant-images', variantImageRoutes);
-
+app.use('/api/product-warranties', productWarrantyRoutes);
+app.use('/api/product-expiries', productExpiryRoutes);
 
 
 // Listen for Socket.IO connections

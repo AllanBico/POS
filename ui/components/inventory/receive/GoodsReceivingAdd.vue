@@ -94,6 +94,11 @@
                   Manage Serial Numbers
                 </a-button>
               </template>
+              <template v-else-if="column.dataIndex === 'warrantyAndExpiry'">
+                <a-button @click="openWarrantyExpiryModal(record)">
+                  Manage Warranty & Expiry
+                </a-button>
+              </template>
               <template v-else-if="column.dataIndex === 'note'">
                 <a-input
                   v-model:value="record.note"
@@ -126,6 +131,32 @@
         Add Empty Serial Number Input
       </a-button>
     </a-modal>
+
+    <a-modal
+      v-model:visible="warrantyExpiryModalVisible"
+      title="Manage Warranty & Expiry"
+      @ok="saveWarrantyExpiry"
+      width="600px"
+    >
+      <a-form layout="vertical">
+        <a-form-item label="Expiry Date">
+          <a-date-picker v-model:value="currentLineItem.expiryDate" style="width: 100%" />
+        </a-form-item>
+        <a-form-item label="Warranty Type">
+          <a-select v-model:value="currentLineItem.warrantyTypeId" style="width: 100%">
+            <a-select-option v-for="warranty in warranties" :key="warranty.id" :value="warranty.id">
+              {{ warranty.name }}
+            </a-select-option>
+          </a-select>
+        </a-form-item>
+        <a-form-item label="Warranty Start Date">
+          <a-date-picker v-model:value="currentLineItem.warrantyStartDate" style="width: 100%" />
+        </a-form-item>
+        <a-form-item label="Warranty End Date">
+          <a-date-picker v-model:value="currentLineItem.warrantyEndDate" style="width: 100%" />
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 
@@ -136,6 +167,7 @@ import { useWarehouseStore } from '~/stores/WarehouseStore.js';
 import { useProductStore } from '~/stores/product/ProductStore.js';
 import { useStoreStore } from '~/stores/storesStore.js';
 import { usePurchaseOrderStore } from '~/stores/purchases/PurchaseOrderStore.js';
+import { useWarrantyStore } from '~/stores/product/WarrantyStore.js';
 const { initDateFormat, formatDate } = useDateFormatter();
 const props = defineProps({
   purchaseOrderId: {
@@ -157,6 +189,7 @@ const formValues = reactive({
 
 // Modal State
 const serialNumberModalVisible = ref(false);
+const warrantyExpiryModalVisible = ref(false);
 const serialNumbers = ref([]);
 const scannedSerialNumber = ref('');
 const scannerInput = ref(null);
@@ -168,10 +201,12 @@ const warehouseStore = useWarehouseStore();
 const productStore = useProductStore();
 const storeStore = useStoreStore();
 const purchaseOrderStore = usePurchaseOrderStore();
+const warrantyStore = useWarrantyStore();
 
 const warehouses = computed(() => warehouseStore.warehouses);
 const variants = computed(() => productStore.variants);
 const stores = computed(() => storeStore.stores);
+const warranties = computed(() => warrantyStore.warranties);
 const purchaseOrder = await purchaseOrderStore.purchaseOrderById(props.purchaseOrderId);
 // Fetch Purchase Order Details
 const fetchPurchaseOrderDetails = async () => {
@@ -189,6 +224,10 @@ const fetchPurchaseOrderDetails = async () => {
       expectedQuantity : item.receivedQuantity,
       receivedQuantity: item.quantity,
       serialNumbers: item.serialNumbers || [],
+      expiryDate: null,
+      warrantyTypeId: null,
+      warrantyStartDate: null,
+      warrantyEndDate: null,
       note: '',
     }));
   }
@@ -209,6 +248,7 @@ const columns = [
   { title: 'Expected Quantity', dataIndex: 'orderedQuantity', key: 'orderedQuantity' },
   { title: 'Received Quantity', dataIndex: 'receivedQuantity', key: 'receivedQuantity' },
   { title: 'Serial Numbers', dataIndex: 'serialNumbers', key: 'serialNumbers' },
+  { title: 'Warranty & Expiry', dataIndex: 'warrantyAndExpiry', key: 'warrantyAndExpiry' },
   { title: 'Note', dataIndex: 'note', key: 'note' },
 ];
 
@@ -224,10 +264,21 @@ const openSerialNumberModal = (record) => {
   });
 };
 
+// Open Warranty & Expiry Modal
+const openWarrantyExpiryModal = (record) => {
+  warrantyExpiryModalVisible.value = true;
+  currentLineItem = record;
+};
+
 // Save Serial Numbers
 const saveSerialNumbers = () => {
   currentLineItem.serialNumbers = serialNumbers.value.filter(sn => sn.trim() !== '');
   serialNumberModalVisible.value = false;
+};
+
+// Save Warranty & Expiry
+const saveWarrantyExpiry = () => {
+  warrantyExpiryModalVisible.value = false;
 };
 
 // Add empty input for serial numbers
@@ -281,6 +332,7 @@ onMounted(() => {
   warehouseStore.fetchWarehouses();
   productStore.fetchVariants();
   storeStore.fetchStores();
+  warrantyStore.fetchWarranties();
   fetchPurchaseOrderDetails();
 });
 </script>

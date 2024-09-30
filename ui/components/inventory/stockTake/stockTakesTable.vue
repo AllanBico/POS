@@ -1,5 +1,5 @@
 <template>
-  <div class="div-container">
+  <div class="stock-take-container">
     <!-- Modals -->
     <a-modal
       v-model:open="open"
@@ -26,14 +26,15 @@
       <stockTakeDetail
         @submit-success="handleSubmitSuccess"
         :stockTakeId="stockTakeId"
-       stock_take_id=""></stockTakeDetail>
+        stock_take_id=""
+      ></stockTakeDetail>
       <template #footer> </template>
     </a-modal>
 
     <!-- Header -->
-    <a-card class="div-header-card" :bordered="false">
+    <a-card class="header-card" :bordered="false">
       <a-page-header
-        class="div-header"
+        class="header"
         title="Stock Takes"
         sub-title="Manage and organize your stock takes"
       >
@@ -46,12 +47,27 @@
           >
             Add New
           </a-button>
+          <a-dropdown>
+            <template #overlay>
+              <a-menu>
+                <a-menu-item key="1" @click="exportToExcel">
+                  <FileExcelOutlined /> Excel
+                </a-menu-item>
+                <a-menu-item key="2" @click="exportToPDF">
+                  <FilePdfOutlined /> PDF
+                </a-menu-item>
+              </a-menu>
+            </template>
+            <a-button class="export-btn">
+              Export <DownOutlined />
+            </a-button>
+          </a-dropdown>
         </template>
       </a-page-header>
     </a-card>
 
     <!-- Stock Takes table -->
-    <div class="div-table-container">
+    <div class="table-container">
       <a-table
         :dataSource="stockTakeStore.stockTakes"
         :columns="columns"
@@ -102,9 +118,7 @@
 
         <!-- Custom filter icon -->
         <template #customFilterIcon="{ filtered }">
-          <search-outlined
-            :class="{ 'text-primary': filtered }"
-          />
+          <search-outlined :class="{ 'text-primary': filtered }" />
         </template>
 
         <!-- Custom render for operation column -->
@@ -186,7 +200,13 @@ import {
   PlusOutlined,
   SearchOutlined,
   EyeOutlined,
+  DownOutlined,
+  FileExcelOutlined,
+  FilePdfOutlined,
 } from '@ant-design/icons-vue';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const tabsStore = useTabsStore();
 const stockTakeStore = useStockTakeStore();
@@ -316,8 +336,143 @@ const handleReset = (clearFilters) => {
   clearFilters({ confirm: true });
 };
 
+const exportToExcel = () => {
+  const data = stockTakeStore.stockTakes.map(stockTake => ({
+    Date: stockTake.date,
+    Product: stockTake.variant?.Product?.name,
+    Variant: stockTake.variant?.sku,
+    Store: stockTake.store?.name,
+    Warehouse: stockTake.warehouse?.name,
+    SystemQuantity: stockTake.systemQuantity,
+    PhysicalQuantity: stockTake.physicalQuantity,
+    Difference: stockTake.difference,
+    Status: stockTake.status
+  }));
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Stock Takes");
+  XLSX.writeFile(wb, "stock_takes.xlsx");
+};
+
+const exportToPDF = () => {
+  const doc = new jsPDF();
+  doc.autoTable({
+    head: [['Date', 'Product', 'Variant', 'Store', 'Warehouse', 'System Quantity', 'Physical Quantity', 'Difference', 'Status']],
+    body: stockTakeStore.stockTakes.map(stockTake => [
+      stockTake.date,
+      stockTake.variant?.Product?.name,
+      stockTake.variant?.sku,
+      stockTake.store?.name,
+      stockTake.warehouse?.name,
+      stockTake.systemQuantity,
+      stockTake.physicalQuantity,
+      stockTake.difference,
+      stockTake.status
+    ]),
+  });
+  doc.save('stock_takes.pdf');
+};
+
 onMounted(() => {
   fetchStockTakes();
 });
 console.log('stockTakeStore.stockTakes', stockTakeStore.stockTakes);
 </script>
+
+<style scoped>
+.stock-take-container {
+  background-color: #f0f2f5;
+  padding: 24px;
+  border-radius: 8px;
+}
+
+.header-card {
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.header {
+  padding: 16px;
+}
+
+.header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #001529;
+}
+
+.add-stock-take-btn {
+  font-size: 14px;
+  height: 36px;
+  margin-right: 8px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.export-btn {
+  height: 36px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.table-container {
+  background-color: #ffffff;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+:deep(.ant-table) {
+  font-size: 14px;
+}
+
+:deep(.ant-table-thead > tr > th) {
+  background-color: #fafafa;
+  color: #001529;
+  font-weight: 600;
+}
+
+:deep(.ant-table-tbody > tr > td) {
+  padding: 12px 16px;
+}
+
+:deep(.ant-table-tbody > tr:hover > td) {
+  background-color: #f5f5f5;
+}
+
+.custom-filter-dropdown {
+  padding: 8px;
+  border-radius: 4px;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.custom-filter-dropdown input {
+  width: 200px;
+  margin-bottom: 8px;
+  display: block;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.custom-filter-dropdown button {
+  width: 100px;
+  margin-right: 8px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.text-primary {
+  color: #1890ff;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.action-buttons .ant-btn-link {
+  padding: 0;
+}
+</style>

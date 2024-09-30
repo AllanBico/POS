@@ -12,10 +12,11 @@ router.post('/transfer', authenticateToken, async (req, res) => {
 
         // Decrease stock from the source location
         console.log('Querying source inventory');
+        const sourceField = sourceType === 'warehouse' ? 'warehouseId' : 'storeId';
         const sourceInventory = await Inventory.findOne({
             where: {
                 variantId,
-                [`${sourceType}Id`]: sourceId,
+                [sourceField]: sourceId,
             },
         });
 
@@ -32,10 +33,11 @@ router.post('/transfer', authenticateToken, async (req, res) => {
 
         // Increase stock in the destination location
         console.log('Querying destination inventory');
+        const destinationField = destinationType === 'warehouse' ? 'warehouseId' : 'storeId';
         let destinationInventory = await Inventory.findOne({
             where: {
                 variantId,
-                [`${destinationType}Id`]: destinationId,
+                [destinationField]: destinationId,
             },
         });
 
@@ -45,14 +47,13 @@ router.post('/transfer', authenticateToken, async (req, res) => {
             console.log('Creating destination inventory');
             destinationInventory = await Inventory.create({
                 variantId,
-                [`${destinationType}Id`]: destinationId,
-                quantity: 0,
+                [destinationField]: destinationId,
+                quantity: quantity,  // Set initial quantity to the transferred amount
             }, { transaction });
+        } else {
+            console.log('Updating destination inventory');
+            await destinationInventory.increment('quantity', { by: quantity, transaction });
         }
-
-        destinationInventory.quantity += quantity;
-        console.log('Updating destination inventory');
-        await destinationInventory.save({ transaction });
 
         // Create StockMovement record
         console.log('Creating stock movement record');
@@ -65,7 +66,7 @@ router.post('/transfer', authenticateToken, async (req, res) => {
             sourceId,
             destinationType,
             destinationId,
-            createdBy:req.user.id,
+            createdBy: req.user.id || createdBy,
         }, { transaction });
 
         console.log('Committing transaction');
@@ -78,6 +79,7 @@ router.post('/transfer', authenticateToken, async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
 // CREATE StockMovement
 router.post('/', authenticateToken, async (req, res) => {
     try {

@@ -1,53 +1,100 @@
 <template>
-  <a-form :form="form" @submit.prevent="handleSubmit">
-    <a-form-item label="Name" :rules="[{ required: true, message: 'Please input warehouse name!' }]">
-      <a-input v-model:value="form.name"/>
-    </a-form-item>
-    <a-form-item label="Location" :rules="[{ required: true, message: 'Please input warehouse location!' }]">
-      <a-input v-model:value="form.location"/>
-    </a-form-item>
-    <a-form-item label="Description">
-      <a-textarea :rows="4" v-model:value="form.description"/>
-    </a-form-item>
-    <a-form-item>
-      <a-button type="primary" :loading="loading" html-type="submit">Submit</a-button>
-    </a-form-item>
-  </a-form>
+  <div class="warehouse-edit-modal">
+    <h3>Edit Warehouse</h3>
+    <a-divider style="margin-bottom: 11px; margin-top: 11px" />
+    <a-form :model="form" @submit.prevent="handleSubmit" layout="vertical">
+      <a-form-item
+        name="name"
+        label="Warehouse Name"
+        :rules="[{ required: true, message: 'Please input the warehouse name!' }]"
+      >
+        <a-input
+          v-model:value="form.name"
+          placeholder="Enter warehouse name"
+          :maxLength="50"
+        >
+        </a-input>
+      </a-form-item>
+
+      <a-form-item
+        name="location"
+        label="Location"
+        :rules="[{ required: true, message: 'Please input the warehouse location!' }]"
+      >
+        <a-input
+          v-model:value="form.location"
+          placeholder="Enter warehouse location"
+          :maxLength="100"
+        >
+        </a-input>
+      </a-form-item>
+
+      <a-form-item name="description" label="Description">
+        <a-textarea
+          v-model:value="form.description"
+          :rows="4"
+          placeholder="Enter warehouse description"
+          :maxLength="500"
+        />
+      </a-form-item>
+
+      <a-form-item>
+        <a-button
+          type="primary"
+          html-type="submit"
+          :loading="loading"
+          block
+          size="large"
+        >
+          <template #icon><EditOutlined /></template>
+          Update Warehouse
+        </a-button>
+      </a-form-item>
+    </a-form>
+  </div>
 </template>
+
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import {useWarehouseStore} from '~/stores/WarehouseStore.js';
+import { useWarehouseStore } from '~/stores/WarehouseStore.js';
+import { EditOutlined } from '@ant-design/icons-vue';
+
 const warehouseStore = useWarehouseStore();
 const emit = defineEmits(['submit-success']);
+const { $toast } = useNuxtApp();
+const loading = ref(false);
+
 const props = defineProps({
   warehouse_id: {
     type: Number,
     required: true,
   },
 });
-const warehouseId = ref(props.warehouse_id); // Make warehouseId reactive
+
+const warehouseId = ref(props.warehouse_id);
 const form = ref({
   name: '',
-  location:'',
+  location: '',
   description: '',
 });
 
-const error = ref(null);
-
 const fetchWarehouse = async () => {
   try {
-    const fetchedWarehouse = warehouseStore.WarehouseById(warehouseId.value);
+    loading.value = true;
+    const fetchedWarehouse = await warehouseStore.getWarehouseById(warehouseId.value);
     if (fetchedWarehouse) {
-      form.value = { ...fetchedWarehouse }; // Populate the form with existing user data
+      form.value = { ...fetchedWarehouse };
     } else {
-      error.value = 'Warehouse not found';
+      throw new Error('Warehouse not found');
     }
-  } catch (err) {
-    error.value = err.message || 'Failed to load Warehouse';
+  } catch (error) {
+    console.error('Error Fetching Warehouse:', error);
+    $toast.error(error.message || 'Failed to load Warehouse');
+  } finally {
+    loading.value = false;
   }
 };
 
-// Watch for changes in warehouseId prop to refetch user data
 watch(() => props.warehouse_id, (newWarehouseId) => {
   warehouseId.value = newWarehouseId;
   fetchWarehouse();
@@ -55,19 +102,29 @@ watch(() => props.warehouse_id, (newWarehouseId) => {
 
 const handleSubmit = async () => {
   try {
-    await warehouseStore.updateWarehouse(warehouseId.value, form.value);
-
-
-    if (warehouseStore.error) {
-      error.value = warehouseStore.error;
-    } else {
-      emit('submit-success');
+    if (!form.value.name || !form.value.location) {
+      throw new Error('Warehouse name and location are required.');
     }
-  } catch (err) {
-    error.value = err.message || 'Failed to update Warehouse';
+    loading.value = true;
+
+    await warehouseStore.updateWarehouse(warehouseId.value, {
+      name: form.value.name,
+      description: form.value.description,
+      location: form.value.location
+    });
+
+    emit('submit-success');
+    $toast.success('Warehouse updated successfully!');
+  } catch (error) {
+    console.error('Error Updating Warehouse:', error);
+    $toast.error(error.message || 'Error Updating Warehouse');
+  } finally {
+    loading.value = false;
   }
 };
 
-// Initial fetch on mount
 onMounted(fetchWarehouse);
 </script>
+
+<style scoped>
+</style>

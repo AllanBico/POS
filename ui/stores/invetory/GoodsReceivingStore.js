@@ -63,6 +63,39 @@ export const useGoodsReceivingStore = defineStore('goodsReceiving', {
                 this.loading = false;
             }
         },
+        async search(term) {
+            if (!term) {
+                this.searchResults = [];
+                return;
+            }
+            this.loading = true;
+            this.error = null;
+            try {
+                const config = useRuntimeConfig();
+                const response = await fetch(`${config.public.baseURL}/api/goods-received/search/batch`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ batchNumber: term }),
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to search for goods received');
+                }
+                const data = await response.json();
+                console.log("data", data)
+                if (!Array.isArray(data)) {
+                    throw new Error('Invalid response from server');
+                }
+                this.searchResults = data;
+                return data;
+            } catch (err) {
+                this.error = err.message || 'An unexpected error occurred';
+            } finally {
+                this.loading = false;
+            }
+        },
 
         // Submit received goods (Create a new GRN entry)
         async receiveGoods(payload) {

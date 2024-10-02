@@ -97,6 +97,9 @@
 
         <!-- Custom render for operation column -->
         <template #bodyCell="{ column, record }">
+          <template v-if="column.dataIndex === 'id'">
+            {{ settingsStore.getSettingByKey("default_sales_order_prefix")}}{{record.id}}
+          </template>
           <template v-if="column.dataIndex === 'totalAmount'">
             {{ record.totalAmount }} {{ settingsStore.getSettingByKey("default_currency")?.code }}
           </template>
@@ -150,7 +153,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useSalesOrderStore } from '~/stores/sales/SalesOrderStore.js';
-import { useSettingsStore } from '~/stores/SettingsStore.js';
+import { useSettingsStore } from '~/stores/settingsStore.js';
 import OrderEditModal from '~/components/sales/OrderEditModal.vue';
 import {
   DeleteOutlined,
@@ -163,7 +166,7 @@ import {
   EyeOutlined,
 } from "@ant-design/icons-vue";
 import { useTabsStore } from "~/stores/tabsStore.js";
-import createOrder from "~/components/sales/createOrder.vue";
+import createOrder from "~/components/sales/orderAddModule.vue";
 import orderView from "~/components/sales/orderView.vue";
 
 const orderStore = useSalesOrderStore();

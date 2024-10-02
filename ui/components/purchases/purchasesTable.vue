@@ -3,7 +3,6 @@
     <!-- Modals -->
     <a-modal
       v-model:open="open"
-      title="Create Purchase Order"
       :footer="null"
       :maskClosable="false"
       width="100%"
@@ -15,7 +14,6 @@
 
     <a-modal
       v-model:open="edit_open"
-      title="Edit Purchase Order"
       :footer="null"
       :maskClosable="false"
       width="100%"
@@ -115,6 +113,9 @@
 
         <!-- Custom render for operation column -->
         <template #bodyCell="{ column, record }">
+          <template v-if="column.dataIndex === 'id'">
+            {{ settingsStore.getSettingByKey("default_purchase_order_prefix")}}{{record.id}}
+          </template>
           <template v-if="column.dataIndex === 'orderDate'">
             {{ formatDate(record.orderDate) }}
           </template>
@@ -185,7 +186,7 @@ import PurchaseOrderEditModal from "~/components/purchases/purchaseOrderEditModa
 import purchaseOrderView from "~/components/purchases/purchaseOrderView.vue";
 import GoodsReceivingForm from "~/components/inventory/receive/GoodsReceivingAdd.vue";
 const { initDateFormat, formatDate } = useDateFormatter();
-
+const settingsStore = useSettingsStore();
 import {
   DeleteOutlined,
   EditOutlined,
@@ -197,6 +198,7 @@ import {
   FileExcelOutlined,
   FilePdfOutlined,
 } from "@ant-design/icons-vue";
+import {useSettingsStore} from "~/stores/settingsStore.js";
 
 const tabsStore = useTabsStore();
 const purchaseOrderStore = usePurchaseOrderStore();
@@ -208,6 +210,14 @@ purchaseOrderStore.fetchPurchaseOrders();
 console.log("purchaseOrderStore.purchaseOrders",purchaseOrderStore.purchaseOrders)
 // Table columns configuration
 const columns = [
+  {
+    title: 'Purchase Number',
+    dataIndex: 'id',
+    key: 'purchase_number',
+    sorter: (a, b) => a.id.localeCompare(b.id),
+    customFilterDropdown: true,
+    onFilter: (value, record) => record.id.toString().toLowerCase().includes(value.toLowerCase()),
+  },
   {
     title: 'Order Date',
     dataIndex: 'orderDate',

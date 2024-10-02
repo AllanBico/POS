@@ -3,7 +3,6 @@
     <!-- Modals -->
     <a-modal
         v-model:open="isAddModalOpen"
-        title="Create Brand"
         :footer="null"
         :maskClosable="false"
     >
@@ -12,7 +11,6 @@
 
     <a-modal
         v-model:open="isEditModalOpen"
-        title="Edit Brand"
         :footer="null"
         :maskClosable="false"
     >

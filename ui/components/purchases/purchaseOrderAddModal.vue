@@ -8,8 +8,8 @@
     >
       <a-row :gutter="16" class="mb-4">
         <a-col :span="24">
-          <!-- <h2 class="form-title">Create Purchase Order</h2> -->
-          <p class="form-subtitle">Add a new purchase order to your system</p>
+          <h2 class="form-title">Create Purchase Order</h2>
+          <a-divider style="margin-bottom: 11px; margin-top: 11px" />
         </a-col>
       </a-row>
 
@@ -25,10 +25,8 @@
               placeholder="Select Supplier"
               show-search
               :filter-option="filterOption"
+              :options="supplierOptions"
             >
-              <a-select-option v-for="supplier in suppliers" :key="supplier.id" :value="supplier.id">
-                {{ supplier.name }}
-              </a-select-option>
             </a-select>
           </a-form-item>
         </a-col>
@@ -191,10 +189,10 @@ const loading = ref(false);
 
 // Columns for the table
 const columns = [
-  { title: 'Product (Variant)', dataIndex: 'variantId', width: '40%' },
-  { title: 'Quantity', dataIndex: 'quantity', width: '20%' },
-  { title: 'Price', dataIndex: 'price', width: '20%' },
-  { title: 'Action', dataIndex: 'action', width: '20%' },
+  { title: 'Product (Variant)', dataIndex: 'variantId'},
+  { title: 'Quantity', dataIndex: 'quantity', width: '10%' },
+  { title: 'Price', dataIndex: 'price', width: '20%'  },
+  { title: 'Action', dataIndex: 'action', width: '5%' },
 ];
 
 // Computed properties
@@ -249,6 +247,14 @@ const variantOptions = computed(() =>
     variants.value.map(variant => ({
       value: variant.id,
       label: `${variant.Product.name} (${variant.sku})`
+    }))
+);
+
+// Create `supplierOptions` to transform suppliers into the {value, label} format
+const supplierOptions = computed(() =>
+    suppliers.value.map(supplier => ({
+      value: supplier.id,
+      label: supplier.name
     }))
 );
 

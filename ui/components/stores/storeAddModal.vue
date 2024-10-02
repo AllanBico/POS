@@ -1,6 +1,6 @@
 <template>
   <div class="store-add-modal">
-    <h3>Create Store</h3>
+    <h3 style="margin-top: 0">Create Store</h3>
     <a-divider style="margin-bottom: 11px; margin-top: 11px" />
     <a-form :model="form" @submit.prevent="handleSubmit" layout="vertical">
       <a-form-item

@@ -126,7 +126,10 @@ router.post('/', authenticateToken, async (req, res) => {
 
             if (inventory) {
                 console.log(`Updating inventory for variantId: ${item.variantId}`);
-                inventory.quantity += item.quantity;
+                console.log("item.quantity",item.quantity)
+                console.log("inventory.quantity", inventory.quantity)
+                inventory.quantity = (parseFloat(inventory.quantity) || 0) + parseFloat(item.quantity);
+                console.log("inventory.quantity", inventory.quantity)
                 await inventory.save({ transaction });
             } else {
                 console.log(`Creating new inventory record for variantId: ${item.variantId}`);
@@ -138,7 +141,7 @@ router.post('/', authenticateToken, async (req, res) => {
                 }, { transaction });
             }
 
-            await variant.incrementStock(item.quantity, transaction);
+            await variant.incrementStock(parseFloat(item.quantity) , transaction);
 
             // If serial numbers are provided, create entries for them
             if (item.serialNumbers && item.serialNumbers.length > 0) {

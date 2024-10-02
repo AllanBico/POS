@@ -1,39 +1,64 @@
 <template>
-  <a-divider />
-  <a-form :model="form" @submit.prevent="handleSubmit" layout="vertical">
-    <a-form-item
-      label="Name"
-      name="name"
-      :rules="[
-        { required: true, message: 'Please input the brand name!' },
-        { validator: validateNotEmpty }
-      ]"
-    >
-      <a-input v-model:value="form.name" />
-    </a-form-item>
-    <a-form-item
-      label="Description"
-      name="description"
-      :rules="[
-        { required: true, message: 'Please input the brand description!' },
-        { validator: validateNotEmpty }
-      ]"
-    >
-      <a-textarea :rows="4" v-model:value="form.description" />
-    </a-form-item>
-    <a-divider />
-    <a-form-item>
-      <a-button type="primary" html-type="submit" :loading="brandStore.loading">Submit</a-button>
-    </a-form-item>
-  </a-form>
+  <div class="brand-edit-modal">
+    <h3 style="margin-top: 0">Edit Brand</h3>
+    <a-divider style="margin-bottom: 11px; margin-top: 11px" />
+    <a-form :model="form" @submit.prevent="handleSubmit" layout="vertical">
+      <a-form-item
+        name="name"
+        label="Brand Name"
+        :rules="[
+          { required: true, message: 'Please input the brand name!' },
+          { validator: validateNotEmpty }
+        ]"
+      >
+        <a-input
+          v-model:value="form.name"
+          placeholder="Enter brand name"
+          :maxLength="50"
+        >
+        </a-input>
+      </a-form-item>
+
+      <a-form-item
+        name="description"
+        label="Description"
+        :rules="[
+          { required: true, message: 'Please input the brand description!' },
+          { validator: validateNotEmpty }
+        ]"
+      >
+        <a-textarea
+          v-model:value="form.description"
+          :rows="4"
+          placeholder="Enter brand description"
+          :maxLength="500"
+        />
+      </a-form-item>
+
+      <a-form-item>
+        <a-button
+          type="primary"
+          html-type="submit"
+          :loading="brandStore.loading"
+          block
+          size="large"
+        >
+          <template #icon><EditOutlined /></template>
+          Update Brand
+        </a-button>
+      </a-form-item>
+    </a-form>
+  </div>
 </template>
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { useBrandStore } from '~/stores/product/BrandStore.js';
+import { EditOutlined } from '@ant-design/icons-vue';
 
 const brandStore = useBrandStore();
 const emit = defineEmits(['submit-success']);
+const { $toast } = useNuxtApp();
 
 const props = defineProps({
   selectedBrandId: {
@@ -47,7 +72,6 @@ const form = ref({
   name: '',
   description: '',
 });
-const error = ref(null);
 
 // Fetch brand data based on the selected brand ID
 const fetchBrand = async () => {
@@ -56,10 +80,10 @@ const fetchBrand = async () => {
     if (fetchedBrand) {
       form.value = { ...fetchedBrand };
     } else {
-      error.value = 'Brand not found';
+      $toast.error('Brand not found');
     }
   } catch (err) {
-    error.value = err.message || 'Failed to load brand';
+    $toast.error(err.message || 'Failed to load brand');
   }
 };
 
@@ -78,12 +102,13 @@ const updateBrand = async () => {
   try {
     await brandStore.updateBrand(brandId.value, form.value);
     if (brandStore.error) {
-      error.value = brandStore.error;
+      $toast.error(brandStore.error);
     } else {
       emit('submit-success');
+      $toast.success('Brand updated successfully!');
     }
   } catch (err) {
-    error.value = err.message || 'Failed to update brand';
+    $toast.error(err.message || 'Failed to update brand');
   }
 };
 
@@ -97,15 +122,20 @@ const validateNotEmpty = (rule, value) => {
 
 // Handle form submission
 const handleSubmit = async () => {
-  error.value = null; // Reset error before submission
   try {
-    //await form.value.validate();
     await updateBrand();
-  } catch (validationError) {
-    error.value = 'Please correct the errors in the form';
+  } catch (error) {
+    $toast.error('Please correct the errors in the form');
   }
 };
 
 // Initial fetch on mount
 onMounted(fetchBrand);
 </script>
+
+<style scoped>
+.brand-edit-modal {
+  max-width: 500px;
+  margin: 0 auto;
+}
+</style>

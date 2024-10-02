@@ -87,10 +87,10 @@
             </div>
           </template>
           <template v-else-if="column.dataIndex === 'price'">
-            {{ record.price | currency }}
+            {{ settingsStore.getSettingByKey("default_currency")?.code}} {{ record.price }}
           </template>
           <template v-else-if="column.dataIndex === 'totalPrice'">
-            {{ record.totalPrice | currency }}
+            {{ record.total | currency }}
           </template>
         </template>
       </a-table>
@@ -114,7 +114,9 @@ import 'jspdf-autotable';
 import {useTabsStore} from "~/stores/tabsStore.js";
 import attributesValuesTable from "~/components/product/attributes/attributesValuesTable.vue";
 import invoice from "~/components/sales/invoice.vue";
+import {useSettingsStore} from "~/stores/settingsStore.js";
 const tabsStore = useTabsStore();
+const settingsStore = useSettingsStore();
 // Props
 const props = defineProps({
   orderId: {
@@ -145,8 +147,8 @@ const columns = [
   },
   {
     title: 'Total Price',
-    dataIndex: 'totalPrice',
-    key: 'totalPrice',
+    dataIndex: 'total',
+    key: 'total',
   },
 ];
 

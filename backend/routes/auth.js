@@ -4,6 +4,8 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/users/user'); // Adjust based on your database setup
 const authMiddleware = require('../middleware/auth');
 const dotenv = require('dotenv');
+const {refreshAccessToken, revokeToken, handleCallback, getAuthUri} = require("../utils/intuitOAuth");
+const {handleMpesaCallback, initiateSTKPush, requestAccessToken} = require("../utils/mpesa");
 
 dotenv.config();
 
@@ -134,6 +136,80 @@ router.get('/profile', authMiddleware, async (req, res) => {
         res.json({ user });
     } catch (error) {
         res.status(400).json({ error: error.message });
+    }
+});
+router.get('/intuit', (req, res) => {
+    try {
+        const authUri = getAuthUri();
+        res.redirect(authUri);  // Redirect the user to Intuit's OAuth screen
+    } catch (error) {
+        console.error('Error getting authorization URL:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// OAuth callback route to handle the response from Intuit
+router.get('/intuit/callback', async (req, res) => {
+    try {
+        const token = await handleCallback(req.url);
+        // You should save the token in your database at this point
+        console.log('Access Token:', token);
+        res.json({ message: 'OAuth completed successfully', token });
+    } catch (error) {
+        console.error('OAuth callback error:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Route to revoke an access token
+router.post('/intuit/revoke', async (req, res) => {
+    const { accessToken } = req.body;
+    try {
+        const response = await revokeToken(accessToken);
+        res.json({ message: 'Token revoked successfully', response });
+    } catch (error) {
+        console.error('Revoke token error:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Route to refresh the access token
+router.post('/intuit/refresh', async (req, res) => {
+    try {
+        const newToken = await refreshAccessToken();
+        res.json({ message: 'Token refreshed successfully', newToken });
+    } catch (error) {
+        console.error('Token refresh error:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+router.get('/mpesa/auth', async (req, res) => {
+    try {
+        const tokenResponse = await requestAccessToken();
+        res.json({
+            message: 'M-Pesa OAuth token fetched successfully',
+            token: tokenResponse
+        });
+    } catch (error) {
+        console.error('Error fetching M-Pesa OAuth token:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+router.post('/mpesa/stkpush', async (req, res) => {
+    // const { phoneNumber, amount, accountReference, transactionDesc } = req.body;
+    const PHONE_NUMBER = '254721786014';
+    const AMOUNT = 10;
+    const ACCOUNT_REFERENCE = 'INTELLITECH LTD';
+    const TRANSACTION_DESC = 'Order Payment';
+    try {
+        const response = await initiateSTKPush(PHONE_NUMBER, AMOUNT, ACCOUNT_REFERENCE, TRANSACTION_DESC);
+        res.json({
+            message: 'STK push initiated successfully',
+            response
+        });
+    } catch (error) {
+        console.error('Error initiating STK Push:', error.message);
+        res.status(500).json({ error: error.message });
     }
 });
 

@@ -7,10 +7,10 @@
         sub-title="Generate and print barcodes for your products"
       >
         <template #extra>
-          <a-button type="primary" @click="renderBarcodes" :icon="h(BarcodeOutlined)">
+          <a-button type="primary" @click="generateBarcodes" :icon="h(BarcodeOutlined)">
             Generate Barcodes
           </a-button>
-          <a-button @click="printBarcodes" :icon="h(PrinterOutlined)">
+          <a-button @click="printBarcodes" :icon="h(PrinterOutlined)" :disabled="!barcodes.length">
             Print Barcodes
           </a-button>
         </template>
@@ -49,25 +49,30 @@
         </a-list>
       </a-card>
     </div>
-    <div ref="barcodeContainer" class="barcode-container"></div>
+    
+    <div class="barcode-container">
+      <div v-for="(barcode, index) in barcodes" :key="index" class="barcode-item">
+        <svg :ref="el => { if (el) svgRefs[index] = el }"></svg>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, watch, onMounted, h } from "vue";
-import { useBarcode } from '@/composables/useBarcode';
+import { ref, watch, onMounted, h, nextTick } from "vue";
+import JsBarcode from 'jsbarcode';
 import { useProductStore } from "~/stores/product/ProductStore.js";
 import {
   BarcodeOutlined,
   PrinterOutlined,
 } from "@ant-design/icons-vue";
 
-const barcodeContainer = ref(null);
 const selectedBarcodeType = ref('serialNumber');
 const barcodeStrings = ref([]);
 const barcodeQuantity = ref(1);
+const barcodes = ref([]);
+const svgRefs = ref([]);
 
-const { generateBarcode, printBarcode } = useBarcode();
 const productStore = useProductStore();
 
 const props = defineProps({
@@ -79,11 +84,10 @@ const props = defineProps({
 
 const variant = ref(props.variant_obj);
 
-watch(variant, () => {
-  updateBarcodeStrings();
-});
+watch(variant, updateBarcodeStrings);
+watch([selectedBarcodeType, barcodeQuantity], updateBarcodeStrings);
 
-const updateBarcodeStrings = () => {
+function updateBarcodeStrings() {
   if (variant.value) {
     switch (selectedBarcodeType.value) {
       case 'serialNumber':
@@ -102,43 +106,72 @@ const updateBarcodeStrings = () => {
         barcodeStrings.value = [];
     }
   }
-};
+}
 
-watch([selectedBarcodeType, barcodeQuantity], updateBarcodeStrings);
-
-const renderBarcodes = () => {
-  if (barcodeContainer.value && barcodeStrings.value.length) {
-    barcodeContainer.value.innerHTML = '';
-
-    barcodeStrings.value.forEach((str, index) => {
-      const canvas = document.createElement('canvas');
-      canvas.id = `barcode-${index}`;
-      barcodeContainer.value.appendChild(canvas);
-
-      generateBarcode(canvas, str, {
-        format: 'CODE128',
-        width: 2,
-        height: 100,
-        displayValue: true,
-      });
+function generateBarcodes() {
+  barcodes.value = barcodeStrings.value.map(str => ({ value: str }));
+  svgRefs.value = new Array(barcodes.value.length);
+  
+  // Use nextTick to ensure the SVG elements are rendered
+  nextTick(() => {
+    barcodes.value.forEach((barcode, index) => {
+      if (svgRefs.value[index]) {
+        JsBarcode(svgRefs.value[index], barcode.value, {
+          format: "CODE128",
+          xmlDocument: document,
+          width: 2,
+          height: 80,
+          displayValue: true,
+          margin: 10,
+        });
+      }
     });
-  } else {
-    console.warn("Please select a value and ensure the container is available.");
-  }
-};
+  });
+}
 
-const printBarcodes = () => {
-  if (barcodeContainer.value) {
-    const canvases = barcodeContainer.value.querySelectorAll('canvas');
-    if (canvases.length) {
-      canvases.forEach(canvas => printBarcode(canvas));
-    } else {
-      console.warn("No barcodes available to print.");
+function printBarcodes() {
+  const printWindow = window.open('', );
+  printWindow.document.write('<html><head><title>Print Barcodes</title>');
+  printWindow.document.write('<style>');
+  printWindow.document.write(`
+    @page { size: 90mm 29mm; margin: 0; }
+    body { margin: 0; padding: 0; }
+    .barcode-item { 
+      page-break-after: always; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      height: 29mm; 
+      padding: 0mm;
     }
-  } else {
-    console.warn("No barcode container available.");
-  }
-};
+    svg { 
+      max-width: 86mm; 
+      max-height: 25mm; 
+      width: auto; 
+      height: auto; 
+    }
+  `);
+  printWindow.document.write('</style></head><body>');
+
+  svgRefs.value.forEach((svgRef) => {
+    if (svgRef) {
+      const barcodeDiv = printWindow.document.createElement('div');
+      barcodeDiv.className = 'barcode-item';
+      const svgClone = svgRef.cloneNode(true);
+      barcodeDiv.appendChild(svgClone);
+      printWindow.document.body.appendChild(barcodeDiv);
+    }
+  });
+
+  printWindow.document.write('</body></html>');
+  printWindow.document.close();
+
+  printWindow.onload = function() {
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
+  };
+}
 
 onMounted(() => {
   updateBarcodeStrings();
@@ -192,7 +225,13 @@ onMounted(() => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.barcode-container canvas {
+.barcode-item {
   margin-bottom: 16px;
+  padding: 8px;
+}
+
+.barcode-item svg {
+  max-width: 100%;
+  height: auto;
 }
 </style>

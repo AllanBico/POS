@@ -31,15 +31,8 @@
                   allowClear
                   show-search
                   :filter-option="filterOption"
+                  :options="customerOptions"
                 >
-                  <a-select-option :value="null">None</a-select-option>
-                  <a-select-option
-                    v-for="customer in customers"
-                    :key="customer.id"
-                    :value="customer.id"
-                  >
-                    {{ customer.name }}
-                  </a-select-option>
                 </a-select>
               </a-form-item>
             </a-col>
@@ -76,14 +69,8 @@
                 :filter-option="filterOption"
                 @change="(value) => updateLineItem(record, value)"
                 style="width: 100%;"
+                :options="productOptions"
               >
-                <a-select-option
-                  v-for="variant in products"
-                  :key="variant.id"
-                  :value="variant.id"
-                >
-                  {{ variant.sku }} ({{ variant.Product.name }})
-                </a-select-option>
               </a-select>
             </template>
 
@@ -101,6 +88,27 @@
               {{ record.price }}
             </template>
 
+            <template v-else-if="column.dataIndex === 'discount'">
+              <a-space>
+                <a-input-number
+                  v-model:value="record.discount"
+                  :min="0"
+                  :max="record.discountType === 'percentage' ? 100 : undefined"
+                  placeholder="Discount"
+                  @change="() => updateLineItem(record)"
+                  style="width: 100px;"
+                />
+                <a-select
+                  v-model:value="record.discountType"
+                  style="width: 80px;"
+                  @change="() => updateLineItem(record)"
+                >
+                  <a-select-option value="percentage">%</a-select-option>
+                  <a-select-option value="fixed">$</a-select-option>
+                </a-select>
+              </a-space>
+            </template>
+
             <template v-else-if="column.dataIndex === 'totalPrice'">
               {{ record.totalPrice }}
             </template>
@@ -113,14 +121,12 @@
                 :disabled="!record.variantId"
                 @change="() => updateLineItem(record)"
                 style="width: 100%;"
+                :options="record.availableSerialNumbers.map(sn => ({
+                  value: sn.id,
+                  label: sn.serialNumber
+                }))"
+                :filter-option="filterOption"
               >
-                <a-select-option
-                  v-for="serialNumber in record.availableSerialNumbers"
-                  :key="serialNumber.id"
-                  :value="serialNumber.id"
-                >
-                  {{ serialNumber.serialNumber }}
-                </a-select-option>
               </a-select>
             </template>
 
@@ -145,23 +151,36 @@
             </a-form-item>
           </a-col>
           <a-col :xs="24" :sm="8">
-            <a-form-item label="Discount">
-              <a-input-number
-                v-model:value="saleData.discount"
-                :min="0"
-                :max="100"
-                placeholder="Enter discount percentage"
-                @change="updateTotal"
-                style="width: 100%;"
-              />
+            <a-form-item label="Order Discount">
+              <a-space>
+                <a-input-number
+                  v-model:value="saleData.discount"
+                  :min="0"
+                  :max="saleData.discountType === 'percentage' ? 100 : undefined"
+                  placeholder="Enter discount"
+                  @change="updateTotal"
+                  style="width: 120px;"
+                />
+                <a-select
+                  v-model:value="saleData.discountType"
+                  style="width: 80px;"
+                  @change="updateTotal"
+                >
+                  <a-select-option value="percentage">%</a-select-option>
+                  <a-select-option value="fixed">$</a-select-option>
+                </a-select>
+              </a-space>
             </a-form-item>
           </a-col>
           <a-col :xs="24" :sm="8">
             <a-form-item label="Payment Method">
-              <a-select v-model:value="saleData.paymentMethod" placeholder="Select payment method" style="width: 100%;">
-                <a-select-option v-for="payment in payments" :key="payment.id" :value="payment.id">
-                  {{ payment.name }}
-                </a-select-option>
+              <a-select
+                v-model:value="saleData.paymentMethod"
+                placeholder="Select payment method"
+                style="width: 100%;"
+                :options="paymentOptions"
+                :filter-option="filterOption"
+              >
               </a-select>
             </a-form-item>
           </a-col>
@@ -191,11 +210,11 @@ import { ref, computed } from 'vue';
 import { useProductStore } from '~/stores/product/ProductStore.js';
 import { useSalesOrderStore } from '~/stores/sales/SalesOrderStore.js';
 import { useCustomerStore } from '~/stores/CustomerStore.js';
-import { 
-  SaveOutlined, 
-  PlusOutlined, 
-  DeleteOutlined, 
-  DollarOutlined 
+import {
+  SaveOutlined,
+  PlusOutlined,
+  DeleteOutlined,
+  DollarOutlined
 } from '@ant-design/icons-vue';
 import {usePaymentMethodStore} from "~/stores/PaymentMethodStore.js";
 import {useSerialNumberStore} from "~/stores/SerialNumberStore.js";
@@ -213,12 +232,36 @@ paymentMethodStore.fetchPaymentMethods()
 const products = computed(() => productStore.variants);
 const customers = computed(() => customerStore.customers);
 const payments = computed(() => paymentMethodStore.paymentMethods);
+
+// Create options for select components
+const customerOptions = computed(() =>
+  customers.value.map(customer => ({
+    value: customer.id,
+    label: customer.name
+  }))
+);
+
+const productOptions = computed(() =>
+  products.value.map(variant => ({
+    value: variant.id,
+    label: `${variant.sku} (${variant.Product.name})`
+  }))
+);
+
+const paymentOptions = computed(() =>
+  payments.value.map(payment => ({
+    value: payment.id,
+    label: payment.name
+  }))
+);
+
 const initSaleData = () => ({
   customer_id: null,
   lineItems: [],
   total: 0,
   couponCode: '',
   discount: 0,
+  discountType: 'percentage',
   paymentMethod: null,
 });
 
@@ -228,6 +271,7 @@ const columns = [
   { title: 'Product', dataIndex: 'variantId', key: 'variantId' },
   { title: 'Quantity', dataIndex: 'quantity', key: 'quantity' },
   { title: 'Price', dataIndex: 'price', key: 'price' },
+  { title: 'Discount', dataIndex: 'discount', key: 'discount' },
   { title: 'Total Price', dataIndex: 'totalPrice', key: 'totalPrice' },
   { title: 'Serial Numbers', dataIndex: 'serialNumbers', key: 'serialNumbers' },
   { title: 'Action', dataIndex: 'action', key: 'action' },
@@ -239,6 +283,8 @@ const addProduct = () => {
     variantId: null,
     quantity: 1,
     price: 0,
+    discount: 0,
+    discountType: 'percentage',
     totalPrice: 0,
     availableSerialNumbers: [],
     selectedSerialNumbers: [],
@@ -249,18 +295,21 @@ const updateLineItem = async (item, variantId = null) => {
   const product = products.value.find(p => p.id === (variantId || item.variantId));
   if (product) {
     item.price = product.price;
-    item.totalPrice = product.price * item.quantity;
-    
+    let discountAmount = item.discountType === 'percentage' 
+      ? item.price * (item.discount / 100)
+      : item.discount;
+    item.totalPrice = (item.price - discountAmount) * item.quantity;
+
     if (variantId) {
       item.availableSerialNumbers = await serialNumberStore.fetchSerialNumbersByVariantId(variantId);
       item.selectedSerialNumbers = [];
     }
-    
+
     // Ensure the number of selected serial numbers matches the quantity
     if (item.selectedSerialNumbers.length > item.quantity) {
       item.selectedSerialNumbers = item.selectedSerialNumbers.slice(0, item.quantity);
     }
-    
+
     updateTotal();
   }
 };
@@ -274,13 +323,27 @@ const updateTotal = () => {
   let subtotal = saleData.value.lineItems.reduce(
     (total, item) => total + item.totalPrice, 0
   );
-  let discountAmount = subtotal * (saleData.value.discount / 100);
-  saleData.value.total = subtotal - discountAmount;
+  let orderDiscountAmount = saleData.value.discountType === 'percentage'
+    ? subtotal * (saleData.value.discount / 100)
+    : saleData.value.discount;
+  saleData.value.total = subtotal - orderDiscountAmount;
 };
 
 const handleSubmit = async () => {
   try {
-    const result = await salesOrderStore.createOrder(saleData.value);
+    const orderData = {
+      ...saleData.value,
+      lineItems: saleData.value.lineItems.map(item => ({
+        variantId: item.variantId,
+        quantity: item.quantity,
+        price: item.price,
+        discount: item.discount,
+        discountType: item.discountType,
+        totalPrice: item.totalPrice,
+        selectedSerialNumbers: item.selectedSerialNumbers
+      }))
+    };
+    const result = await salesOrderStore.createOrder(orderData);
     console.log('Sale submitted successfully:', result);
     saleData.value = initSaleData();
   } catch (error) {
@@ -289,7 +352,7 @@ const handleSubmit = async () => {
 };
 
 const filterOption = (input, option) => {
-  return option.children[0].toLowerCase().indexOf(input.toLowerCase()) >= 0;
+  return option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0;
 };
 </script>
 

@@ -16,6 +16,14 @@
         </a-select>
       </a-form-item>
 
+      <a-form-item label="Sales Order Prefix">
+        <a-input v-model:value="form.salesOrderPrefix" />
+      </a-form-item>
+
+      <a-form-item label="Purchase Order Prefix">
+        <a-input v-model:value="form.purchaseOrderPrefix" />
+      </a-form-item>
+
       <a-form-item>
         <a-button type="primary" @click="saveOtherSettings">Save Changes</a-button>
       </a-form-item>
@@ -30,15 +38,21 @@ import {useSettingsStore} from '@/stores/settingsStore';
 const settingsStore = useSettingsStore();
 const form = ref({
   dateFormat: '',
+  salesOrderPrefix: '',
+  purchaseOrderPrefix: '',
 });
 
 onMounted(async () => {
   form.value.dateFormat = settingsStore.getSettingByKey('default_date_format');
+  form.value.salesOrderPrefix = settingsStore.getSettingByKey('default_sales_order_prefix');
+  form.value.purchaseOrderPrefix = settingsStore.getSettingByKey('default_purchase_order_prefix');
 });
 
 const saveOtherSettings = () => {
   const updates = new Map();
   updates.set('default_date_format', form.value.dateFormat);
+  updates.set('default_sales_order_prefix', form.value.salesOrderPrefix);
+  updates.set('default_purchase_order_prefix', form.value.purchaseOrderPrefix);
 
   settingsStore.updateSettings(updates);
 };

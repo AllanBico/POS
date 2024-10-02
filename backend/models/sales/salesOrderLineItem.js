@@ -1,6 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../../config/db'); // Import your database connection
-const SalesOrder = require('./salesOrder')
+const SalesOrder = require('./salesOrder');
 const Variant = require("../product/variant");
 
 const SalesOrderLineItem = sequelize.define('SalesOrderLineItem', {
@@ -44,6 +44,11 @@ const SalesOrderLineItem = sequelize.define('SalesOrderLineItem', {
     discount: {
         type: DataTypes.DECIMAL(10, 2),
         defaultValue: 0,
+    },
+    discountType: {
+        type: DataTypes.ENUM('fixed', 'percentage'),
+        allowNull: false,
+        defaultValue: 'fixed',
     },
     taxAmount: {
         type: DataTypes.DECIMAL(10, 2),

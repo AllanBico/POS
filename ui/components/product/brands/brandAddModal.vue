@@ -1,115 +1,99 @@
 <template>
+  <div class="brand-add-modal">
+    <h3 style="margin-top: 0">Create Brand</h3>
+    <a-divider style="margin-bottom: 11px; margin-top: 11px" />
+    <a-form :model="formData" @submit.prevent="handleSubmit" layout="vertical">
+      <a-form-item
+        name="name"
+        label="Brand Name"
+        :rules="[
+          { required: true, message: 'Please input the brand name!' },
+          { max: MAX_BRAND_NAME_LENGTH, message: `Brand name cannot exceed ${MAX_BRAND_NAME_LENGTH} characters!` }
+        ]"
+      >
+        <a-input
+          v-model:value="formData.name"
+          placeholder="Enter brand name"
+          :maxLength="MAX_BRAND_NAME_LENGTH"
+        >
+        </a-input>
+      </a-form-item>
 
-  <a-divider style="margin-bottom: 8px; margin-top: 8px" />
-  <a-form
-    :model="formData"
-    @submit.prevent="handleSubmit"
-    layout="vertical"
-    class="brand-add-form"
-  >
-    <a-form-item
-      label="Brand Name"
-      name="name"
-      :rules="brandNameRules"
-    >
-      <a-input
-        v-model:value="formData.name"
-        placeholder="Enter brand name"
-        :maxlength="MAX_BRAND_NAME_LENGTH"
-      />
-    </a-form-item>
-    <a-form-item
-      label="Brand Description"
-      name="description"
-      :rules="brandDescriptionRules"
-    >
-      <a-textarea
-        :rows="4"
-        v-model:value="formData.description"
-        placeholder="Enter brand description"
-        :maxlength="MAX_BRAND_DESCRIPTION_LENGTH"
-      />
-    </a-form-item>
-    <a-divider />
-    <a-form-item>
-      <a-button type="primary" html-type="submit" :loading="brandStore.loading">
-        Add Brand
-      </a-button>
-    </a-form-item>
-  </a-form>
+      <a-form-item
+        name="description"
+        label="Description"
+        :rules="[
+          { required: true, message: 'Please input the brand description!' },
+          { max: MAX_BRAND_DESCRIPTION_LENGTH, message: `Description cannot exceed ${MAX_BRAND_DESCRIPTION_LENGTH} characters!` }
+        ]"
+      >
+        <a-textarea
+          v-model:value="formData.description"
+          :rows="4"
+          placeholder="Enter brand description"
+          :maxLength="MAX_BRAND_DESCRIPTION_LENGTH"
+        />
+      </a-form-item>
+
+      <a-form-item>
+        <a-button
+          type="primary"
+          html-type="submit"
+          :loading="brandStore.loading"
+          block
+          size="large"
+        >
+          <template #icon><PlusOutlined /></template>
+          Add Brand
+        </a-button>
+      </a-form-item>
+    </a-form>
+  </div>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue';
+import { ref } from 'vue';
 import { useBrandStore } from '~/stores/product/BrandStore.js';
+import { PlusOutlined } from '@ant-design/icons-vue';
 
+const brandStore = useBrandStore();
+const emit = defineEmits(['submit-success']);
+const { $toast } = useNuxtApp();
 
 // Constants
 const MAX_BRAND_NAME_LENGTH = 100;
 const MAX_BRAND_DESCRIPTION_LENGTH = 500;
 
-// Composables
-
-const brandStore = useBrandStore();
-const emit = defineEmits(['submit-success']);
-
-// Form data and validation rules
 const formData = ref({
   name: '',
   description: '',
 });
 
-const brandNameRules = [
-  { required: true, message: 'Please input the brand name!' },
-  { max: MAX_BRAND_NAME_LENGTH, message: `Brand name cannot exceed ${MAX_BRAND_NAME_LENGTH} characters!` }
-];
-
-const brandDescriptionRules = [
-  { required: true, message: 'Please input the brand description!' },
-  { max: MAX_BRAND_DESCRIPTION_LENGTH, message: `Description cannot exceed ${MAX_BRAND_DESCRIPTION_LENGTH} characters!` }
-];
-
-// Form validation
-const validateForm = () => {
-  if (!formData.value.name.trim() || !formData.value.description.trim()) {
-    throw new Error('All fields are required and cannot be empty.');
-  }
-};
-
-// Form reset
-const resetForm = () => {
-  formData.value = { name: '', description: '' };
-};
-
-// Sanitize input
-const sanitizeInput = (input) => {
-  // Implement appropriate sanitization logic here
-  return input.trim();
-};
-
-// Main submit handler
 const handleSubmit = async () => {
   try {
-    validateForm();
+    if (!formData.value.name.trim() || !formData.value.description.trim()) {
+      throw new Error('Brand name and description are required.');
+    }
 
     const sanitizedData = {
-      name: sanitizeInput(formData.value.name),
-      description: sanitizeInput(formData.value.description)
+      name: formData.value.name.trim(),
+      description: formData.value.description.trim()
     };
 
-    // Call the store method to add the brand
     await brandStore.createBrand(sanitizedData);
 
-    resetForm();
+    formData.value = { name: '', description: '' };
     emit('submit-success');
+    $toast.success('Brand added successfully!');
   } catch (error) {
-    console.error('Error adding brand:', error);
+    console.error('Error Adding Brand:', error);
+    $toast.error(error.message || 'Error Creating Brand');
   }
 };
 </script>
 
 <style scoped>
-.brand-add-form {
+.brand-add-modal {
   max-width: 500px;
   margin: 0 auto;
 }

@@ -5,6 +5,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const http = require('http'); // Import http module
 const { Server } = require('socket.io'); // Import Socket.IO
+const OAuthClient = require('intuit-oauth');
 require('./models/associations');
 const cookieParser = require('cookie-parser');
 // Import Sequelize model

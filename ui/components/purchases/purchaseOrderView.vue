@@ -4,7 +4,7 @@
       <a-page-header
         class="header"
         title="Purchase Order Details"
-        :sub-title="`Order #${purchaseOrder.id}`"
+        :sub-title="`Order #${ settingsStore.getSettingByKey('default_purchase_order_prefix')}${purchaseOrder.id}`"
       >
         <template #extra>
           <a-button type="primary" @click="receiveGoods(purchaseOrder.id)">
@@ -82,16 +82,18 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { computed } from 'vue';
 import { usePurchaseOrderStore } from '~/stores/purchases/PurchaseOrderStore.js';
 import GoodsReceivingForm from "~/components/inventory/receive/GoodsReceivingAdd.vue";
 import { useTabsStore } from "~/stores/tabsStore.js";
+const settingsStore = useSettingsStore();
 import {
   DownOutlined,
   FileExcelOutlined,
   FilePdfOutlined,
 } from "@ant-design/icons-vue";
-const { initDateFormat, formatDate } = useDateFormatter();
+import {useSettingsStore} from "~/stores/settingsStore.js";
+const {formatDate } = useDateFormatter();
 const tabsStore = useTabsStore();
 
 const props = defineProps({

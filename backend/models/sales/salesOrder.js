@@ -43,6 +43,11 @@ const SalesOrder = sequelize.define('SalesOrder', {
         type: DataTypes.DECIMAL(10, 2),
         defaultValue: 0,
     },
+    discountType: {
+        type: DataTypes.ENUM('fixed', 'percentage'),
+        allowNull: false,
+        defaultValue: 'fixed',
+    },
     netTotal: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,

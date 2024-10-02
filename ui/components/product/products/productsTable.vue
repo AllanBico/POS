@@ -17,7 +17,6 @@
     </a-modal>
     <a-modal
       v-model:open="isAddModalOpen"
-      title="Create Product"
       @ok="handleModalOk"
       @cancel="handleModalCancel"
       ok-text="Submit"

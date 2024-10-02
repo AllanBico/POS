@@ -217,8 +217,9 @@ const searchInput = ref(null);
 // Table columns configuration
 const columns = [
   {
-    title: "Index",
+    title: "#",
     dataIndex: "index",
+    width: '5%',
     sorter: (a, b) => a.index - b.index,
     onFilter: (value, record) => record.index.toString().includes(value),
   },

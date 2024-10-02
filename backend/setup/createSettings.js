@@ -139,6 +139,18 @@ const defaultSettings = [
         value: JSON.stringify({ rate: 0, type: 'percentage' }),
         description: 'Default discount used in POS',
     },
+    {
+        category: 'Sales Order',
+        key: 'default_sales_order_prefix',
+        value: JSON.stringify('SO-'),
+        description: 'Default prefix used for sales order numbers',
+    },
+    {
+        category: 'Purchase Order',
+        key: 'default_purchase_order_prefix',
+        value: JSON.stringify('PO-'),
+        description: 'Default prefix used for purchase order numbers',
+    },
 ];
 
 async function seedDefaultSettings() {

@@ -110,6 +110,7 @@ import QuickActions from "~/components/layout/QuickActions.vue";
 import ControlTab from "~/components/layout/ControlTab.vue";
 import Dashboard from "~/components/Dashboard.vue";
 import test from "~/components/test.vue";
+import deliveriesTable from "~/components/delivery/deliveriesTable.vue";
 const tabsStore = useTabsStore();
 
 const state = reactive({
@@ -229,6 +230,11 @@ const menuItems = [
     icon: () => h(ShoppingCartOutlined),
     label: 'Purchases',
     onClick: () => addTab('Purchases', purchasesTable),
+  },{
+    key: 'deliveries',
+    icon: () => h(ShoppingCartOutlined),
+    label: 'Deliveries',
+    onClick: () => addTab('Deliveries', deliveriesTable),
   },
   {
     key: 'sales',

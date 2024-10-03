@@ -30,7 +30,7 @@ const Taxes  = require('./Taxes');
 const StockTake  = require('./inventory/StockTake');
 const Model = require('./Model'); // Import the Model
 const StockAdjustment = require('./inventory/stockAdjustment');
-const Coupon = require('./Coupon');
+const Coupon = require('./sales/Coupon');
 const Composition =require('./product/Composition')
 const SalesOrder = require('./sales/salesOrder')
 const Customer = require('./customer')
@@ -40,6 +40,9 @@ const Payment = require('./sales/Payment')
 const ProductTax = require('./ProductTax')
 const ProductWarranty = require('./product/ProductWarranty')
 const ProductExpiry = require('./product/ProductExpiry')
+const CouponRedemption = require('./sales/CouponRedemption');
+const DeliveryNote = require('./delivery/DeliveryNote');
+const DeliveryLineItem = require('./delivery/DeliveryLineItem');
 // Define associations AFTER model initialization
 
 // SalesOrder <-> Customer
@@ -215,6 +218,27 @@ Warranty.hasMany(ProductWarranty, { foreignKey: 'warrantyTypeId' });
 ProductExpiry.belongsTo(GoodsReceivedLineItem, { foreignKey: 'goodsReceivedLineItemId', onDelete: 'CASCADE' });
 GoodsReceivedLineItem.hasMany(ProductExpiry, { foreignKey: 'goodsReceivedLineItemId' });
 
+Coupon.hasMany(CouponRedemption, { foreignKey: 'couponId' });
+CouponRedemption.belongsTo(Coupon, { foreignKey: 'couponId' });
+
+SalesOrder.hasMany(CouponRedemption, { foreignKey: 'orderId' });
+CouponRedemption.belongsTo(SalesOrder, { foreignKey: 'orderId' });
+
+DeliveryNote.hasMany(DeliveryLineItem, { foreignKey: 'deliveryNoteId' });
+DeliveryLineItem.belongsTo(DeliveryNote, { foreignKey: 'deliveryNoteId' });
+
+// SalesOrder can have one DeliveryNote (optional)
+SalesOrder.hasOne(DeliveryNote, { foreignKey: 'salesOrderId' });
+DeliveryNote.belongsTo(SalesOrder, { foreignKey: 'salesOrderId' });
+
+// SalesOrderLineItem can optionally be linked to DeliveryLineItem
+SalesOrderLineItem.hasMany(DeliveryLineItem, { foreignKey: 'salesOrderLineItemId' });
+DeliveryLineItem.belongsTo(SalesOrderLineItem, { foreignKey: 'salesOrderLineItemId', allowNull: true });
+
+// DeliveryLineItem is linked to a Variant
+Variant.hasMany(DeliveryLineItem, { foreignKey: 'variantId' });
+DeliveryLineItem.belongsTo(Variant, { foreignKey: 'variantId' });
+
 module.exports = {
     ProductExpiry,
     ProductWarranty,
@@ -257,5 +281,8 @@ module.exports = {
     SalesOrderLineItem,
     Payment,
     VariantImage,
-    ProductTax
+    ProductTax,
+    CouponRedemption,
+    DeliveryLineItem,
+    DeliveryNote,
 };

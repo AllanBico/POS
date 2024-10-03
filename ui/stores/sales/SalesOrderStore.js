@@ -23,7 +23,8 @@ export const useSalesOrderStore = defineStore('salesOrder', {
         // Error handling function
         handleError(error, message = 'An error occurred') {
             this.error = error;
-            useToast().error(message);
+            console.log("message",message)
+            //TODO: Add error handling
         },
 
         // Fetch all sales orders

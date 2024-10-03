@@ -6,6 +6,7 @@ const authMiddleware = require('../middleware/auth');
 const dotenv = require('dotenv');
 const {refreshAccessToken, revokeToken, handleCallback, getAuthUri} = require("../utils/intuitOAuth");
 const {handleMpesaCallback, initiateSTKPush, requestAccessToken} = require("../utils/mpesa");
+const {Payment} = require("../models/associations");
 
 dotenv.config();
 
@@ -197,8 +198,8 @@ router.get('/mpesa/auth', async (req, res) => {
 });
 router.post('/mpesa/stkpush', async (req, res) => {
     // const { phoneNumber, amount, accountReference, transactionDesc } = req.body;
-    const PHONE_NUMBER = '254721786014';
-    const AMOUNT = 10;
+    const PHONE_NUMBER = '254725094787';
+    const AMOUNT = 5;
     const ACCOUNT_REFERENCE = 'INTELLITECH LTD';
     const TRANSACTION_DESC = 'Order Payment';
     try {
@@ -213,4 +214,62 @@ router.post('/mpesa/stkpush', async (req, res) => {
     }
 });
 
+router.post('/mpesa/callback', async (req, res) => {
+    try {
+        const callbackData = req.body.Body.stkCallback;
+
+        console.log('M-Pesa Callback Data:', JSON.stringify(callbackData, null, 2));
+
+        const resultCode = callbackData.ResultCode;
+        const checkoutRequestID = callbackData.CheckoutRequestID;
+
+        if (resultCode === 0) {
+            // Payment successful
+            const amount = callbackData.CallbackMetadata.Item.find(i => i.Name === 'Amount').Value;
+            const mpesaReceiptNumber = callbackData.CallbackMetadata.Item.find(i => i.Name === 'MpesaReceiptNumber').Value;
+
+            console.log(`Payment successful for Checkout Request ID ${checkoutRequestID}, Amount: ${amount}, Receipt: ${mpesaReceiptNumber}`);
+
+            // Save payment details to the Payment model
+            const payment = await Payment.create({
+                salesOrderId: checkoutRequestID, // Assuming checkoutRequestID corresponds to salesOrderId
+                amountPaid: amount,
+                paymentMethodId: 1, // Replace with actual M-Pesa payment method ID
+                status: 'completed',
+                transactionReference: mpesaReceiptNumber,
+                createdBy: 7 // Assuming you have user information in the request
+            });
+
+            console.log('Payment saved:', payment.toJSON());
+
+            // Emit payment success event
+            req.io.emit('paymentConfirmed', {
+                checkoutRequestID,
+                status: 'paid',
+                resultCode,
+                amount,
+                receipt: mpesaReceiptNumber
+            });
+        } else {
+            // Payment failed
+            console.log(`Payment failed for Checkout Request ID ${checkoutRequestID}: ${callbackData.ResultDesc}`);
+            
+            // Save failed payment attempt
+            await Payment.create({
+                salesOrderId: checkoutRequestID,
+                amountPaid: 0, // No amount paid for failed transactions
+                paymentMethodId: 'MPESA_PAYMENT_METHOD_ID',
+                status: 'failed',
+                transactionReference: checkoutRequestID,
+                createdBy: req.user.id
+            });
+        }
+
+        // Acknowledge the callback to avoid retries
+        res.status(200).json({ message: 'Callback processed successfully' });
+    } catch (error) {
+        console.error('Error handling M-Pesa callback:', error.message);
+        res.status(500).json({ error: 'Failed to process M-Pesa callback' });
+    }
+});
 module.exports = router;

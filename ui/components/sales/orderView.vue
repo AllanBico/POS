@@ -4,9 +4,14 @@
     <a-card class="header-card" :bordered="false">
       <a-page-header
         class="header"
-        title="Order Details"
-        :sub-title="`Order #${orderDetails.id}`"
+        :title="`Order #${orderDetails.id}`"
+        :sub-title="orderDetails.createdAt | formatDate"
       >
+        <template #tags>
+          <a-tag :color="getStatusColor(orderDetails.status)">
+            {{ orderDetails.status }}
+          </a-tag>
+        </template>
         <template #extra>
           <a-space>
             <a-dropdown>
@@ -46,30 +51,43 @@
     </a-card>
 
     <!-- Order Summary -->
-    <a-card class="summary-card" title="Order Summary" :bordered="false">
-      <a-row :gutter="16">
-        <a-col :span="12">
-          <a-statistic title="Customer" :value="orderDetails.customer ? orderDetails.customer.name : 'None'" />
-        </a-col>
-        <a-col :span="12">
-          <a-statistic title="Order Total" :value="orderDetails.total" :precision="2" prefix="$" />
-        </a-col>
-      </a-row>
-      <a-row :gutter="16" style="margin-top: 16px;">
-        <a-col :span="12">
-          <a-statistic title="Order Date" :value="orderDetails.createdAt | formatDate" />
-        </a-col>
-        <a-col :span="12">
-          <a-statistic title="Status">
-            <template #value>
-              <a-tag :color="getStatusColor(orderDetails.status)">
-                {{ orderDetails.status }}
-              </a-tag>
-            </template>
-          </a-statistic>
-        </a-col>
-      </a-row>
-    </a-card>
+    <a-row :gutter="24">
+      <a-col :span="16">
+        <a-card class="summary-card" :bordered="false">
+          <a-descriptions title="Order Details" :column="2" bordered>
+            <a-descriptions-item label="Customer">
+              {{ orderDetails?.customer ? orderDetails?.customer?.name : 'None' }}
+            </a-descriptions-item>
+            <a-descriptions-item label="Order Total">
+              {{ settingsStore.getSettingByKey("default_currency")?.code }} {{ orderDetails.total | currency }}
+            </a-descriptions-item>
+            <a-descriptions-item label="Payment Method">
+              {{ orderDetails.paymentMethod ? orderDetails.paymentMethod.name : 'N/A' }}
+            </a-descriptions-item>
+            <a-descriptions-item label="Order Date">
+              {{ orderDetails.createdAt | formatDate }}
+            </a-descriptions-item>
+          </a-descriptions>
+        </a-card>
+      </a-col>
+      <a-col :span="8">
+        <a-card class="summary-card" :bordered="false">
+          <a-statistic 
+            title="Order Total" 
+            :value="orderDetails.total" 
+            :precision="2" 
+            :prefix="settingsStore.getSettingByKey('default_currency')?.code"
+            class="order-total-statistic"
+          />
+          <a-divider />
+          <a-progress
+            :percent="getOrderProgress(orderDetails.status)"
+            :status="getOrderProgressStatus(orderDetails.status)"
+            :format="percent => orderDetails.status"
+          />
+        </a-card>
+      </a-col>
+    </a-row>
 
     <!-- Line Items -->
     <a-card class="line-items-card" title="Line Items" :bordered="false">
@@ -81,19 +99,42 @@
       >
         <template #bodyCell="{ column, record }">
           <template v-if="column.dataIndex === 'product'">
-            <div>
-              <div>{{ record.variant.Product.name }}</div>
-              <div class="text-secondary">SKU: {{ record.variant.sku }}</div>
+            <div class="product-cell">
+              <a-avatar :src="record.variant.images[0]?.url" :size="40" shape="square" />
+              <div class="product-info">
+                <div class="product-name">{{ record.variant.Product.name }}</div>
+                <div class="product-sku">SKU: {{ record.variant.sku }}</div>
+              </div>
             </div>
           </template>
           <template v-else-if="column.dataIndex === 'price'">
-            {{ settingsStore.getSettingByKey("default_currency")?.code}} {{ record.price }}
+            {{ settingsStore.getSettingByKey("default_currency")?.code }} {{ record.price | currency }}
           </template>
-          <template v-else-if="column.dataIndex === 'totalPrice'">
-            {{ record.total | currency }}
+          <template v-else-if="column.dataIndex === 'total'">
+            {{ settingsStore.getSettingByKey("default_currency")?.code }} {{ record.total | currency }}
           </template>
         </template>
       </a-table>
+    </a-card>
+
+    <!-- Coupon Information -->
+    <a-card v-if="orderDetails.CouponRedemption" class="coupon-card" title="Applied Coupon" :bordered="false">
+      <a-descriptions :column="2" bordered>
+        <a-descriptions-item label="Coupon Code">
+          {{ orderDetails.CouponRedemption.Coupon.code }}
+        </a-descriptions-item>
+        <a-descriptions-item label="Discount Amount">
+          {{ settingsStore.getSettingByKey("default_currency")?.code }} {{ orderDetails.CouponRedemption.discountAmount | currency }}
+        </a-descriptions-item>
+        <a-descriptions-item label="Discount Type">
+          {{ orderDetails.CouponRedemption.Coupon.discountType === 'percentage' ? 'Percentage' : 'Fixed Amount' }}
+        </a-descriptions-item>
+        <a-descriptions-item label="Discount Value">
+          {{ orderDetails.CouponRedemption.Coupon.discountType === 'percentage' 
+            ? `${orderDetails.CouponRedemption.Coupon.discountValue}%` 
+            : `${settingsStore.getSettingByKey("default_currency")?.code} ${orderDetails.CouponRedemption.Coupon.discountValue}` }}
+        </a-descriptions-item>
+      </a-descriptions>
     </a-card>
   </div>
 </template>
@@ -115,8 +156,10 @@ import {useTabsStore} from "~/stores/tabsStore.js";
 import attributesValuesTable from "~/components/product/attributes/attributesValuesTable.vue";
 import invoice from "~/components/sales/invoice.vue";
 import {useSettingsStore} from "~/stores/settingsStore.js";
+
 const tabsStore = useTabsStore();
 const settingsStore = useSettingsStore();
+
 // Props
 const props = defineProps({
   orderId: {
@@ -180,9 +223,25 @@ const getStatusColor = (status) => {
   return statusColors[status] || 'default';
 };
 
+// Get order progress
+const getOrderProgress = (status) => {
+  const progressMap = {
+    'Pending': 20,
+    'Processing': 40,
+    'Shipped': 60,
+    'Delivered': 100,
+    'Cancelled': 100,
+  };
+  return progressMap[status] || 0;
+};
+
+// Get order progress status
+const getOrderProgressStatus = (status) => {
+  return status === 'Cancelled' ? 'exception' : 'active';
+};
+
 // Handle print
 const handlePrint = (type) => {
-  // Here you can implement different logic for invoice and receipt
   if (type === 'invoice') {
     console.log('Printing invoice');
     tabsStore.addTab('Invoice', invoice, { orderId: props.orderId });
@@ -207,7 +266,7 @@ const exportToExcel = () => {
       item.variant.Product.name,
       item.quantity,
       item.price,
-      item.totalPrice
+      item.total
     ])
   ];
 
@@ -227,7 +286,7 @@ const exportToPDF = () => {
     head: [['', '']],
     body: [
       ['Customer', orderDetails.value.customer ? orderDetails.value.customer.name : 'None'],
-      ['Order Total', `$${orderDetails.value.total.toFixed(2)}`],
+      ['Order Total', `${settingsStore.getSettingByKey("default_currency")?.code} ${orderDetails.value.total.toFixed(2)}`],
       ['Order Date', new Date(orderDetails.value.createdAt).toLocaleDateString()],
       ['Status', orderDetails.value.status],
     ],
@@ -239,8 +298,8 @@ const exportToPDF = () => {
     body: orderDetails.value.lineItems.map(item => [
       item.variant.Product.name,
       item.quantity,
-      `$${item.price.toFixed(2)}`,
-      `$${item.totalPrice.toFixed(2)}`
+      `${settingsStore.getSettingByKey("default_currency")?.code} ${item.price.toFixed(2)}`,
+      `${settingsStore.getSettingByKey("default_currency")?.code} ${item.total.toFixed(2)}`
     ]),
   });
 
@@ -254,7 +313,10 @@ const exportToPDF = () => {
   padding: 24px;
 }
 
-.header-card {
+.header-card,
+.summary-card,
+.line-items-card,
+.coupon-card {
   margin-bottom: 24px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
@@ -264,13 +326,6 @@ const exportToPDF = () => {
   padding: 16px;
 }
 
-.summary-card,
-.line-items-card {
-  margin-bottom: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-}
-
 :deep(.ant-card-head) {
   border-bottom: 1px solid #f0f0f0;
   padding: 0 24px;
@@ -278,7 +333,7 @@ const exportToPDF = () => {
 
 :deep(.ant-card-head-title) {
   padding: 16px 0;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
 }
 
@@ -286,18 +341,29 @@ const exportToPDF = () => {
   padding: 24px;
 }
 
+:deep(.ant-descriptions-title) {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+:deep(.ant-descriptions-item-label) {
+  font-weight: 500;
+}
+
+.order-total-statistic {
+  text-align: center;
+}
+
 :deep(.ant-statistic-title) {
   color: rgba(0, 0, 0, 0.45);
+  font-size: 16px;
 }
 
 :deep(.ant-statistic-content) {
-  font-size: 20px;
+  font-size: 28px;
   font-weight: 600;
-}
-
-.text-secondary {
-  color: rgba(0, 0, 0, 0.45);
-  font-size: 12px;
+  color: #1890ff;
 }
 
 :deep(.ant-table-thead > tr > th) {
@@ -307,11 +373,29 @@ const exportToPDF = () => {
 }
 
 :deep(.ant-table-tbody > tr > td) {
-  padding: 12px 16px;
+  padding: 16px;
 }
 
 :deep(.ant-table-tbody > tr:hover > td) {
   background-color: #f5f5f5;
+}
+
+.product-cell {
+  display: flex;
+  align-items: center;
+}
+
+.product-info {
+  margin-left: 12px;
+}
+
+.product-name {
+  font-weight: 500;
+}
+
+.product-sku {
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 12px;
 }
 
 @media print {

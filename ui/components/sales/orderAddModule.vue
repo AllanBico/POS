@@ -147,8 +147,9 @@
         <a-row :gutter="16">
           <a-col :xs="24" :sm="8">
             <a-form-item label="Coupon Code">
-              <a-input v-model:value="saleData.couponCode" placeholder="Enter coupon code" />
+              <a-input v-model:value="saleData.couponCode" placeholder="Enter coupon code" @change="checkCoupon" />
             </a-form-item>
+            <a-alert v-if="couponStatus" :message="couponStatus" :type="couponStatusType" show-icon />
           </a-col>
           <a-col :xs="24" :sm="8">
             <a-form-item label="Order Discount">
@@ -210,6 +211,7 @@ import { ref, computed } from 'vue';
 import { useProductStore } from '~/stores/product/ProductStore.js';
 import { useSalesOrderStore } from '~/stores/sales/SalesOrderStore.js';
 import { useCustomerStore } from '~/stores/CustomerStore.js';
+import { useCouponStore } from '~/stores/CouponStore.js';
 import {
   SaveOutlined,
   PlusOutlined,
@@ -222,13 +224,13 @@ import {useSerialNumberStore} from "~/stores/SerialNumberStore.js";
 const productStore = useProductStore();
 const customerStore = useCustomerStore();
 const salesOrderStore = useSalesOrderStore();
-const paymentMethodStore = usePaymentMethodStore()
+const paymentMethodStore = usePaymentMethodStore();
 const serialNumberStore = useSerialNumberStore();
-
+const couponStore = useCouponStore();
 
 productStore.fetchVariants();
 customerStore.fetchCustomers();
-paymentMethodStore.fetchPaymentMethods()
+paymentMethodStore.fetchPaymentMethods();
 const products = computed(() => productStore.variants);
 const customers = computed(() => customerStore.customers);
 const payments = computed(() => paymentMethodStore.paymentMethods);
@@ -266,6 +268,8 @@ const initSaleData = () => ({
 });
 
 const saleData = ref(initSaleData());
+const couponStatus = ref('');
+const couponStatusType = ref('');
 
 const columns = [
   { title: 'Product', dataIndex: 'variantId', key: 'variantId' },
@@ -329,6 +333,30 @@ const updateTotal = () => {
   saleData.value.total = subtotal - orderDiscountAmount;
 };
 
+const checkCoupon = async () => {
+  if (saleData.value.couponCode) {
+    const result = await couponStore.checkCoupon(saleData.value.couponCode);
+    if (result && result.isActive) {
+      // Apply coupon discount
+      saleData.value.discount = result.coupon.discountValue;
+      saleData.value.discountType = result.coupon.discountType;
+      updateTotal();
+      couponStatus.value = 'Coupon applied successfully!';
+      couponStatusType.value = 'success';
+    } else {
+      // Reset discount if coupon is not active
+      saleData.value.discount = 0;
+      saleData.value.discountType = 'percentage';
+      updateTotal();
+      couponStatus.value = 'Invalid or expired coupon.';
+      couponStatusType.value = 'error';
+    }
+  } else {
+    couponStatus.value = '';
+    couponStatusType.value = '';
+  }
+};
+
 const handleSubmit = async () => {
   try {
     const orderData = {
@@ -346,6 +374,8 @@ const handleSubmit = async () => {
     const result = await salesOrderStore.createOrder(orderData);
     console.log('Sale submitted successfully:', result);
     saleData.value = initSaleData();
+    couponStatus.value = '';
+    couponStatusType.value = '';
   } catch (error) {
     console.error('Error submitting sale:', error);
   }

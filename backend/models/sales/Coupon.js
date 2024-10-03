@@ -1,6 +1,6 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
-const User = require("./users/user");
+const sequelize = require('../../config/db');
+const User = require("../users/user");
 
 const Coupon = sequelize.define('Coupon', {
     id: {

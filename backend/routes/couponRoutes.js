@@ -101,4 +101,28 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     }
 });
 
+// Check if a coupon is active and available
+router.get('/check/:code', authenticateToken, async (req, res) => {
+    const { code } = req.params;
+    try {
+        const coupon = await Coupon.findOne({ where: { code } });
+        if (!coupon) {
+            return res.status(404).json({ error: 'Coupon not found' });
+        }
+
+        const now = new Date();
+        const isActive = coupon.status === 'active' && 
+                         coupon.expiryDate > now &&
+                         (coupon.usageLimit === null || coupon.usageCount < coupon.usageLimit);
+
+        res.status(200).json({
+            isActive,
+            coupon: isActive ? coupon : null
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred while checking the coupon' });
+    }
+});
+
 module.exports = router;

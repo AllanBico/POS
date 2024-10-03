@@ -5,6 +5,7 @@ const moment = require('moment');
 const secret = 'jL1kxfvJraHEi1rZaOMUUK8SjcjJyYfZo0IDVVdXyjbpYgPQ';
 const consumer = 'JZSXj12oXVcRiucSi8vaiFKBXGxBfVAc1vlj7L80UZUFNtGB9G0FizG1RsGd1335';
 const passkey = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919'; // Example passkey, replace with your actual passkey
+const callback = 'https://89f4-41-90-112-42.ngrok-free.app/api/auth/mpesa/callback'; // Example passkey, replace with your actual passkey
 
 /**
  * Request M-Pesa OAuth Access Token
@@ -71,7 +72,7 @@ const initiateSTKPush = async (phoneNumber, amount, accountReference, transactio
                     "PartyA": phoneNumber,  // The customer's phone number
                     "PartyB": shortCode,
                     "PhoneNumber": phoneNumber,
-                    "CallBackURL": "https://mydomain.com/path",
+                    "CallBackURL": callback,
                     "AccountReference": accountReference,  // Reference number or order ID
                     "TransactionDesc": transactionDesc || 'Payment'  // Description of the payment
                 }))

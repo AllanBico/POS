@@ -3,37 +3,44 @@
     <a-card class="header-card" :bordered="false">
       <a-page-header
         class="header"
-        title="Invoice"
-        sub-title="View and manage invoice details"
+        :title="`Invoice #${orderDetails.id}`"
+        :sub-title="formatDate(orderDetails.createdAt)"
       >
+        <template #tags>
+          <a-tag :color="getStatusColor(orderDetails.status)">
+            {{ orderDetails.status }}
+          </a-tag>
+        </template>
         <template #extra>
-          <a-button
-            class="action-btn"
-            type="primary"
-            @click="printInvoice"
-            :icon="h(PrinterOutlined)"
-          >
-            Print Invoice
-          </a-button>
-          <a-button
-            class="action-btn"
-            @click="downloadInvoice"
-            :icon="h(DownloadOutlined)"
-          >
-            Download PDF
-          </a-button>
-          <a-button
-            class="action-btn"
-            @click="sendInvoice"
-            :icon="h(MailOutlined)"
-          >
-            Send Invoice
-          </a-button>
+          <a-space>
+            <a-button
+              class="action-btn"
+              type="primary"
+              @click="printInvoice"
+              :icon="h(PrinterOutlined)"
+            >
+              Print Invoice
+            </a-button>
+            <a-button
+              class="action-btn"
+              @click="downloadInvoice"
+              :icon="h(DownloadOutlined)"
+            >
+              Download PDF
+            </a-button>
+            <a-button
+              class="action-btn"
+              @click="sendInvoice"
+              :icon="h(MailOutlined)"
+            >
+              Send Invoice
+            </a-button>
+          </a-space>
         </template>
       </a-page-header>
     </a-card>
 
-    <div class="invoice-content">
+    <div class="invoice-content" ref="invoiceContent">
       <a-card class="invoice-card" :bordered="false">
         <div class="invoice-header">
           <div class="company-info">
@@ -55,15 +62,15 @@
             <table>
               <tr>
                 <td><strong>Invoice Number:</strong></td>
-                <td>{{ invoice.number }}</td>
+                <td>{{ orderDetails.id }}</td>
               </tr>
               <tr>
                 <td><strong>Date Issued:</strong></td>
-                <td>{{ invoice.dateIssued }}</td>
+                <td>{{ formatDate(orderDetails.createdAt) }}</td>
               </tr>
               <tr>
                 <td><strong>Due Date:</strong></td>
-                <td>{{ invoice.dueDate }}</td>
+                <td>{{ formatDate(getDueDate(orderDetails.createdAt)) }}</td>
               </tr>
             </table>
           </div>
@@ -72,24 +79,22 @@
         <div class="customer-info">
           <div class="bill-to">
             <h3>Bill To:</h3>
-            <h4>{{ customer.name }}</h4>
-            <p>{{ customer.address }}</p>
-            <p>{{ customer.city }}, {{ customer.state }} {{ customer.zipCode }}</p>
-            <p>{{ customer.country }}</p>
-            <p>{{ customer.email }}</p>
-            <p>{{ customer.phone }}</p>
+            <h4>{{ orderDetails?.customer?.name }}</h4>
+            <p>{{ orderDetails?.customer?.address }}</p>
+            <p>{{ orderDetails?.customer?.city }}, {{ orderDetails?.customer?.country }}</p>
+            <p>{{ orderDetails?.customer?.email }}</p>
+            <p>{{ orderDetails?.customer?.phone }}</p>
           </div>
           <div class="ship-to">
             <h3>Ship To:</h3>
-            <h4>{{ customer.name }}</h4>
-            <p>{{ customer.shippingAddress }}</p>
-            <p>{{ customer.shippingCity }}, {{ customer.shippingState }} {{ customer.shippingZipCode }}</p>
-            <p>{{ customer.shippingCountry }}</p>
+            <h4>{{ orderDetails?.customer?.name }}</h4>
+            <p>{{ orderDetails?.customer?.address }}</p>
+            <p>{{ orderDetails?.customer?.city }}, {{ orderDetails?.customer?.country }}</p>
           </div>
         </div>
 
         <a-table
-          :dataSource="invoice.items"
+          :dataSource="orderDetails.lineItems"
           :columns="columns"
           :pagination="false"
           :rowKey="record => record.id"
@@ -97,7 +102,7 @@
         >
           <template #bodyCell="{ column, record }">
             <template v-if="column.dataIndex === 'total'">
-              {{ formatPrice(record.quantity * record.unitPrice) }}
+              {{ formatPrice(record.total) }}
             </template>
           </template>
         </a-table>
@@ -107,36 +112,38 @@
             <table>
               <tr>
                 <td>Subtotal:</td>
-                <td>{{ formatPrice(invoice.subtotal) }}</td>
+                <td>{{ formatPrice(orderDetails.totalAmount) }}</td>
               </tr>
               <tr>
-                <td>Tax ({{ invoice.taxRate }}%):</td>
-                <td>{{ formatPrice(invoice.tax) }}</td>
-              </tr>
-              <tr>
-                <td>Shipping:</td>
-                <td>{{ formatPrice(invoice.shipping) }}</td>
+                <td>Tax:</td>
+                <td>{{ formatPrice(orderDetails.taxAmount) }}</td>
               </tr>
               <tr>
                 <td>Discount:</td>
-                <td>{{ formatPrice(invoice.discount) }}</td>
+                <td>{{ formatPrice(orderDetails.discount) }}</td>
               </tr>
               <tr class="total-row">
                 <td><strong>Total:</strong></td>
-                <td><strong>{{ formatPrice(invoice.total) }}</strong></td>
+                <td><strong>{{ formatPrice(orderDetails.netTotal) }}</strong></td>
               </tr>
             </table>
           </div>
         </div>
 
         <div class="invoice-footer">
+          <div class="payment-info">
+            <h3>Payment Information:</h3>
+            <p><strong>Method:</strong> {{ orderDetails?.payments?.paymentMethod?.name || 'N/A' }}</p>
+            <p><strong>Amount Paid:</strong> {{ formatPrice(orderDetails.payments?.amountPaid || 0) }}</p>
+            <p><strong>Status:</strong> {{ orderDetails?.payments?.status || 'N/A' }}</p>
+          </div>
           <div class="notes">
             <h3>Notes:</h3>
-            <p>{{ invoice.notes }}</p>
+            <p>Payment is due within 30 days. Late payments are subject to a 1.5% monthly fee.</p>
           </div>
           <div class="terms">
             <h3>Terms and Conditions:</h3>
-            <p>{{ invoice.terms }}</p>
+            <p>By paying this invoice, you agree to our terms of service available at www.example.com/terms</p>
           </div>
           <p class="thank-you">Thank you for your business!</p>
         </div>
@@ -146,47 +153,22 @@
 </template>
 
 <script setup>
-import {ref} from 'vue';
+import { ref, onMounted } from 'vue';
+import { PrinterOutlined, DownloadOutlined, MailOutlined } from '@ant-design/icons-vue';
+import { message } from 'ant-design-vue';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import {message} from 'ant-design-vue';
+import { useSalesOrderStore } from "~/stores/sales/SalesOrderStore.js";
 
 const invoiceContent = ref(null);
-const invoice = ref({
-  number: 'INV-001',
-  dateIssued: new Date().toLocaleDateString(),
-  dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString(), // 30 days from now
-  items: [
-    {id: 1, name: 'Product 1', description: 'High-quality widget', quantity: 2, unitPrice: 20},
-    {id: 2, name: 'Product 2', description: 'Premium gadget', quantity: 1, unitPrice: 100},
-    {id: 3, name: 'Service 1', description: 'Professional consultation', quantity: 3, unitPrice: 75},
-  ],
-  subtotal: 365,
-  taxRate: 10,
-  tax: 36.5,
-  shipping: 15,
-  discount: 20,
-  total: 396.5,
-  notes: 'Payment is due within 30 days. Late payments are subject to a 1.5% monthly fee.',
-  terms: 'By paying this invoice, you agree to our terms of service available at www.example.com/terms',
+const orderDetails = ref({});
+const salesOrderStore = useSalesOrderStore();
+const props = defineProps({
+  orderId: {
+    type: Number,
+    required: true,
+  },
 });
-
-const customer = ref({
-  name: 'John Doe',
-  address: '123 Main St',
-  city: 'Anytown',
-  state: 'ST',
-  zipCode: '12345',
-  country: 'United States',
-  email: 'john.doe@example.com',
-  phone: '(555) 123-4567',
-  shippingAddress: '456 Shipping Lane',
-  shippingCity: 'Shiptown',
-  shippingState: 'ST',
-  shippingZipCode: '67890',
-  shippingCountry: 'United States',
-});
-
 const companyDetails = ref({
   name: 'BICO Corporation',
   address: '789 Business Ave, Suite 890',
@@ -202,12 +184,12 @@ const companyDetails = ref({
 const columns = [
   {
     title: 'Item',
-    dataIndex: 'name',
+    dataIndex: ['variant', 'Product', 'name'],
     key: 'name',
   },
   {
     title: 'Description',
-    dataIndex: 'description',
+    dataIndex: ['variant', 'Product', 'description'],
     key: 'description',
   },
   {
@@ -217,8 +199,8 @@ const columns = [
   },
   {
     title: 'Unit Price',
-    dataIndex: 'unitPrice',
-    key: 'unitPrice',
+    dataIndex: 'price',
+    key: 'price',
     customRender: ({text}) => formatPrice(text),
   },
   {
@@ -228,13 +210,56 @@ const columns = [
   },
 ];
 
-const formatPrice = (price) => `$${price.toFixed(2)}`;
+const formatPrice = (price) => `$${Number(price).toFixed(2)}`;
+
+const formatDate = (dateString) => {
+  const options = { year: 'numeric', month: 'long', day: 'numeric' };
+  return new Date(dateString).toLocaleDateString(undefined, options);
+};
+
+const getDueDate = (createdAt) => {
+  const dueDate = new Date(createdAt);
+  dueDate.setDate(dueDate.getDate() + 30);
+  return dueDate;
+};
+
+const getStatusColor = (status) => {
+  const statusColors = {
+    'draft': 'blue',
+    'pending': 'orange',
+    'completed': 'green',
+    'cancelled': 'red',
+  };
+  return statusColors[status] || 'default';
+};
 
 const printInvoice = () => {
   const printContent = invoiceContent.value.outerHTML;
   const win = window.open('', '', 'width=800,height=600');
   win.document.write('<html><head><title>Invoice</title>');
-  win.document.write('<link rel="stylesheet" type="text/css" href="/path/to/your/invoice-print-styles.css">');
+  win.document.write('<style>');
+  win.document.write(`
+    body { font-family: Arial, sans-serif; }
+    .invoice-container { background-color: #ffffff; padding: 40px; }
+    .invoice-header { display: flex; justify-content: space-between; margin-bottom: 40px; }
+    .company-logo img { max-width: 200px; height: auto; margin-bottom: 20px; }
+    .company-details, .invoice-info { font-size: 14px; }
+    .invoice-info h1 { color: #1890ff; font-size: 36px; margin-bottom: 20px; }
+    .customer-info { display: flex; justify-content: space-between; margin-bottom: 40px; }
+    .bill-to, .ship-to { width: 48%; }
+    .invoice-items-table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
+    .invoice-items-table th, .invoice-items-table td { border: 1px solid #e8e8e8; padding: 12px; text-align: left; }
+    .invoice-items-table th { background-color: #fafafa; font-weight: bold; }
+    .invoice-summary { display: flex; justify-content: flex-end; margin-bottom: 40px; }
+    .summary-table { width: 50%; }
+    .summary-table table { width: 100%; }
+    .summary-table td { padding: 8px 0; }
+    .total-row { font-size: 18px; font-weight: bold; border-top: 2px solid #1890ff; }
+    .invoice-footer { border-top: 1px solid #e8e8e8; padding-top: 24px; }
+    .payment-info, .notes, .terms { margin-bottom: 20px; }
+    .thank-you { text-align: center; font-size: 18px; font-weight: bold; color: #1890ff; margin-top: 40px; }
+  `);
+  win.document.write('</style>');
   win.document.write('</head><body>');
   win.document.write(printContent);
   win.document.write('</body></html>');
@@ -260,24 +285,24 @@ const downloadInvoice = () => {
   doc.setFontSize(18);
   doc.text('INVOICE', 150, 20);
   doc.setFontSize(10);
-  doc.text(`Invoice Number: ${invoice.value.number}`, 150, 30);
-  doc.text(`Date Issued: ${invoice.value.dateIssued}`, 150, 35);
-  doc.text(`Due Date: ${invoice.value.dueDate}`, 150, 40);
+  doc.text(`Invoice Number: ${orderDetails.value.id}`, 150, 30);
+  doc.text(`Date Issued: ${formatDate(orderDetails.value.createdAt)}`, 150, 35);
+  doc.text(`Due Date: ${formatDate(getDueDate(orderDetails.value.createdAt))}`, 150, 40);
 
   // Add customer details
   doc.text('Bill To:', 10, 75);
-  doc.text(customer.value.name, 10, 80);
-  doc.text(customer.value.address, 10, 85);
-  doc.text(`${customer.value.city}, ${customer.value.state} ${customer.value.zipCode}`, 10, 90);
-  doc.text(customer.value.country, 10, 95);
+  doc.text(orderDetails.value.customer.name, 10, 80);
+  doc.text(orderDetails.value.customer.address, 10, 85);
+  doc.text(`${orderDetails.value.customer.city}, ${orderDetails.value.customer.country}`, 10, 90);
+  doc.text(orderDetails.value.customer.email, 10, 95);
 
   // Add invoice items
-  const items = invoice.value.items.map(item => [
-    item.name,
-    item.description,
+  const items = orderDetails.value.lineItems.map(item => [
+    item.variant.Product.name,
+    item.variant.Product.description,
     item.quantity,
-    formatPrice(item.unitPrice),
-    formatPrice(item.quantity * item.unitPrice)
+    formatPrice(item.price),
+    formatPrice(item.total)
   ]);
 
   autoTable(doc, {
@@ -288,28 +313,43 @@ const downloadInvoice = () => {
 
   // Add totals
   const finalY = doc.lastAutoTable.finalY + 10;
-  doc.text(`Subtotal: ${formatPrice(invoice.value.subtotal)}`, 150, finalY);
-  doc.text(`Tax (${invoice.value.taxRate}%): ${formatPrice(invoice.value.tax)}`, 150, finalY + 5);
-  doc.text(`Shipping: ${formatPrice(invoice.value.shipping)}`, 150, finalY + 10);
-  doc.text(`Discount: ${formatPrice(invoice.value.discount)}`, 150, finalY + 15);
+  doc.text(`Subtotal: ${formatPrice(orderDetails.value.totalAmount)}`, 150, finalY);
+  doc.text(`Tax: ${formatPrice(orderDetails.value.taxAmount)}`, 150, finalY + 5);
+  doc.text(`Discount: ${formatPrice(orderDetails.value.discount)}`, 150, finalY + 10);
   doc.setFontSize(12);
-  doc.text(`Total: ${formatPrice(invoice.value.total)}`, 150, finalY + 25);
+  doc.text(`Total: ${formatPrice(orderDetails.value.netTotal)}`, 150, finalY + 20);
+
+  // Add payment info
+  doc.setFontSize(10);
+  doc.text('Payment Information:', 10, finalY + 35);
+  doc.text(`Method: ${orderDetails.value.payments[0]?.paymentMethod?.name || 'N/A'}`, 10, finalY + 40);
+  doc.text(`Amount Paid: ${formatPrice(orderDetails.value.payments[0]?.amountPaid || 0)}`, 10, finalY + 45);
+  doc.text(`Status: ${orderDetails.value.payments[0]?.status || 'N/A'}`, 10, finalY + 50);
 
   // Add notes and terms
-  doc.setFontSize(10);
-  doc.text('Notes:', 10, finalY + 40);
-  doc.text(invoice.value.notes, 10, finalY + 45);
-  doc.text('Terms and Conditions:', 10, finalY + 55);
-  doc.text(invoice.value.terms, 10, finalY + 60);
+  doc.text('Notes:', 10, finalY + 65);
+  doc.text('Payment is due within 30 days. Late payments are subject to a 1.5% monthly fee.', 10, finalY + 70);
+  doc.text('Terms and Conditions:', 10, finalY + 80);
+  doc.text('By paying this invoice, you agree to our terms of service available at www.example.com/terms', 10, finalY + 85);
 
   // Save the PDF
-  doc.save(`Invoice-${invoice.value.number}.pdf`);
+  doc.save(`Invoice-${orderDetails.value.id}.pdf`);
 };
 
 const sendInvoice = () => {
   // Implement your email sending logic here
   message.success('Invoice sent successfully!');
 };
+
+onMounted(async () => {
+  try {
+    orderDetails.value = await salesOrderStore.fetchOrderById(parseInt(props.orderId)); 
+    console.log("orderDetails.value", orderDetails.value);
+  } catch (error) {
+    console.error('Error fetching order:', error);
+    message.error('Failed to load invoice details');
+  }
+});
 </script>
 
 <style scoped>
@@ -329,23 +369,13 @@ const sendInvoice = () => {
   padding: 16px;
 }
 
-.header h1 {
-  font-size: 24px;
-  font-weight: 600;
-  color: #001529;
-}
-
 .action-btn {
-  font-size: 14px;
-  height: 36px;
-  margin-right: 8px;
-  border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-left: 8px;
 }
 
 .invoice-content {
   background-color: #ffffff;
-  padding: 24px;
+  padding: 40px;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
@@ -358,12 +388,13 @@ const sendInvoice = () => {
 .invoice-header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 24px;
+  margin-bottom: 40px;
 }
 
 .company-logo img {
   max-width: 200px;
   height: auto;
+  margin-bottom: 20px;
 }
 
 .company-details, .invoice-info {
@@ -379,7 +410,7 @@ const sendInvoice = () => {
 .customer-info {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 24px;
+  margin-bottom: 40px;
 }
 
 .bill-to, .ship-to {
@@ -387,7 +418,7 @@ const sendInvoice = () => {
 }
 
 .invoice-items-table {
-  margin-bottom: 24px;
+  margin-bottom: 40px;
 }
 
 :deep(.ant-table-thead > tr > th) {
@@ -397,17 +428,13 @@ const sendInvoice = () => {
 }
 
 :deep(.ant-table-tbody > tr > td) {
-  padding: 12px 16px;
-}
-
-:deep(.ant-table-tbody > tr:hover > td) {
-  background-color: #f5f5f5;
+  padding: 16px;
 }
 
 .invoice-summary {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 24px;
+  margin-bottom: 40px;
 }
 
 .summary-table {
@@ -433,8 +460,8 @@ const sendInvoice = () => {
   padding-top: 24px;
 }
 
-.notes, .terms {
-  margin-bottom: 16px;
+.payment-info, .notes, .terms {
+  margin-bottom: 20px;
 }
 
 .thank-you {
@@ -442,7 +469,7 @@ const sendInvoice = () => {
   font-size: 18px;
   font-weight: bold;
   color: #1890ff;
-  margin-top: 24px;
+  margin-top: 40px;
 }
 
 @media print {

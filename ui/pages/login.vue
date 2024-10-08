@@ -53,16 +53,13 @@ const formState = reactive({
   remember: true,
 });
 const onFinish = async values => {
-  console.log('Success:', values);
-  console.log('email:', values.email);
-  console.log('password:', values.password);
+
   if (!values.email || !values.password) {
     authStore.error = 'Email and Password are required';
     return;
   }
 
   await authStore.login(values.email, values.password);
-
   if (!authStore.error) {
     // Redirect to another page if login is successful
     // Example: navigateTo('/');

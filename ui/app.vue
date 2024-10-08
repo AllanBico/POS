@@ -1,7 +1,14 @@
 <template>
   <Toaster richColors position="top-right" />
   <a-config-provider :theme="theme">
-    <NuxtLayout>
+    <div v-if="loading" class="loading-svg">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 75" width="150" height="75">
+        <path fill="none" stroke="#FF0000" stroke-width="10" stroke-linecap="round" stroke-dasharray="150 192.5" stroke-dashoffset="0" d="M137.5 37.5c0 15.5-13.5 25-25 25-29 0-46-50-75-50-14 0-25 11-25 25s11.5 25 25 25c29 0 46-50 75-50 12 0 25 9.5 25 25Z">
+          <animate attributeName="stroke-dashoffset" calcMode="spline" dur="2" values="342.5;-342.5" keySplines="0 0 1 1" repeatCount="indefinite"></animate>
+        </path>
+      </svg>
+    </div>
+    <NuxtLayout v-else>
       <NuxtPage />
     </NuxtLayout>
   </a-config-provider>
@@ -9,9 +16,12 @@
 
 <script setup>
 import { Toaster } from "vue-sonner";
-import { reactive } from 'vue';
+import { reactive, onMounted, ref } from 'vue';
+import { useCategoryStore } from '~/stores/product/CategoryStore.js';
+import { useAuthStore } from "~/stores/AuthStore.js";
 
 definePageMeta({ middleware: 'auth' });
+const router = useRouter();
 
 const theme = reactive({
   token: {
@@ -59,7 +69,7 @@ const theme = reactive({
     modalBorderRadius: "3px",
     modalBorderColor: "#d12eb6",
     modalShadow: "0px 2px 8px rgba(0, 0, 0, 0.1)",
-    modalBackgroundColor:"#b792e7",
+    modalBackgroundColor: "#b792e7",
     tableHeaderBackground: "#f0f0f0",
     tableRowBackgroundHover: "#fafafa",
     tableBorderColor: "#d12eb6",
@@ -76,11 +86,53 @@ const theme = reactive({
     wireframe: false,
   },
 });
+
+const loading = ref(true); // Add loading state
+
+// Function to load data from the store before the app starts
+const loadData = async () => {
+  const authStore = useAuthStore();
+  const categoryStore = useCategoryStore();
+
+  loading.value = true; // Set loading to true before fetching
+  try {
+    await authStore.fetchPermissions(); // Fetch permissions from the store
+    await categoryStore.fetchCategories(); // Fetch categories from the store
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  } finally {
+    loading.value = false; // Set loading to false after fetching
+  }
+};
+
+router.beforeResolve(async (to, from, next) => {
+  const authStore = useAuthStore();
+  const categoryStore = useCategoryStore();
+
+  const isAuthenticated = authStore.isAuthenticated;
+
+  if (isAuthenticated && categoryStore.categories.length === 0) {
+    // If the user is authenticated and categories are not fetched, fetch them
+    await loadData(); // Call loadData to fetch categories
+  }
+
+  next();
+});
+
+onMounted(() => {
+  loadData(); // Call loadData when the component is mounted
+});
 </script>
 
 <style scoped>
 html, body { margin: 0; padding: 0; }
 body { font-size: 0.3rem; }
+.loading-svg {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* Full height for centering */
+}
 .div-container { background-color: #f0f2f5; padding: 8px; border-radius: 3px; }
 .div-header-card { margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
 .div-header { padding: 6px; }

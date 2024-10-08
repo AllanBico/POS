@@ -200,6 +200,13 @@ const columns = [
     onFilter: (value, record) => record.index.toString().includes(value),
   },
   {
+    title: 'deliveryDate',
+    dataIndex: 'deliveryDate',
+    sorter: (a, b) => a.deliveryDate.localeCompare(b.deliveryDate),
+    customFilterDropdown: true,
+    onFilter: (value, record) =>
+        record.deliveryDate.toLowerCase().includes(value.toLowerCase()),
+  },{
     title: 'Delivery Address',
     dataIndex: 'deliveryAddress',
     sorter: (a, b) => a.deliveryAddress.localeCompare(b.deliveryAddress),

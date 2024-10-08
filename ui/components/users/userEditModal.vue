@@ -61,6 +61,17 @@
         </a-input-password>
       </a-form-item>
 
+      <a-form-item
+        name="status"
+        label="Status"
+        :rules="[{ required: true, message: 'Please select the user status!' }]"
+      >
+        <a-select v-model:value="form.status">
+          <a-select-option value="active">Active</a-select-option>
+          <a-select-option value="inactive">Inactive</a-select-option>
+        </a-select>
+      </a-form-item>
+
       <a-form-item>
         <a-button
           type="primary"
@@ -90,7 +101,8 @@ const form = ref({
   name: '',
   email: '',
   password: '',
-  confirmPassword: ''
+  confirmPassword: '',
+  status: 'active'
 });
 
 const props = defineProps({
@@ -117,7 +129,8 @@ const fetchUser = async () => {
         name: fetchedUser.name,
         email: fetchedUser.email,
         password: '',
-        confirmPassword: ''
+        confirmPassword: '',
+        status: fetchedUser.status || 'active'
       };
     } else {
       $toast.error('User not found');
@@ -146,6 +159,7 @@ const handleSubmit = async () => {
     await userStore.updateUser(userId.value, {
       name: form.value.name,
       email: form.value.email,
+      status: form.value.status,
       ...(form.value.password && { password: form.value.password })
     });
 

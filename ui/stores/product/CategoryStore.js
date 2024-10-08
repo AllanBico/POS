@@ -1,147 +1,142 @@
 // stores/CategoryStore.js
 import { defineStore } from 'pinia';
-import { useRuntimeConfig } from '#app';
+import { useRuntimeConfig, useNuxtApp, useState } from '#app';
 
 export const useCategoryStore = defineStore('category', {
     state: () => ({
         categories: [],
         category: null,
         error: null,
-        loading: false, // Loading state to track ongoing requests
+        loading: false,
     }),
 
     getters: {
-        CategoryById: (state) => (id) => state.categories.find(category => category.id === id) || null,
+        CategoryById: (state) => (id) => {
+            console.log("store cat",id)
+            const category = state.categories.find(category => category.id === id);
+            if (!category) {
+                console.warn(`Category with id ${id} not found`);
+            }
+            return category;
+        },
     },
+
     actions: {
         async fetchCategories() {
-            this.setLoading(true); // Start loading
-            const config = useRuntimeConfig();
-            const apiUrl = `${config.public.baseURL}/api/categories`;
-
-            try {
-                const { data, error } = await useFetch(apiUrl, { credentials: 'include' });
-                if (error.value) throw error.value;
-                this.categories = data.value;
-            } catch (error) {
-                this.handleError(error, 'Failed to fetch categories');
-            } finally {
-                this.setLoading(false); // Stop loading
-            }
+            await this.performApiCall('GET', '/api/categories', null, (data) => {
+                this.categories = data;
+            }, 'Failed to fetch categories');
         },
 
         async fetchCategory(id) {
-            this.setLoading(true);
-            const config = useRuntimeConfig();
-            const apiUrl = `${config.public.baseURL}/api/categories/${id}`;
-
-            try {
-                const { data, error } = await useFetch(apiUrl, { method: 'GET', credentials: 'include' });
-                if (error.value) throw error.value;
-                this.category = data.value;
-            } catch (error) {
-                this.handleError(error, `Failed to fetch category with ID: ${id}`);
-            } finally {
-                this.setLoading(false);
-            }
+            await this.performApiCall('GET', `/api/categories/${id}`, null, (data) => {
+                this.category = data;
+            }, `Failed to fetch category with ID: ${id}`);
         },
 
         async createCategory(category) {
-            this.setLoading(true);
-            const { $toast } = useNuxtApp();
-            const config = useRuntimeConfig();
-            const socketId = useState('socketId').value;  // Get the socketId from state
-            const apiUrl = `${config.public.baseURL}/api/categories`;
-
-            try {
-                const { data, error } = await useFetch(apiUrl, {
-                    method: 'POST',
-                    body: category,
-                    credentials: 'include',
-                    headers: {
-                        'x-socket-id': socketId,
-                    },
-                });
-                if (error.value) throw error.value;
-                this.categories.push(data.value);
-                $toast.success('Category Created');
-            } catch (error) {
-                $toast.error('Failed to create category')
-            } finally {
-                this.setLoading(false);
-            }
+            await this.performApiCall('POST', '/api/categories', category, (data) => {
+                this.categories.push(data);
+                useNuxtApp().$toast.success('Category Created');
+            }, 'Failed to create category');
         },
+
         async updateCategory(id, category) {
-            this.setLoading(true);
-            console.log("category",category)
-            const { $toast } = useNuxtApp();
-            const socketId = useState('socketId').value;  // Get the socketId from state
-            const config = useRuntimeConfig();
-            const apiUrl = `${config.public.baseURL}/api/categories/${id}`;
-
-            try {
-                const { data, error } = await useFetch(apiUrl, {
-                    method: 'PUT',
-                    body: category,
-                    credentials: 'include',
-                    headers: {
-                        'x-socket-id': socketId,
-                    },
-                });
-                if (error.value) throw error.value;
-                const index = this.categories.findIndex(cat => cat.id === category.id);
-                if (index !== -1) this.categories[index] = category;
-                $toast.success('Category Updated');
-            } catch (error) {
-                this.handleError(error, `Failed to update category with ID: ${id}`);
-            } finally {
-                this.setLoading(false);
-            }
+            await this.performApiCall('PUT', `/api/categories/${id}`, category, (data) => {
+                const index = this.categories.findIndex(cat => cat.id === id);
+                if (index !== -1) this.categories[index] = data;
+                useNuxtApp().$toast.success('Category Updated');
+            }, `Failed to update category with ID: ${id}`);
         },
+
         async deleteCategory(id) {
-            this.setLoading(true);
-            const { $toast } = useNuxtApp();
-            const socketId = useState('socketId').value;  // Get the socketId from state
-            const config = useRuntimeConfig();
-            const apiUrl = `${config.public.baseURL}/api/categories/${id}`;
-
-            try {
-                const { error } = await useFetch(apiUrl, {
-                    method: 'DELETE',
-                    credentials: 'include',
-                    headers: {
-                        'x-socket-id': socketId,
-                    },
-                });
-                if (error.value) throw error.value;
+            await this.performApiCall('DELETE', `/api/categories/${id}`, null, () => {
                 this.categories = this.categories.filter(cat => cat.id !== id);
-                $toast.warning('Category Deleted');
-            } catch (error) {
-                this.handleError(error, `Failed to delete category with ID: ${id}`);
-            } finally {
-                this.setLoading(false);
-            }
+                useNuxtApp().$toast.warning('Category Deleted');
+            }, `Failed to delete category with ID: ${id}`);
         },
+
         // Socket event handlers
-        async socketUpdateCategory(category) {
-            const index = this.categories.findIndex(cat => cat.id === category.id);
-            if (index !== -1) this.categories[index] = category;
-        },
-        async socketCreateCategory(category) {
-            const exists = this.categories.some(cat => cat.id === category.id);
-            // Only add the category if it doesn't already exist
-            if (!exists) {
-                this.categories.push(category);
+        socketUpdateCategory(category) {
+            if (category && category.id) {
+                const index = this.categories.findIndex(cat => cat.id === category.id);
+                if (index !== -1) {
+                    this.categories[index] = { ...this.categories[index], ...category };
+                } else {
+                    console.warn('Category not found for update:', category);
+                }
+            } else {
+                console.warn('Invalid category data received for update:', category);
             }
         },
-        async socketDeleteCategory(id) {
-            console.log("delete init")
-            const index = this.categories.findIndex(category => category.id === id);
-            if (index !== -1) this.categories.splice(index, 1);
+
+        socketCreateCategory(category) {
+            if (category && category.id && !this.categories.some(cat => cat.id === category.id)) {
+                this.categories.push(category);
+            } else {
+                console.warn('Invalid category data received for creation or duplicate found:', category);
+            }
         },
+
+        socketDeleteCategory(id) {
+            const categoryId = parseInt(id, 10);
+            if (!isNaN(categoryId)) {
+                const initialLength = this.categories.length;
+                this.categories = this.categories.filter(category => category.id !== categoryId);
+                if (this.categories.length < initialLength) {
+                    console.log('Category Deleted via Socket');
+                } else {
+                    console.warn('Category ID not found for deletion:', id);
+                }
+            } else {
+                console.warn('Invalid category ID received for deletion:', id);
+            }
+        },
+
         // Utility functions
         setLoading(isLoading) {
             this.loading = isLoading;
+        },
+
+        async performApiCall(method, endpoint, body, onSuccess, errorMessage) {
+            this.setLoading(true);
+            this.error = null;
+            const config = useRuntimeConfig();
+            const socketId = useState('socketId').value;
+            const apiUrl = `${config.public.baseURL}${endpoint}`;
+
+            try {
+                const { data, error } = await useFetch(apiUrl, {
+                    method,
+                    body,
+                    credentials: 'include',
+                    headers: {
+                        'x-socket-id': socketId,
+                    },
+                });
+
+                if (error.value) {
+                    const errorData = error.value.data;
+                    if (errorData && errorData.error) {
+                        throw new Error(errorData.error);
+                    } else if (error.value.status === 400) {
+                        throw new Error('Invalid input. Please check your data and try again.');
+                    } else if (error.value.status === 404) {
+                        throw new Error('The requested resource was not found.');
+                    } else if (error.value.status === 500) {
+                        throw new Error('An internal server error occurred. Please try again later.');
+                    } else {
+                        throw new Error(errorMessage);
+                    }
+                }
+                onSuccess(data.value.data);
+            } catch (error) {
+                console.error(errorMessage, error);
+                this.error = error.message;
+                useNuxtApp().$toast.error(error.message || errorMessage);
+            } finally {
+                this.setLoading(false);
+            }
         },
     },
 });

@@ -1,7 +1,6 @@
 // stores/useRolePermissionStore.js
 import { defineStore } from 'pinia';
-import { useRuntimeConfig } from '#app';
-
+import { useNuxtApp, useRuntimeConfig, useFetch } from '#app';
 export const useRoleStore = defineStore('rolePermission', {
     state: () => ({
         roles: [],
@@ -253,7 +252,9 @@ export const useRoleStore = defineStore('rolePermission', {
             this.loading = true;
             this.error = null;
             try {
-                const { data, error } = await useFetch('/api/user-roles/', {
+                const config = useRuntimeConfig();
+                const apiUrl = `${config.public.baseURL}/api/user-roles/`;
+                const { data, error } = await useFetch(apiUrl, {
                     method: 'POST',
                     body: { userId, roleId },
                     credentials: 'include',
@@ -282,6 +283,23 @@ export const useRoleStore = defineStore('rolePermission', {
                 this.userRoles = this.userRoles.filter(
                     (userRole) => !(userRole.userId === userId && userRole.roleId === roleId)
                 );
+            } catch (err) {
+                this.error = err.message;
+            } finally {
+                this.loading = false;
+            }
+        },
+        async fetchRole(userId) {
+            this.loading = true;
+            this.error = null;
+            try {
+                const config = useRuntimeConfig();
+                const apiUrl = `${config.public.baseURL}/api/user-roles/${userId}`;
+                const { data, error } = await useFetch(apiUrl, {
+                    method: 'GET',
+                    credentials: 'include',
+                });
+                return data.value;
             } catch (err) {
                 this.error = err.message;
             } finally {

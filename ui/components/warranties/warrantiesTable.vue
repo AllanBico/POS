@@ -59,7 +59,6 @@
           showQuickJumper: true,
         }"
         :rowKey="(record) => record.id"
-        :loading="warrantyStore.loading"
         size="middle"
         @change="handleTableChange"
       >
@@ -215,6 +214,11 @@ const columns = [
   {
     title: "Status",
     dataIndex: "status",
+    filters: [
+      { text: 'Active', value: true },
+      { text: 'Inactive', value: false },
+    ],
+    onFilter: (value, record) => record.status === value,
   },
   {
     title: "Operation",

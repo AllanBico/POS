@@ -1,17 +1,46 @@
 const express = require('express');
-const {Warranty} = require('../../models/associations');
+const { Warranty } = require('../../models/associations');
 const authenticateToken = require("../../middleware/auth");
+const { ValidationError } = require('sequelize');
 
 const router = express.Router();
 
+// Utility function to handle async routes
 const asyncHandler = fn => (req, res, next) =>
     Promise.resolve(fn(req, res, next)).catch(next);
+
+// Validate warranty input
+const validateWarrantyInput = (name, duration, periods, description, status) => {
+    if (!name || typeof name !== 'string' || name.trim() === '') {
+        throw new ValidationError('Valid name is required');
+    }
+    if (!duration || typeof duration !== 'string' || duration.trim() === '') {
+        throw new ValidationError('Valid duration is required');
+    }
+    if (!periods || !Array.isArray(periods)) {
+        throw new ValidationError('Periods must be an array');
+    }
+    if (!description || typeof description !== 'string' || description.trim() === '') {
+        throw new ValidationError('Valid description is required');
+    }
+    if (status === undefined) {
+        throw new ValidationError('Status is required');
+    }
+};
+
+// Emit socket event to other clients
+const emitToOthers = (req, event, data) => {
+    const socketId = req.headers['x-socket-id'];
+    if (req.io && typeof req.io.emit === 'function') {
+        req.io.emit(event, data, { except: socketId });
+    }
+};
 
 // Get all warranties
 router.get('/', authenticateToken, asyncHandler(async (req, res) => {
     const warranties = await Warranty.findAll();
-    if (!warranties) {
-        return res.status(404).json({error: 'No warranties found'});
+    if (!warranties || warranties.length === 0) {
+        return res.status(404).json({ error: 'No warranties found' });
     }
     res.json(warranties);
 }));
@@ -20,35 +49,28 @@ router.get('/', authenticateToken, asyncHandler(async (req, res) => {
 router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
     const id = req.params.id;
     if (!id) {
-        return res.status(400).json({error: 'Missing warranty ID'});
+        return res.status(400).json({ error: 'Missing warranty ID' });
     }
 
     const warranty = await Warranty.findByPk(id);
     if (!warranty) {
-        return res.status(404).json({error: 'Warranty not found'});
+        return res.status(404).json({ error: 'Warranty not found' });
     }
     res.json(warranty);
 }));
 
 // Create a new warranty
 router.post('/', authenticateToken, asyncHandler(async (req, res) => {
-    const {name, duration, periods, description, status} = req.body;
-    console.log("name, duration, periods, description, status",name, duration, periods, description, status)
-    if (!name || !duration || !periods || !description || status === undefined) {
-        return res.status(400).json({error: 'Missing required fields'});
-    }
+    const { name, duration, periods, description, status } = req.body;
+    validateWarrantyInput(name, duration, periods, description, status);
 
     try {
-        const warranty = await Warranty.create({name, duration, periods, description, status});
-        if (!warranty) {
-            throw new Error('Failed to create warranty');
-        }
+        const warranty = await Warranty.create({ name, duration, periods, description, status });
         res.status(201).json(warranty);
-        req.io.emit('newWarranty', warranty);
-        console.log('newWarranty', warranty);
+        emitToOthers(req, 'newWarranty', warranty);
     } catch (err) {
         console.error('Error creating warranty:', err);
-        res.status(500).json({error: 'Internal server error'});
+        res.status(500).json({ error: 'Internal server error' });
     }
 }));
 
@@ -56,15 +78,15 @@ router.post('/', authenticateToken, asyncHandler(async (req, res) => {
 router.put('/:id', authenticateToken, asyncHandler(async (req, res) => {
     const id = req.params.id;
     if (!id) {
-        return res.status(400).json({error: 'Missing warranty ID'});
+        return res.status(400).json({ error: 'Missing warranty ID' });
     }
 
-    const {name, duration, periods, description, status} = req.body;
     const warranty = await Warranty.findByPk(id);
     if (!warranty) {
-        return res.status(404).json({error: 'Warranty not found'});
+        return res.status(404).json({ error: 'Warranty not found' });
     }
 
+    const { name, duration, periods, description, status } = req.body;
     if (name) warranty.name = name;
     if (duration) warranty.duration = duration;
     if (periods) warranty.periods = periods;
@@ -72,28 +94,24 @@ router.put('/:id', authenticateToken, asyncHandler(async (req, res) => {
     if (status !== undefined) warranty.status = status;
 
     await warranty.save();
-    const updatedWarranty = await Warranty.findByPk(id);
-    if (!updatedWarranty) {
-        return res.status(500).json({error: 'Failed to update warranty'});
-    }
-    res.json(updatedWarranty);
-    req.io.emit('updateWarranty', updatedWarranty);
+    emitToOthers(req, 'updateWarranty', warranty);
+    res.json(warranty);
 }));
 
 // Delete a warranty
 router.delete('/:id', authenticateToken, asyncHandler(async (req, res) => {
     const id = req.params.id;
     if (!id) {
-        return res.status(400).json({error: 'Missing warranty ID'});
+        return res.status(400).json({ error: 'Missing warranty ID' });
     }
 
     const warranty = await Warranty.findByPk(id);
     if (!warranty) {
-        return res.status(404).json({error: 'Warranty not found'});
+        return res.status(404).json({ error: 'Warranty not found' });
     }
     await warranty.destroy();
+    emitToOthers(req, 'deleteWarranty', id);
     res.status(204).end();
-    req.io.emit('deleteWarranty', id);
 }));
 
 module.exports = router;

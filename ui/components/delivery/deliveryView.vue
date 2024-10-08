@@ -7,6 +7,7 @@
         :sub-title="`Delivery #${deliveryData?.id}`"
       >
         <template #extra>
+          <a-button @click="deliverNote">view</a-button>
           <a-dropdown>
             <template #overlay>
               <a-menu>
@@ -78,6 +79,8 @@ import {
   FileExcelOutlined,
   FilePdfOutlined,
 } from "@ant-design/icons-vue";
+import {useTabsStore} from "~/stores/tabsStore.js";
+import deliveryNote from "~/components/delivery/deliveryNote.vue";
 
 const deliveryStore = useDeliveryStore();
 const salesOrderStore = useSalesOrderStore();
@@ -92,10 +95,13 @@ const props = defineProps({
     required: true,
   },
 });
-
+const tabsStore = useTabsStore();
 const deliveryId = ref(props.delivery_id);
 const deliveryData = ref(null);
-
+const deliverNote = () => {
+  tabsStore.addTab('delivery note',deliveryNote ,{
+    delivery_id: props.delivery_id})
+}
 const fetchDelivery = async () => {
   try {
     loading.value = true;

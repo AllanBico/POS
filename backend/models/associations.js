@@ -163,13 +163,14 @@ GoodsReceivedLineItem.belongsTo(Variant, { as: 'variant', foreignKey: 'variantId
 Permission.belongsTo(Model, { as: 'Model', foreignKey: 'modelId' });
 Model.hasMany(Permission, { as: 'Permission', foreignKey: 'modelId' });
 
-User.belongsToMany(Role, { through: UserRole });
-Role.belongsToMany(User, { through: UserRole });
+UserRole.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+UserRole.belongsTo(Role, { foreignKey: 'roleId', as: 'role' });
 
 // Role <-> Permission association
 Role.belongsToMany(Permission, { through: RolePermission, foreignKey: 'roleId' });
 Permission.belongsToMany(Role, { through: RolePermission, foreignKey: 'permissionId' });
-
+RolePermission.belongsTo(Permission, { foreignKey: 'permissionId' });
+Permission.hasMany(RolePermission, { foreignKey: 'permissionId' });
 
 // StockTake <-> Product (each stock take is associated with a product)
 StockTake.belongsTo(Variant, { foreignKey: 'variant_id', as: 'variant' });

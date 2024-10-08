@@ -3,7 +3,6 @@
     <!-- Modals -->
     <a-modal
       v-model:open="isAddModalOpen"
-      title="Create Category"
       @ok="handleModalOk"
       @cancel="handleModalCancel"
       ok-text="Submit"
@@ -16,7 +15,6 @@
 
     <a-modal
       v-model:open="isEditModalOpen"
-      title="Edit Category"
       @ok="handleModalOk"
       @cancel="handleModalCancel"
       ok-text="Submit"
@@ -25,8 +23,7 @@
     >
       <category-edit-modal
         @submit-success="handleSubmitSuccess"
-        :selectedCategoryId="selectedCategoryId"
-      ></category-edit-modal>
+        :category_id="selectedCategoryId"></category-edit-modal>
       <template #footer> </template>
     </a-modal>
 
@@ -39,6 +36,7 @@
       >
         <template #extra>
           <a-button
+            v-if="canCreateCategory"
             class="add-category-btn"
             type="primary"
             @click="handleAddCategory"
@@ -79,6 +77,8 @@
         :loading="categoryStore.loading"
         size="middle"
         @change="handleTableChange"
+        :scroll="{ x: 'max-content' }"
+        :rowClassName="(record, index) => (index % 2 === 0 ? 'even-row' : 'odd-row')"
       >
         <!-- Custom filter dropdown template -->
         <template
@@ -124,10 +124,11 @@
 
         <!-- Custom render for operation column -->
         <template #bodyCell="{ column, record, index }">
-          <template v-if="column.dataIndex === 'operation'">
+          <template v-if="column.dataIndex === 'operation' && (canUpdateCategory || canDeleteCategory)">
             <div class="action-buttons">
               <a-tooltip title="Edit">
                 <a-button
+                  v-if="canUpdateCategory"
                   type="link"
                   class="edit-btn"
                   @click="handleEditCategory(record.id)"
@@ -137,6 +138,7 @@
                 </a-button>
               </a-tooltip>
               <a-popconfirm
+                v-if="canDeleteCategory"
                 :title="`Are you sure you want to delete ${record.name}?`"
                 ok-text="Yes"
                 cancel-text="No"
@@ -153,24 +155,6 @@
                   </a-button>
                 </a-tooltip>
               </a-popconfirm>
-              <a-dropdown>
-                <template #overlay>
-                  <a-menu>
-                    <a-menu-item key="view">
-                      <EyeOutlined /> View Details
-                    </a-menu-item>
-                    <a-menu-item key="duplicate">
-                      <CopyOutlined /> Duplicate
-                    </a-menu-item>
-                    <a-menu-item key="archive">
-                      <InboxOutlined /> Archive
-                    </a-menu-item>
-                  </a-menu>
-                </template>
-                <a-button type="link">
-                  <MoreOutlined style="font-size: 16px;" />
-                </a-button>
-              </a-dropdown>
             </div>
           </template>
           <template v-else-if="column.dataIndex === 'index'">
@@ -183,7 +167,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useCategoryStore } from "~/stores/product/CategoryStore.js";
 import CategoryAddModal from "~/components/product/categories/categoryAddModal.vue";
 import CategoryEditModal from "~/components/product/categories/categoryEditModal.vue";
@@ -195,24 +179,25 @@ import {
   DownOutlined,
   FileExcelOutlined,
   FilePdfOutlined,
-  EyeOutlined,
-  CopyOutlined,
-  InboxOutlined,
-  MoreOutlined
 } from "@ant-design/icons-vue";
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { useAuthStore } from "~/stores/AuthStore.js";
 
-// Initialize category store and fetch categories
-const categoryStore = useCategoryStore();
-categoryStore.fetchCategories();
+const authStore = useAuthStore(); // Initialize AuthStore
+const categoryStore = useCategoryStore(); // Initialize category store
 
 // Reactive variables
 const isAddModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const selectedCategoryId = ref(null);
 const searchInput = ref(null);
+
+// Computed properties for permission checks
+const canCreateCategory = computed(() => authStore.hasPermission('category', 'create'));
+const canUpdateCategory = computed(() => authStore.hasPermission('category', 'update'));
+const canDeleteCategory = computed(() => authStore.hasPermission('category', 'delete'));
 
 // Table columns configuration
 const columns = [
@@ -230,13 +215,6 @@ const columns = [
     customFilterDropdown: true,
     onFilter: (value, record) =>
       record.name.toLowerCase().includes(value.toLowerCase()),
-    onFilterDropdownOpenChange: (visible) => {
-      if (visible) {
-        setTimeout(() => {
-          searchInput.value?.focus();
-        }, 100);
-      }
-    },
   },
   {
     title: "Description",
@@ -245,17 +223,12 @@ const columns = [
     customFilterDropdown: true,
     onFilter: (value, record) =>
       record.description.toLowerCase().includes(value.toLowerCase()),
-    onFilterDropdownOpenChange: (visible) => {
-      if (visible) {
-        setTimeout(() => {
-          searchInput.value?.focus();
-        }, 100);
-      }
-    },
   },
   {
     title: "Operation",
     dataIndex: "operation",
+    // Only render this column if there are permissions to update or delete
+    render: () => (canUpdateCategory.value || canDeleteCategory.value),
   },
 ];
 
@@ -425,5 +398,13 @@ const exportToPDF = () => {
 
 .text-primary {
   color: #1890ff;
+}
+
+.even-row {
+  background-color: #f9f9f9;
+}
+
+.odd-row {
+  background-color: #ffffff;
 }
 </style>

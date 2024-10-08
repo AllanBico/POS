@@ -33,7 +33,7 @@ router.get('/:id',authenticateToken, async (req, res) => {
 // Create a new user
 router.post('/',authenticateToken, async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const { name, email, password,status } = req.body;
 
         // Validate request
         if (!name || !email || !password) {
@@ -47,6 +47,7 @@ router.post('/',authenticateToken, async (req, res) => {
         const newUser = await User.create({
             name,
             email,
+            status,
             password_hash: passwordHash // Set the hashed password
         });
 
@@ -59,7 +60,7 @@ router.post('/',authenticateToken, async (req, res) => {
 
 // Update a user
 router.put('/:id',authenticateToken, async (req, res) => {
-    const { name, email, password } = req.body;
+    const { name, email, password,status } = req.body;
     console.log("name, email, password",name, email, password)
     try {
         // Find the user by ID
@@ -73,6 +74,7 @@ router.put('/:id',authenticateToken, async (req, res) => {
         const updatedUser = {
             name: name || user.name,
             email: email || user.email,
+            status: status || user.status,
         };
 
         if (password) {

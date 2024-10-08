@@ -34,8 +34,8 @@ router.post('/login', async (req, res) => {
 
     try {
         const user = await findUserByEmail(email);
-        if (!user) {
-            return sendErrorResponse(res, 400, 'Invalid credentials');
+        if (!user || user.status === 'inactive') {
+            return sendErrorResponse(res, 400, 'User Inactive');
         }
 
         const isPasswordValid = await verifyPassword(password, user.password_hash);

@@ -12,6 +12,17 @@
       <user-add-modal @submit-success="handleSubmitSuccess"></user-add-modal>
       <template #footer> </template>
     </a-modal>
+    <a-modal
+      v-model:open="isAddRoleModalOpen"
+      @ok="handleModalOk"
+      @cancel="handleModalCancel"
+      ok-text="Submit"
+      cancel-text="Cancel"
+      :maskClosable="false"
+    >
+      <user-role-assignment @submit-success="handleSubmitSuccess" :user_id="selectedUserId"></user-role-assignment>
+      <template #footer> </template>
+    </a-modal>
 
     <a-modal
       v-model:open="isEditModalOpen"
@@ -119,6 +130,16 @@
                   <template #icon><EditOutlined /></template>
                 </a-button>
               </a-tooltip>
+              <a-tooltip title="Role">
+                <a-button
+                    type="link"
+                    class="edit-btn"
+                    @click="handleRole(record.id)"
+                    :style="{ color: '#1890ff' }"
+                >
+                  <template #icon><EditOutlined /></template>
+                </a-button>
+              </a-tooltip>
               <a-popconfirm
                   :title="`Are you sure you want to delete ${record.name}?`"
                   ok-text="Yes"
@@ -160,16 +181,18 @@ import {
   SearchOutlined,
   DownOutlined,
 } from "@ant-design/icons-vue";
+import UserRoleAssignment from "~/components/users/UserRoleAssignment.vue";
 
 const userStore = useUserStore();
 userStore.fetchUsers();
 
 // Reactive variables
 const isAddModalOpen = ref(false);
+const isAddRoleModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const selectedUserId = ref(null);
 const searchInput = ref(null);
-
+console.log("userStore.users",userStore.users)
 // Table columns configuration
 const columns = [
   {
@@ -209,6 +232,10 @@ const columns = [
     },
   },
   {
+    title: "Status",
+    dataIndex: "status",
+    sorter: (a, b) => new Date(a.status) - new Date(b.status),
+  },{
     title: "Created At",
     dataIndex: "created_at",
     sorter: (a, b) => new Date(a.created_at) - new Date(b.created_at),
@@ -222,6 +249,10 @@ const columns = [
 // Event handlers
 const handleAddUser = () => {
   isAddModalOpen.value = true;
+};
+const handleRole = (userId) => {
+  selectedUserId.value = userId;
+  isAddRoleModalOpen.value = true;
 };
 
 const handleEditUser = (userId) => {
@@ -242,16 +273,19 @@ const handleDeleteUser = async (userId) => {
 const handleModalOk = () => {
   isAddModalOpen.value = false;
   isEditModalOpen.value = false;
+  isAddRoleModalOpen.value = false;
 };
 
 const handleModalCancel = () => {
   isAddModalOpen.value = false;
   isEditModalOpen.value = false;
+  isAddRoleModalOpen.value = false;
 };
 
 const handleSubmitSuccess = () => {
   isAddModalOpen.value = false;
   isEditModalOpen.value = false;
+  isAddRoleModalOpen.value = false;
 };
 
 const handleSearch = (selectedKeys, confirm, dataIndex) => {

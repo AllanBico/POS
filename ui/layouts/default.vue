@@ -18,7 +18,7 @@
         v-model:selectedKeys="state.selectedKeys"
         mode="inline"
         :inline-collapsed="state.collapsed"
-        :items="menuItems"
+        :items="filteredMenuItems"
       ></a-menu>
     </a-layout-sider>
 
@@ -37,9 +37,9 @@
             <a-card class="control-area" :bodyStyle="{ padding: '5px' }">
               <QuickActions/>
               <a-button type="primary" @click="toggleCollapsed" style="margin-right: 5px;">
-            <MenuUnfoldOutlined v-if="state.collapsed" />
-            <MenuFoldOutlined v-else />
-          </a-button>
+                <MenuUnfoldOutlined v-if="state.collapsed" />
+                <MenuFoldOutlined v-else />
+              </a-button>
               <ControlTab/>
             </a-card>
           </template>
@@ -55,8 +55,9 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch, h } from 'vue';
+import { ref, reactive, watch, h, computed } from 'vue';
 import { useTabsStore } from '~/stores/tabsStore';
+import { useAuthStore } from '~/stores/AuthStore'; // Import AuthStore
 import {
   MenuUnfoldOutlined,
   MenuFoldOutlined,
@@ -69,9 +70,6 @@ import {
   TeamOutlined,
   SettingOutlined,
   InboxOutlined,
-  SwapOutlined,
-  AuditOutlined,
-  FileTextOutlined,
   UserOutlined,
   ContactsOutlined,
   BankOutlined,
@@ -112,6 +110,7 @@ import Dashboard from "~/components/Dashboard.vue";
 import test from "~/components/test.vue";
 import deliveriesTable from "~/components/delivery/deliveriesTable.vue";
 const tabsStore = useTabsStore();
+const authStore = useAuthStore(); // Initialize AuthStore
 
 const state = reactive({
   collapsed: false,
@@ -122,6 +121,31 @@ const state = reactive({
 
 const size = ref('small');
 
+// Filter menu items based on permissions
+const filteredMenuItems = computed(() => {
+  return menuItems.filter(item => {
+    if (item.key === 'dashboard' || item.key === 'user_roles' || item.key === 'settings') return true;
+    if (item.children) {
+      // Filter children recursively
+      item.children = item.children.filter(child => {
+        if (child.children) {
+          // If the child has its own children, filter them as well
+          child.children = child.children.filter(grandChild => authStore.hasPermission(grandChild.key, 'read'));
+          return authStore.hasPermission(child.key, 'read') || child.children.length > 0; // Include if parent has permission or has children
+        }
+        return authStore.hasPermission(child.key, 'read'); // Check permission for the child
+      });
+      // Check if the parent item has children after filtering
+      if (item.children.length > 0) {
+        return true; // Include parent if it has children
+      }
+      // If the parent has no children, check if the parent itself has permission
+      return authStore.hasPermission(item.key, 'read');
+    }
+    return authStore.hasPermission(item.key, 'read'); // Check permission for the item
+  });
+});
+
 const menuItems = [
   {
     key: 'dashboard',
@@ -131,22 +155,12 @@ const menuItems = [
     onClick: () => addTab('Dashboard', Dashboard),
   },
   {
-    key: 'test',
-    icon: () => h(DashboardOutlined),
-    label: 'test',
-    title: 'test',
-    onClick: () => addTab('test', test),
-  },
-  {
-    type: 'divider',
-  },
-  {
     key: 'inventory',
     icon: () => h(ShopOutlined),
     label: 'Inventory',
     children: [
       {
-        key: 'ProductsList',
+        key: 'products',
         label: 'Products',
         onClick: () => addTab('Products', productsTable),
       },
@@ -155,39 +169,39 @@ const menuItems = [
         label: 'Categories',
         children: [
           {
-            key: 'Categories',
+            key: 'category',
             label: 'Categories',
             onClick: () => addTab('Categories', categoriesTable),
           },
           {
-            key: 'SubCategories',
+            key: 'subcategory',
             label: 'Sub Categories',
             onClick: () => addTab('SubCategories', subCategoriesTable),
           },
         ],
       },
       {
-        key: 'Brands',
+        key: 'brand',
         label: 'Brands',
         onClick: () => addTab('Brands', brandsTable),
       },
       {
-        key: 'Units',
+        key: 'unit',
         label: 'Units',
         onClick: () => addTab('Units', unitsTable),
       },
       {
-        key: 'Variants',
+        key: 'variant',
         label: 'Variants',
         onClick: () => addTab('Variants', variantsTable),
       },
       {
-        key: 'Attributes',
+        key: 'attribute',
         label: 'Attributes',
         onClick: () => addTab('Attributes', attributesTable),
       },
       {
-        key: 'Serials',
+        key: 'serial_number',
         label: 'Serial Numbers',
         onClick: () => addTab('Serial Numbers', serialNumbers),
       },
@@ -199,12 +213,12 @@ const menuItems = [
     label: 'Stock Management',
     children: [
       {
-        key: 'inventories',
+        key: 'inventory',
         label: 'Current Stock',
         onClick: () => addTab('Inventory', inventoriesTable),
       },
       {
-        key: 'Received',
+        key: 'good_receiving',
         label: 'Goods Received',
         onClick: () => addTab('Goods Received', GoodsReceivingTable),
       },
@@ -259,17 +273,17 @@ const menuItems = [
     label: 'Finance',
     children: [
       {
-        key: 'expenses',
+        key: 'expense',
         label: 'Expenses',
         onClick: () => addTab('Expenses', expensesTable),
       },
       {
-        key: 'expenses_categories',
+        key: 'expense_category',
         label: 'Expense Categories',
         onClick: () => addTab('Expense Categories', expensesCategoriesTable),
       },
       {
-        key: 'payment_method',
+        key: 'payment_methods',
         label: 'Payment Methods',
         onClick: () => addTab('Payment Methods', paymentMethodsTable),
       },
@@ -281,19 +295,19 @@ const menuItems = [
     label: 'People',
     children: [
       {
-        key: 'Users',
+        key: 'user',
         label: 'Users',
         icon: () => h(UserOutlined),
         onClick: () => addTab('Users', usersTable),
       },
       {
-        key: 'Customers',
+        key: 'customer',
         label: 'Customers',
         icon: () => h(ContactsOutlined),
         onClick: () => addTab('Customers', customersTable),
       },
       {
-        key: 'Suppliers',
+        key: 'supplier',
         label: 'Suppliers',
         icon: () => h(BankOutlined),
         onClick: () => addTab('Suppliers', suppliersTable),
@@ -306,12 +320,12 @@ const menuItems = [
     label: 'Locations',
     children: [
       {
-        key: 'Warehouses',
+        key: 'warehouse',
         label: 'Warehouses',
         onClick: () => addTab('Warehouses', warehousesTable),
       },
       {
-        key: 'Stores',
+        key: 'stores',
         label: 'Stores',
         onClick: () => addTab('Stores', storesTable),
       },
@@ -328,20 +342,20 @@ const menuItems = [
         onClick: () => addTab('Settings', settings),
       },
       {
-        key: 'Users Roles',
+        key: 'roles',
         label: 'User Roles',
         onClick: () => addTab('User Roles', rolesTable),
+      },
+      {
+        key: 'warranty',
+        label: 'Warranties',
+        onClick: () => addTab('Warranties', warrantiesTable),
       },
       {
         key: 'Taxes',
         label: 'Taxes',
         icon: () => h(PercentageOutlined),
         onClick: () => addTab('Taxes', taxesTable),
-      },
-      {
-        key: 'Warranties',
-        label: 'Warranties',
-        onClick: () => addTab('Warranties', warrantiesTable),
       },
     ],
   },

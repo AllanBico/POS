@@ -1,34 +1,36 @@
 <template>
-  <a-modal v-model:open="modal_open" :title="modalTitle" @ok="handleOk" @cancel="handleCancel" ok-text="Submit" cancel-text="Cancel">
+  <a-modal
+      v-model:open="modalOpen"
+      @ok="handleOk"
+      @cancel="handleCancel"
+      ok-text="Submit"
+      cancel-text="Cancel"
+  >
     <!-- Render the selected component in the modal -->
-    <component :is="currentComponent" @submit-success="handleSubmitSuccess" />
-    <template #footer>
-    </template>
+    <component :is="currentComponent" @submit-success="handleSubmitSuccess"/>
+    <template #footer></template>
   </a-modal>
 
   <a-float-button-group trigger="click" type="primary" :style="{ right: '24px' }">
     <template #icon>
-      <PlusOutlined />
+      <PlusOutlined/>
     </template>
 
     <!-- Popover with submenu on the left side -->
-    <a-popover placement="left" trigger="click" style="margin: 1px;padding: 1px;">
+    <a-popover placement="left" trigger="click" style="margin: 1px; padding: 1px;">
       <template #content>
-        <a-menu>
-          <a-menu-item key="brand" @click="showModal('BrandAddModal', 'Create Brand')">
-            <TagOutlined /> Create Brand
-          </a-menu-item>
-          <a-menu-item key="unit" @click="showModal('unitsAddModal', 'Create Unit')">
-            <GatewayOutlined /> Create Unit
-          </a-menu-item>
-          <a-menu-item key="category" @click="showModal('CategoryAddModal', 'Create Category')">
-            <FolderOutlined /> Create Category
-          </a-menu-item>
-        </a-menu>
+        <div style="display: grid; grid-template-columns: 1fr; gap: 8px;">
+          <a-menu>
+            <a-menu-item v-for="(item, index) in menuItems" :key="index" @click="showModal(item.component)">
+              <item.icon />
+              {{ item.label }}
+            </a-menu-item>
+          </a-menu>
+        </div>
       </template>
       <a-float-button>
         <template #icon>
-          <ProfileOutlined />
+          <ProfileOutlined/>
         </template>
       </a-float-button>
     </a-popover>
@@ -41,42 +43,61 @@ import { PlusOutlined, TagOutlined, GatewayOutlined, FolderOutlined, ProfileOutl
 
 // Import components that will be loaded dynamically in the modal
 import BrandAddModal from "~/components/product/brands/brandAddModal.vue";
-import unitsAddModal from "~/components/product/units/unitsAddModal.vue";
+import UnitsAddModal from "~/components/product/units/unitsAddModal.vue";
 import CategoryAddModal from "~/components/product/categories/categoryAddModal.vue";
+import CouponAddModal from "~/components/coupons/CouponAddModal.vue";
+import CustomerAddModal from "~/components/customers/customerAddModal.vue";
+import DeliveryAddModal from "~/components/delivery/deliveryAddModal.vue";
+import AttributeAddModal from "~/components/product/attributes/attributeAddModal.vue";
+import ProductAddModal from "~/components/product/products/productAddModal.vue";
+import PurchaseOrderAddModal from "~/components/purchases/purchaseOrderAddModal.vue";
 
-const modal_open = ref(false);
+const modalOpen = ref(false);
 const currentComponent = ref(null);
-const modalTitle = ref('');
 
-const showModal = (component, title) => {
-  switch (component) {
-    case 'BrandAddModal':
-      currentComponent.value = markRaw(BrandAddModal);
-      break;
-    case 'unitsAddModal':
-      currentComponent.value = markRaw(unitsAddModal);
-      break;
-    case 'CategoryAddModal':
-      currentComponent.value = markRaw(CategoryAddModal);
-      break;
-    default:
-      console.error('Unknown component:', component);
-      return;
+const menuItems = [
+  { label: 'Create Brand', component: 'BrandAddModal', icon: TagOutlined },
+  { label: 'Create Unit', component: 'UnitsAddModal', icon: GatewayOutlined },
+  { label: 'Create Category', component: 'CategoryAddModal', icon: FolderOutlined },
+  { label: 'Create Coupon', component: 'CouponAddModal', icon: FolderOutlined },
+  { label: 'Create Customer', component: 'CustomerAddModal', icon: FolderOutlined },
+  { label: 'Create Delivery', component: 'DeliveryAddModal', icon: FolderOutlined },
+  { label: 'Create Attribute', component: 'AttributeAddModal', icon: FolderOutlined },
+  { label: 'Create Product', component: 'ProductAddModal', icon: FolderOutlined },
+  { label: 'Create Purchase Order', component: 'PurchaseOrderAddModal', icon: FolderOutlined },
+];
+
+const showModal = (component) => {
+  const componentMap = {
+    BrandAddModal,
+    UnitsAddModal,
+    CategoryAddModal,
+    CouponAddModal,
+    CustomerAddModal,
+    DeliveryAddModal,
+    AttributeAddModal,
+    ProductAddModal,
+    PurchaseOrderAddModal,
+  };
+
+  if (componentMap[component]) {
+    currentComponent.value = markRaw(componentMap[component]);
+    modalOpen.value = true;
+  } else {
+    console.error('Unknown component:', component);
   }
-  modalTitle.value = title;
-  modal_open.value = true;
 };
 
 const handleOk = () => {
-  modal_open.value = false;
-  // Optionally handle any additional logic here
+  modalOpen.value = false;
 };
 
 const handleCancel = () => {
-  modal_open.value = false;
+  modalOpen.value = false;
 };
+
 const handleSubmitSuccess = () => {
-  modal_open.value = false;
+  modalOpen.value = false;
 };
 </script>
 

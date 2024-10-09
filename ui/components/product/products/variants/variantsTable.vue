@@ -120,6 +120,9 @@
 
         <!-- Custom render for operation column -->
         <template #bodyCell="{ column, record, index }">
+          <template v-if="column.dataIndex === 'stockQuantity'">
+              {{record.Product.isComposition ?  'N/A' :  record.stockQuantity}}
+          </template>
           <template v-if="column.dataIndex === 'status'">
             <span>
               <a-tag
@@ -268,17 +271,17 @@ const columns = [
   {
     title: 'Category',
     key: 'category',
-    customRender: ({record}) => record.Product ? record.Product.category.name : 'N/A',
-    sorter: (a, b) => (a.Product?.category.name || '').localeCompare(b.Product?.category.name || ''),
+    customRender: ({record}) => record.Product ? record.Product?.category?.name : 'N/A',
+    sorter: (a, b) => (a.Product?.category.name || '').localeCompare(b.Product?.category?.name || ''),
     filterSearch: true,
     onFilter: (value, record) => record.Product?.category.name.toLowerCase().includes(value.toLowerCase()),
   },
   {
     title: 'Subcategory',
-    customRender: ({record}) => record.Product ? record.Product.subcategory.name : 'N/A',
+    customRender: ({record}) => record.Product ? record.Product?.subcategory?.name : 'N/A',
     key: 'subcategoryId',
     scopedSlots: {customRender: 'subcategory'},
-    sorter: (a, b) => (a.Product?.subcategory.name || '').localeCompare(b.Product?.subcategory.name || ''),
+    sorter: (a, b) => (a.Product?.subcategory.name || '').localeCompare(b.Product?.subcategory?.name || ''),
     filterSearch: true,
     onFilter: (value, record) => record.Product?.subcategory.name.toLowerCase().includes(value.toLowerCase()),
   },

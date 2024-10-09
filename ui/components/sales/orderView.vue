@@ -62,7 +62,7 @@
               {{ settingsStore.getSettingByKey("default_currency")?.code }} {{ orderDetails.total | currency }}
             </a-descriptions-item>
             <a-descriptions-item label="Payment Method">
-              {{ orderDetails.paymentMethod ? orderDetails.paymentMethod.name : 'N/A' }}
+              {{orderDetails?.payments[0]?.paymentMethod?.name}}
             </a-descriptions-item>
             <a-descriptions-item label="Order Date">
               {{ orderDetails.createdAt | formatDate }}

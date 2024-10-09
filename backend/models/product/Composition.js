@@ -8,7 +8,7 @@ const Composition = sequelize.define('Composition', {
         primaryKey: true,
         autoIncrement: true,
     },
-    productVariantId: {
+        productVariantId: {
         type: DataTypes.INTEGER,
         references: {
             model: Variant,

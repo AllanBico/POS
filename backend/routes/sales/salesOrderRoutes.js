@@ -5,11 +5,13 @@ const {
     SalesOrderLineItem,
     Payment,
     Customer,
-    Variant,
+    Variant,  
     Product,
     User,
     Coupon,
-    CouponRedemption, Category, Subcategory, Brand, Unit, ProductTax, VariantImage, PaymentMethod
+    CouponRedemption, Category, Subcategory, Brand, Unit, ProductTax, VariantImage, PaymentMethod, StockMovement,
+    Inventory,
+    Composition
 } = require('../../models/associations');
 const authenticateToken = require("../../middleware/auth"); // Adjust path as needed
 
@@ -21,12 +23,14 @@ router.post('/', authenticateToken, async (req, res) => {
 
         // Validate request body
         if (!isValidSalesOrderRequest(req.body)) {
+            console.log('Validation failed: Invalid request. Customer ID and at least one valid line item are required.');
             return res.status(400).json({message: 'Invalid request. Customer ID and at least one valid line item are required.'});
         }
 
         // Check and apply coupon if provided
         let appliedCoupon = null;
         if (req.body.couponCode) {
+            console.log(`Attempting to apply coupon: ${req.body.couponCode}`);
             appliedCoupon = await applyCoupon(req.body.couponCode, req.body.total, {transaction});
             if (appliedCoupon.error) {
                 console.log(`Error applying coupon: ${appliedCoupon.error}`);
@@ -43,6 +47,65 @@ router.post('/', authenticateToken, async (req, res) => {
         // Create line items
         await createLineItems(salesOrder.id, req.body.lineItems, {transaction});
         console.log('Line items created');
+
+        // Update inventory and create stock movements
+        await Promise.all(req.body.lineItems.map(async (item) => {
+            console.log(`Updating stock for variant ID ${item.variantId}`);
+            const variant = await Variant.findByPk(item.variantId, { include: [{ model: Product, as: 'Product' }] }); // Include Product model with alias
+            console.log('variant', variant);
+            if (!variant) {
+                console.log(`Error: Variant with ID ${item.variantId} not found`);
+                throw new Error(`Variant with ID ${item.variantId} not found`);
+            }
+
+            if (variant.Product.isComposition) { // Check if the product is a composition
+                console.log('Product is a composition')
+                const compositions = await Composition.findAll({
+                    where: { productVariantId: variant.id },
+                    include: [{ model: Variant, as: 'productVariant' }] // Include Product model with alias
+                });
+
+                for (const composition of compositions) {
+                    const ingredientVariant = await Variant.findByPk(composition.ingredientVariantId);
+                    if (!ingredientVariant) {
+                        console.log(`Error: Ingredient variant with ID ${composition.ingredientVariantId} not found`);
+                        throw new Error(`Ingredient variant with ID ${composition.ingredientVariantId} not found`);
+                    }
+
+                    const quantityToDecrement = composition.quantity * item.quantity; // Calculate total quantity to decrement
+                    if (ingredientVariant.stockQuantity < quantityToDecrement) {
+                        throw new Error('Insufficient stock for ingredient variant');
+                    }
+
+                    console.log('Decrementing stock for ingredient variant by', quantityToDecrement);
+                    ingredientVariant.stockQuantity -= quantityToDecrement; // Update the local stock quantity
+                    await ingredientVariant.save({ transaction }); // Save changes to ingredient variant
+
+                    // Call the new function to decrement inventory for ingredient
+                    await decrementInventory(ingredientVariant.id, quantityToDecrement, req.body.destinationType, req.body.destinationId, { transaction });
+                    console.log(`Stock decremented for ingredient variant ID ${ingredientVariant.id} by ${quantityToDecrement}`);
+                    await createStockMovement(ingredientVariant.id, -quantityToDecrement, { transaction }, req.user.id, req.body.destinationType, req.body.destinationId, 'client', salesOrder.id); // Record stock movement
+                    console.log(`Stock movement recorded for ingredient variant ID ${ingredientVariant.id}`);
+                }
+            } else {
+                // Existing logic for non-composition products
+                if (item.quantity <= 0) {
+                    throw new Error('Decrement amount must be positive');
+                }
+                if (variant.stockQuantity < item.quantity) {
+                    throw new Error('Insufficient stock');
+                }
+                console.log('Decrementing stock by', item.quantity);
+                variant.stockQuantity -= item.quantity; // Update the local stock quantity
+                await variant.save({ transaction }); // Use save instead of update for better performance
+
+                // Call the new function to decrement inventory with destinationType and destinationId
+                await decrementInventory(item.variantId, item.quantity, req.body.destinationType, req.body.destinationId, { transaction });
+                console.log(`Stock decremented for variant ID ${item.variantId} by ${item.quantity}`);
+                await createStockMovement(variant.id, -item.quantity, { transaction }, req.user.id, req.body.destinationType, req.body.destinationId, 'client', salesOrder.id); // Record stock movement
+                console.log(`Stock movement recorded for variant ID ${variant.id}`);
+            }
+        }));
 
         // Create payment
         const payment = await createPayment(salesOrder.id, req.user.id, req.body.total, req.body.paymentMethod, {transaction});
@@ -178,6 +241,45 @@ async function recordCouponRedemption(couponId, orderId, discountAmount, {transa
         status: 'used'
     }, {transaction});
 }
+
+async function createStockMovement(variantId, quantityChange, {transaction}, createdBy, sourceType = 'store', sourceId = null, destinationType = 'store', destinationId = null) {
+    console.log(`Creating stock movement: variantId=${variantId}, quantityChange=${quantityChange}, createdBy=${createdBy}, sourceType=${sourceType}, sourceId=${sourceId}, destinationType=${destinationType}, destinationId=${destinationId}`);
+    
+    const stockMovement = await StockMovement.create({
+        variantId,
+        quantity: quantityChange,
+        transactionType: 'sales',
+        sourceType, // e.g., 'store', 'warehouse', etc.
+        sourceId, // ID of the source (e.g., store or warehouse)
+        destinationType, // e.g., 'store', 'warehouse', etc.
+        destinationId, // ID of the destination (e.g., store or warehouse)
+        transactionDate: new Date(),
+        createdBy, // ID of the user creating the movement
+    }, {transaction});
+    
+    console.log(`Stock movement created: ${JSON.stringify(stockMovement)}`);
+    return stockMovement;
+}
+async function decrementInventory(variantId, quantity, destinationType, destinationId, { transaction }) {
+    const inventory = await Inventory.findOne({ 
+        where: { 
+            variantId, 
+            ...(destinationType === 'warehouse' ? { warehouseId: destinationId } : { storeId: destinationId }) 
+        }, 
+        transaction 
+    });
+    
+    if (!inventory) {
+        throw new Error(`Inventory for variant ID ${variantId} not found in the specified location`);
+    }
+    if (inventory.quantity < quantity) {
+        throw new Error('Insufficient inventory');
+    }
+    inventory.quantity -= quantity; // Decrement the quantity
+    await inventory.save({ transaction });
+    console.log(`Inventory decremented for variant ID ${variantId} by ${quantity} at ${destinationType} ID ${destinationId}`);
+}
+
 // Get all Sales Orders
 router.get('/', authenticateToken, async (req, res) => {
     try {

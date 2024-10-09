@@ -48,16 +48,24 @@ const Variant = sequelize.define('Variant', {
 
 // Add custom methods for stock management
 Variant.prototype.incrementStock = async function (amount, transaction = null) {
-    // Increment the stock quantity by a given amount
-    return await this.update({ stockQuantity: this.stockQuantity + amount }, { transaction });
+    if (amount <= 0) {
+        throw new Error('Increment amount must be positive');
+    }
+    this.stockQuantity += amount; // Update the local stock quantity
+    return await this.save({ transaction }); // Use save instead of update for better performance
 };
 
 Variant.prototype.decrementStock = async function (amount, transaction = null) {
-    // Ensure you don't allow stock to go below zero
-    if (this.stockQuantity - amount < 0) {
+    if (amount <= 0) {
+        throw new Error('Decrement amount must be positive');
+    }
+    if (this.stockQuantity < amount) {
         throw new Error('Insufficient stock');
     }
-    return await this.update({ stockQuantity: this.stockQuantity - amount }, { transaction });
+    console.log('Decrementing stock by', amount);
+    this.stockQuantity -= amount; // Update the local stock quantity
+    console.log('New stock quantity:', this.stockQuantity);
+    return await this.save({ transaction }); // Use save instead of update for better performance
 };
 
 module.exports = Variant;

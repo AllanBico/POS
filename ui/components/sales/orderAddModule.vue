@@ -36,6 +36,42 @@
                 </a-select>
               </a-form-item>
             </a-col>
+            <a-col :xs="24" :sm="12">
+              <a-form-item label="Source Type">
+                <a-select
+                  v-model:value="formValues.destinationType"
+                  placeholder="Select Destination Type"
+                  allowClear
+                  show-search
+                  :filter-option="filterOption"
+                  :options="[
+                    { value: 'warehouse', label: 'Warehouse' },
+                    { value: 'store', label: 'Store' }
+                  ]"
+                >
+                </a-select>
+              </a-form-item>
+            </a-col>
+            <a-col :xs="24" :sm="12">
+              <a-form-item :label="formValues.destinationType === 'warehouse' ? 'Warehouse' : 'Store'"
+                           name="destinationId">
+                <a-select
+                  v-model:value="formValues.destinationId"
+                  :placeholder="`Select ${formValues.destinationType === 'warehouse' ? 'Warehouse' : 'Store'}`"
+                  allowClear
+                  show-search
+                  :filter-option="filterOption"
+                >
+                  <a-select-option
+                    v-for="option in getDestinationOptions(formValues.destinationType)"
+                    :key="option.id"
+                    :value="option.id"
+                  >
+                    {{ option.name }}
+                  </a-select-option>
+                </a-select>
+              </a-form-item>
+            </a-col>
           </a-row>
         </a-form>
       </a-card>
@@ -207,7 +243,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useProductStore } from '~/stores/product/ProductStore.js';
 import { useSalesOrderStore } from '~/stores/sales/SalesOrderStore.js';
 import { useCustomerStore } from '~/stores/CustomerStore.js';
@@ -220,6 +256,8 @@ import {
 } from '@ant-design/icons-vue';
 import {usePaymentMethodStore} from "~/stores/PaymentMethodStore.js";
 import {useSerialNumberStore} from "~/stores/SerialNumberStore.js";
+import {useWarehouseStore} from "~/stores/WarehouseStore.js";
+import {useStoreStore} from "~/stores/storesStore.js";
 
 const productStore = useProductStore();
 const customerStore = useCustomerStore();
@@ -227,6 +265,8 @@ const salesOrderStore = useSalesOrderStore();
 const paymentMethodStore = usePaymentMethodStore();
 const serialNumberStore = useSerialNumberStore();
 const couponStore = useCouponStore();
+const warehouseStore = useWarehouseStore();
+const storesStore = useStoreStore();
 
 productStore.fetchVariants();
 customerStore.fetchCustomers();
@@ -234,6 +274,8 @@ paymentMethodStore.fetchPaymentMethods();
 const products = computed(() => productStore.variants);
 const customers = computed(() => customerStore.customers);
 const payments = computed(() => paymentMethodStore.paymentMethods);
+const stores = computed(() => storesStore.stores);
+const warehouses = computed(() => warehouseStore.warehouses);
 
 // Create options for select components
 const customerOptions = computed(() =>
@@ -265,11 +307,36 @@ const initSaleData = () => ({
   discount: 0,
   discountType: 'percentage',
   paymentMethod: null,
+  destinationType: null, // Add destinationType to formValues
+  destinationId: null, // Add destinationId to formValues
 });
 
 const saleData = ref(initSaleData());
 const couponStatus = ref('');
 const couponStatusType = ref('');
+
+const formValues = ref({
+  customer_id: null,
+  destinationType: null, // Add destinationType to formValues
+  destinationId: null, // Add destinationId to formValues
+  lineItems: [],
+  total: 0,
+  couponCode: '',
+  discount: 0,
+  discountType: 'percentage',
+  paymentMethod: null,
+});
+
+// Watch for changes in destinationType and reset destinationId
+watch(() => formValues.value.destinationType, () => {
+  formValues.value.destinationId = null; // Reset destinationId when destinationType changes
+});
+
+// Function to get destination options based on selected type
+const getDestinationOptions = (destinationType) => {
+  // Replace with your logic to fetch warehouses or stores
+  return destinationType === 'warehouse' ? warehouses.value : stores.value;
+};
 
 const columns = [
   { title: 'Product', dataIndex: 'variantId', key: 'variantId' },
@@ -361,6 +428,8 @@ const handleSubmit = async () => {
   try {
     const orderData = {
       ...saleData.value,
+      destinationType: formValues.value.destinationType, // Ensure this is included
+      destinationId: formValues.value.destinationId, // Ensure this is included
       lineItems: saleData.value.lineItems.map(item => ({
         variantId: item.variantId,
         quantity: item.quantity,

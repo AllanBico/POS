@@ -19,6 +19,7 @@ import { Toaster } from "vue-sonner";
 import { reactive, onMounted, ref } from 'vue';
 import { useCategoryStore } from '~/stores/product/CategoryStore.js';
 import { useAuthStore } from "~/stores/AuthStore.js";
+import {useSettingsStore} from "~/stores/settingsStore.js";
 
 definePageMeta({ middleware: 'auth' });
 const router = useRouter();
@@ -93,11 +94,14 @@ const loading = ref(true); // Add loading state
 const loadData = async () => {
   const authStore = useAuthStore();
   const categoryStore = useCategoryStore();
+  const settingsStore = useSettingsStore();
 
   loading.value = true; // Set loading to true before fetching
   try {
     await authStore.fetchPermissions(); // Fetch permissions from the store
+    await settingsStore.fetchSettings()
     await categoryStore.fetchCategories(); // Fetch categories from the store
+
   } catch (error) {
     console.error('Error fetching data:', error);
   } finally {

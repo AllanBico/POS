@@ -171,15 +171,7 @@
                         key="view" @click="onCompositionView(record.id)">
                       <EyeOutlined /> Composition View
                     </a-menu-item>
-                    <a-menu-item
-                        v-if="record?.Product?.isComposition"
-                        key="composition"
-                        @click="onComposition(record.id)"
-                    >
-                      <CopyOutlined /> Composition
-                    </a-menu-item>
-
-
+                    
                     <a-menu-item key="serial" @click="onSerial(record.id)">
                       <CopyOutlined /> Serial Numbers
                     </a-menu-item>

@@ -140,7 +140,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-html, body { margin: 0; padding: 0; }
+/* html, body { margin: 0; padding: 0; } */
 body { font-size: 0.3rem; }
 .loading-svg {
   display: flex;

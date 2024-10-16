@@ -3,7 +3,6 @@
     <!-- Modals -->
     <a-modal
       v-model:open="isAddModalOpen"
-      title="Add Unit"
       @ok="handleModalOk"
       @cancel="handleModalCancel"
       ok-text="Submit"
@@ -16,7 +15,6 @@
 
     <a-modal
       v-model:open="isEditModalOpen"
-      title="Edit Unit"
       @ok="handleModalOk"
       @cancel="handleModalCancel"
       ok-text="Submit"
@@ -32,6 +30,7 @@
       <a-page-header
         class="div-header"
         title="Units"
+        style="padding: 0%;"
         sub-title="Manage and organize your product units"
       >
         <template #extra>
@@ -80,7 +79,7 @@
                   ok-text="Yes"
                   cancel-text="No"
                   @confirm="handleDelete(record.id)"
-                  placement="topRight"
+                  placement="bottom"
               >
                 <a-tooltip title="Delete">
                   <a-button
@@ -119,17 +118,11 @@ const isEditModalOpen = ref(false);
 const selectedUnitId = ref(null);
 
 // Fetch units on component mount
-unitStore.fetchUnits();
 
+console.log('unitStore ',unitStore.units)
 // Table columns configuration
 const columns = [
-  {
-    title: "Index",
-    dataIndex: "index",
-    sorter: (a, b) => a.index.localeCompare(b.index),
-    onFilter: (value, record) =>
-      record.index.toLowerCase().includes(value.toLowerCase()),
-  },
+
   {
     title: 'Name',
     dataIndex: 'name',

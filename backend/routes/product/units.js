@@ -31,19 +31,15 @@ const validateUnitInput = (name, abbreviation, description) => {
 const checkDuplicate = async (name, abbreviation, id = null) => {
     const whereClause = {
         [Op.or]: [
-            { name: { [Op.iLike]: name } },
-            { abbreviation: { [Op.iLike]: abbreviation } }
+            { name: { [Op.iLike]: name.toLowerCase() } }, // Use toLowerCase() for clarity
+            { abbreviation: { [Op.iLike]: abbreviation.toLowerCase() } } // Use toLowerCase() for clarity
         ]
     };
     if (id) {
         whereClause.id = { [Op.ne]: id };
     }
     const existingUnit = await Unit.findOne({ where: whereClause });
-    if (existingUnit) {
-        const error = new Error('Unit with this name or abbreviation already exists');
-        error.status = 400;
-        throw error;
-    }
+    return !!existingUnit; // Return true if a duplicate exists, false otherwise
 };
 
 // Emit socket event to all clients except the sender
@@ -58,19 +54,30 @@ const emitToOthers = (req, event, data) => {
     }
 };
 
+// Middleware for handling 400 and 500 errors
+const handleError = (err, req, res, next) => {
+    console.error(err);
+    res.status(err.status || 500).json({
+        error: err.message || 'Internal server error',
+        status: err.status || 500
+    });
+};
+
 // Create a unit
 router.post('/', authenticateToken, asyncHandler(async (req, res) => {
     try {
         const { name, abbreviation, description } = req.body;
         validateUnitInput(name, abbreviation, description);
-        await checkDuplicate(name, abbreviation);
-
+        const isDuplicate = await checkDuplicate(name, abbreviation); // Check for duplicate
+        if (isDuplicate) {
+            return res.status(400).json({ message: 'Unit with this name or abbreviation already exists' });
+        }
         const unit = await Unit.create({ name, abbreviation, description, createdBy: req.user.id });
-        res.status(201).json({ data: unit, message: 'Unit created successfully' });
+        res.status(201).json({ data: { value: unit }, message: 'Unit created successfully' }); // Added message field
         emitToOthers(req, 'newUnit', unit);
     } catch (error) {
-        if (error instanceof ValidationError || error.status === 400) {
-            res.status(400).json({ error: error.message });
+        if (error.status === 400) {
+            res.status(400).json({ message: error.message });
         } else {
             throw error;
         }
@@ -81,10 +88,10 @@ router.post('/', authenticateToken, asyncHandler(async (req, res) => {
 router.get('/', authenticateToken, asyncHandler(async (req, res) => {
     try {
         const units = await Unit.findAll();
-        res.status(200).json({ data: units, message: 'Units fetched successfully' });
+        res.status(200).json({ data: { value: units }, message: 'Units fetched successfully' }); // Changed response structure
     } catch (error) {
         console.error('Error fetching units:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ message: 'Internal server error' });
     }
 }));
 
@@ -98,12 +105,12 @@ router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
 
         const unit = await Unit.findByPk(id);
         if (!unit) {
-            return res.status(404).json({ error: 'Unit not found' });
+            return res.status(404).json({ message: 'Unit not found' });
         }
-        res.status(200).json({ data: unit, message: 'Unit fetched successfully' });
+        res.status(200).json({ data: { value: unit }, message: 'Unit fetched successfully' }); // Changed response structure
     } catch (error) {
         console.error('Error fetching unit:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ message: 'Internal server error' });
     }
 }));
 
@@ -117,7 +124,12 @@ router.put('/:id', authenticateToken, asyncHandler(async (req, res) => {
         }
 
         validateUnitInput(name, abbreviation, description);
-        await checkDuplicate(name, abbreviation, id);
+        const isDuplicate = await checkDuplicate(name, abbreviation, id); // Check for duplicate
+        if (isDuplicate) {
+            return res.status(400).json({ message: 'Unit with this name or abbreviation already exists' });
+        }
+
+        console.log('Updating unit:', { id, name, abbreviation, description }); // Log for debugging
 
         const [updatedRowsCount, [updatedUnit]] = await Unit.update(
             { name, abbreviation, description },
@@ -128,14 +140,14 @@ router.put('/:id', authenticateToken, asyncHandler(async (req, res) => {
             return res.status(404).json({ error: 'Unit not found' });
         }
 
-        res.status(200).json({ data: updatedUnit, message: 'Unit updated successfully' });
+        res.status(200).json({ data: { value: updatedUnit }, message: 'Unit updated successfully' }); // Added message field
         emitToOthers(req, 'updateUnit', updatedUnit);
     } catch (error) {
-        if (error instanceof ValidationError || error.status === 400) {
-            res.status(400).json({ error: error.message });
+        if (error.status === 400) {
+            res.status(400).json({ message: error.message });
         } else {
             console.error('Error updating unit:', error);
-            res.status(500).json({ error: 'Internal server error' });
+            res.status(500).json({ message: 'Internal server error' });
         }
     }
 }));
@@ -145,29 +157,23 @@ router.delete('/:id', authenticateToken, asyncHandler(async (req, res) => {
     try {
         const id = parseInt(req.params.id, 10);
         if (isNaN(id)) {
-            return res.status(400).json({ error: 'Invalid unit ID' });
+            return res.status(400).json({ message: 'Invalid unit ID' });
         }
 
         const deletedRowsCount = await Unit.destroy({ where: { id } });
         if (deletedRowsCount === 0) {
-            return res.status(404).json({ error: 'Unit not found' });
+            return res.status(404).json({ message: 'Unit not found' });
         }
 
         res.status(200).json({ message: 'Unit deleted successfully' });
         emitToOthers(req, 'deleteUnit', id);
     } catch (error) {
         console.error('Error deleting unit:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ message: 'Internal server error' });
     }
 }));
 
 // Error handling middleware
-router.use((err, req, res, next) => {
-    console.error(err);
-    res.status(err.status || 500).json({
-        error: err.message || 'Internal server error',
-        status: err.status || 500
-    });
-});
+router.use(handleError);
 
 module.exports = router;

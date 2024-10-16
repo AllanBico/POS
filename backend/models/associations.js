@@ -1,4 +1,5 @@
 const Product = require('./product/product');
+const PriceRule = require('./product/PriceRule');
 const Variant = require('./product/variant');
 const Category = require("./product/category");
 const Subcategory = require("./product/subcategory");
@@ -240,6 +241,37 @@ DeliveryLineItem.belongsTo(SalesOrderLineItem, { foreignKey: 'salesOrderLineItem
 Variant.hasMany(DeliveryLineItem, { foreignKey: 'variantId' });
 DeliveryLineItem.belongsTo(Variant, { foreignKey: 'variantId' });
 
+// PriceRule belongs to Variant
+PriceRule.belongsTo(Variant, {
+    foreignKey: 'variantId',
+    as: 'variant',
+    onDelete: 'CASCADE',
+});
+PriceRule.belongsTo(Variant, {
+    foreignKey: 'bundleWithVariantId',
+    as: 'bundleVariant', 
+    onDelete: 'SET NULL',
+});
+
+// PriceRule may refer to either Store or Warehouse (Polymorphic association)
+PriceRule.belongsTo(Store, {
+    foreignKey: 'locationId',
+    constraints: false,
+    as: 'store',
+});
+PriceRule.belongsTo(Warehouse, {
+    foreignKey: 'locationId',
+    constraints: false,
+    as: 'warehouse',
+});
+
+// PriceRule belongs to Customer for customer-based rules
+PriceRule.belongsTo(Customer, {
+    foreignKey: 'customerId',
+    as: 'customer',
+    onDelete: 'SET NULL',
+});
+
 module.exports = {
     ProductExpiry,
     ProductWarranty,
@@ -286,4 +318,5 @@ module.exports = {
     CouponRedemption,
     DeliveryLineItem,
     DeliveryNote,
+    PriceRule,
 };

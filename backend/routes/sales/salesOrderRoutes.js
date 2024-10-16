@@ -11,7 +11,7 @@ const {
     Coupon,
     CouponRedemption, Category, Subcategory, Brand, Unit, ProductTax, VariantImage, PaymentMethod, StockMovement,
     Inventory,
-    Composition
+    Composition, DeliveryLineItem, DeliveryNote
 } = require('../../models/associations');
 const authenticateToken = require("../../middleware/auth"); // Adjust path as needed
 
@@ -84,7 +84,7 @@ router.post('/', authenticateToken, async (req, res) => {
                     // Call the new function to decrement inventory for ingredient
                     await decrementInventory(ingredientVariant.id, quantityToDecrement, req.body.destinationType, req.body.destinationId, { transaction });
                     console.log(`Stock decremented for ingredient variant ID ${ingredientVariant.id} by ${quantityToDecrement}`);
-                    await createStockMovement(ingredientVariant.id, -quantityToDecrement, { transaction }, req.user.id, req.body.destinationType, req.body.destinationId, 'client', salesOrder.id); // Record stock movement
+                    await createStockMovement(ingredientVariant.id, -quantityToDecrement, { transaction }, req.user.id, req.body.destinationType, req.body.destinationId, 'client', salesOrder.id,'sales'); // Record stock movement
                     console.log(`Stock movement recorded for ingredient variant ID ${ingredientVariant.id}`);
                 }
             } else {
@@ -242,13 +242,13 @@ async function recordCouponRedemption(couponId, orderId, discountAmount, {transa
     }, {transaction});
 }
 
-async function createStockMovement(variantId, quantityChange, {transaction}, createdBy, sourceType = 'store', sourceId = null, destinationType = 'store', destinationId = null) {
+async function createStockMovement(variantId, quantityChange, {transaction}, createdBy, sourceType = 'store', sourceId = null, destinationType = 'store', destinationId = null,transactionType) {
     console.log(`Creating stock movement: variantId=${variantId}, quantityChange=${quantityChange}, createdBy=${createdBy}, sourceType=${sourceType}, sourceId=${sourceId}, destinationType=${destinationType}, destinationId=${destinationId}`);
     
     const stockMovement = await StockMovement.create({
         variantId,
         quantity: quantityChange,
-        transactionType: 'sales',
+        transactionType,
         sourceType, // e.g., 'store', 'warehouse', etc.
         sourceId, // ID of the source (e.g., store or warehouse)
         destinationType, // e.g., 'store', 'warehouse', etc.
@@ -425,4 +425,145 @@ router.delete('/items/:id', authenticateToken, async (req, res) => {
         res.status(500).json({message: 'Error deleting line item', error});
     }
 });
+// Function to handle returning the whole order
+async function returnWholeOrder(orderId, userId, transaction) {
+    const orderLineItems = await SalesOrderLineItem.findAll({ where: { salesOrderId: orderId } });
+    if (!orderLineItems.length) {
+        throw new Error('No line items found for this order');
+    }
+
+    // Logic to handle return of the whole order
+    for (const item of orderLineItems) {
+        await handleReturn(item, userId, transaction);
+    }
+    return orderLineItems;
+}
+
+// Function to handle returning a single item with all quantity
+async function returnSingleItem(itemId, userId, transaction) {
+    const lineItem = await SalesOrderLineItem.findByPk(itemId);
+    if (!lineItem) {
+        throw new Error('Line item not found');
+    }
+    // Logic to handle return of the single item
+    await handleReturn(lineItem, userId, transaction);
+    return lineItem;
+}
+
+// Function to handle returning multiple items with different quantities
+async function returnMultipleItems(items, userId, transaction) {
+    const returnedItems = [];
+    for (const item of items) {
+        const lineItem = await SalesOrderLineItem.findByPk(item.id);
+        if (!lineItem) {
+            throw new Error(`Line item with ID ${item.id} not found`);
+        }
+        // Logic to handle return of each item
+        await handleReturn(lineItem, userId, transaction);
+        returnedItems.push({ id: lineItem.id, quantityReturned: item.quantity });
+    }
+    return returnedItems;
+}
+
+// New function to handle the return logic for a line item
+async function handleReturn(lineItem, userId, transaction) {
+    const variant = await Variant.findByPk(lineItem.variantId);
+    if (!variant) {
+        throw new Error(`Variant with ID ${lineItem.variantId} not found`);
+    }
+
+    // Increment stock quantity
+    variant.stockQuantity += lineItem.quantity;
+    await variant.save({ transaction });
+
+    // Create stock movement for the return
+    await createStockMovement(variant.id, lineItem.quantity, { transaction }, userId, 'client', null, 'store', null,'return');
+
+    // Optionally, you can delete the line item or update its status
+    await lineItem.destroy({ transaction });
+}
+
+// Endpoint to handle returns
+router.post('/returns', authenticateToken, async (req, res) => {
+    const { orderId, items } = req.body;
+    const transaction = await SalesOrder.sequelize.transaction();
+
+    try {
+        // Scenario 1: Return the whole order
+        if (orderId && !items) {
+            const orderLineItems = await returnWholeOrder(orderId, req.user.id, transaction);
+            await transaction.commit();
+            return res.status(200).json({ message: 'Order returned successfully', items: orderLineItems });
+        }
+
+        // Scenario 2: Return one item with all quantity
+        if (items && items.length === 1) {
+            const lineItem = await returnSingleItem(items[0].id, req.user.id, transaction);
+            await transaction.commit();
+            return res.status(200).json({ message: 'Item returned successfully', item: lineItem });
+        }
+
+        // Scenario 3: Return multiple items with different quantities
+        if (items && items.length > 1) {
+            const returnedItems = await returnMultipleItems(items, req.user.id, transaction);
+            await transaction.commit();
+            return res.status(200).json({ message: 'Items returned successfully', items: returnedItems });
+        }
+
+        return res.status(400).json({ message: 'Invalid request. Please provide orderId or items for return.' });
+    } catch (error) {
+        console.error('Error processing return:', error);
+        await transaction.rollback();
+        res.status(500).json({ message: 'Error processing return', error });
+    }
+});
+
+// Endpoint to create a delivery for a sales order
+router.post('/delivery/:id', authenticateToken, async (req, res) => {
+    const  salesOrderId  = req.params.id
+    const transaction = await DeliveryNote.sequelize.transaction();
+
+    try {
+        // Find the sales order
+        const salesOrder = await SalesOrder.findByPk(salesOrderId, {
+            include: [{ model: SalesOrderLineItem, as: 'lineItems' }, { model: Customer, as: 'customer' }] // Include customer to get address and delivery person
+        });
+
+        if (!salesOrder) {
+            return res.status(404).json({ message: 'Sales order not found' });
+        }
+
+        // Get delivery details from the customer
+        const deliveryAddress = salesOrder.Customer?.address || 'N/A'; // Get address from customer if available, otherwise use custom address provided in request body
+        const deliveryPerson = salesOrder.Customer?.name; // Get delivery person name from customer
+        const deliveryDate = new Date(); // Use today's date
+
+        // Create the delivery note
+        const deliveryNote = await DeliveryNote.create({
+            salesOrderId: salesOrder.id,
+            deliveryDate,
+            deliveryAddress,
+            deliveryPerson,
+            createdBy: req.user.id
+        }, { transaction });
+
+        // Create delivery line items for each line item in the sales order
+        const deliveryLineItems = await Promise.all(salesOrder.lineItems.map(async (lineItem) => {
+            return await DeliveryLineItem.create({
+                deliveryNoteId: deliveryNote.id,
+                salesOrderLineItemId: lineItem.id,
+                variantId: lineItem.variantId,
+                quantity: lineItem.quantity
+            }, { transaction });
+        }));
+
+        await transaction.commit();
+        return res.status(201).json({ message: 'Delivery created successfully', deliveryNote, deliveryLineItems });
+    } catch (error) {
+        console.error('Error creating delivery:', error);
+        await transaction.rollback();
+        return res.status(500).json({ message: 'Error creating delivery', error });
+    }
+});
+
 module.exports = router;

@@ -198,7 +198,7 @@ router.get('/mpesa/auth', async (req, res) => {
 });
 router.post('/mpesa/stkpush', async (req, res) => {
     // const { phoneNumber, amount, accountReference, transactionDesc } = req.body;
-    const PHONE_NUMBER = '254725094787';
+    const PHONE_NUMBER = '254721255169';
     const AMOUNT = 5;
     const ACCOUNT_REFERENCE = 'INTELLITECH LTD';
     const TRANSACTION_DESC = 'Order Payment';

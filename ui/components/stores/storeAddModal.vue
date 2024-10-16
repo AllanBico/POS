@@ -61,7 +61,6 @@ import { ShopOutlined, EnvironmentOutlined, PlusOutlined } from '@ant-design/ico
 
 const storeStore = useStoreStore();
 const emit = defineEmits(['submit-success']);
-const { $toast } = useNuxtApp();
 const loading = ref(false);
 const form = ref({
   name: '',
@@ -84,7 +83,6 @@ const handleSubmit = async () => {
 
     form.value = { name: '', location: '', description: '' };
     emit('submit-success');
-    $toast.success('Store added successfully!');
   } catch (error) {
     console.error('Error Adding Store:', error);
     $toast.error(error.message || 'Error Creating Store');

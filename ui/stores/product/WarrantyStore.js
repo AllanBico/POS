@@ -9,88 +9,132 @@ export const useWarrantyStore = defineStore('warranty', {
         error: null,
         loading: false,
     }),
+
     getters: {
         warrantyById: (state) => (id) => {
             const warranty = state.warranties.find(warranty => warranty.id === id);
             if (!warranty) {
                 console.warn(`Warranty with id ${id} not found`);
             }
-            return warranty || null;
+            return warranty;
         },
     },
+
     actions: {
-        setLoading(isLoading) {
-            this.loading = isLoading;
-        },
-
-        async performApiCall(method, endpoint, body = null) {
-            this.setLoading(true);
-            this.error = null;
-            const config = useRuntimeConfig();
-            const { data, error } = await useFetch(`${config.public.baseURL}${endpoint}`, {
-                method,
-                body,
-                credentials: 'include',
-            });
-
-            if (error.value) {
-                console.error(`Failed to perform API call: ${error.value}`);
-                this.error = error.value;
-                useNuxtApp().$toast.error(error.value.message || 'An error occurred');
-                throw error.value;
-            }
-            return data.value;
-        },
-
         async fetchWarranties() {
-            this.warranties = await this.performApiCall('GET', '/api/warranties');
+            await this.performApiCall('GET', '/api/warranties', null, (data) => {
+                this.warranties = data;
+            }, 'Failed to fetch warranties');
         },
 
         async fetchWarranty(id) {
-            this.warranty = await this.performApiCall('GET', `/api/warranties/${id}`);
+            await this.performApiCall('GET', `/api/warranties/${id}`, null, (data) => {
+                this.warranty = data;
+            }, `Failed to fetch warranty with ID: ${id}`);
         },
 
         async createWarranty(warranty) {
-            const createdWarranty = await this.performApiCall('POST', '/api/warranties', warranty);
-            this.warranties.push(createdWarranty);
+            await this.performApiCall('POST', '/api/warranties', warranty, (data) => {
+                this.warranties.push(data);
+                useNuxtApp().$toast.success('Warranty Created');
+            }, 'Failed to create warranty');
         },
 
         async updateWarranty(id, warranty) {
-            const updatedWarranty = await this.performApiCall('PUT', `/api/warranties/${id}`, warranty);
-            const index = this.warranties.findIndex(w => w.id === id);
-            if (index !== -1) this.warranties[index] = updatedWarranty;
+            await this.performApiCall('PUT', `/api/warranties/${id}`, warranty, (data) => {
+                const index = this.warranties.findIndex(w => w.id === id);
+                if (index !== -1) this.warranties[index] = data;
+                useNuxtApp().$toast.success('Warranty Updated');
+            }, `Failed to update warranty with ID: ${id}`);
         },
 
         async deleteWarranty(id) {
-            await this.performApiCall('DELETE', `/api/warranties/${id}`);
-            this.warranties = this.warranties.filter(w => w.id !== id);
+            await this.performApiCall('DELETE', `/api/warranties/${id}`, null, () => {
+                this.warranties = this.warranties.filter(w => w.id !== id);
+                useNuxtApp().$toast.warning('Warranty Deleted');
+            }, `Failed to delete warranty with ID: ${id}`);
         },
 
         // Socket event handlers
         socketUpdateWarranty(warranty) {
-            const index = this.warranties.findIndex(obj => obj.id === warranty.id);
-            if (index !== -1) {
-                this.warranties[index] = { ...this.warranties[index], ...warranty };
+            if (warranty && warranty.id) {
+                const index = this.warranties.findIndex(w => w.id === warranty.id);
+                if (index !== -1) {
+                    this.warranties[index] = { ...this.warranties[index], ...warranty };
+                } else {
+                    console.warn('Warranty not found for update:', warranty);
+                }
             } else {
-                console.warn('Warranty not found for update:', warranty);
+                console.warn('Invalid warranty data received for update:', warranty);
             }
         },
 
         socketCreateWarranty(warranty) {
-            const exists = this.warranties.some(obj => obj.id === warranty.id);
-            if (!exists) {
+            if (warranty && warranty.id && !this.warranties.some(w => w.id === warranty.id)) {
                 this.warranties.push(warranty);
             } else {
-                console.warn('Duplicate warranty data received for creation:', warranty);
+                console.warn('Invalid warranty data received for creation or duplicate found:', warranty);
             }
         },
 
         socketDeleteWarranty(id) {
-            const index = this.warranties.findIndex(warranty => warranty.id === id);
-            if (index !== -1) {
-                this.warranties.splice(index, 1);
+            const warrantyId = parseInt(id, 10);
+            if (!isNaN(warrantyId)) {
+                const initialLength = this.warranties.length;
+                this.warranties = this.warranties.filter(warranty => warranty.id !== warrantyId);
+                if (this.warranties.length < initialLength) {
+                    console.log('Warranty Deleted via Socket');
+                } else {
+                    console.warn('Warranty ID not found for deletion:', id);
+                }
             } else {
-                console.warn('Warranty ID not found for deletion:', id);
+                console.warn('Invalid warranty ID received for deletion:', id);
+            }
+        },
+
+        // Utility functions
+        setLoading(isLoading) {
+            this.loading = isLoading;
+        },
+
+        async performApiCall(method, endpoint, body, onSuccess, errorMessage) {
+            this.setLoading(true);
+            this.error = null;
+            const config = useRuntimeConfig();
+            const socketId = useState('socketId').value;
+            const apiUrl = `${config.public.baseURL}${endpoint}`;
+
+            try {
+                const { data, error } = await useFetch(apiUrl, {
+                    method,
+                    body,
+                    credentials: 'include',
+                    headers: {
+                        'x-socket-id': socketId,
+                    },
+                });
+
+                if (error.value) {
+                    const errorData = error.value.data;
+                    if (errorData && errorData.error) {
+                        throw new Error(errorData.error);
+                    } else if (error.value.status === 400) {
+                        throw new Error('Invalid input. Please check your data and try again.');
+                    } else if (error.value.status === 404) {
+                        throw new Error('The requested resource was not found.');
+                    } else if (error.value.status === 500) {
+                        throw new Error('An internal server error occurred. Please try again later.');
+                    } else {
+                        throw new Error(errorMessage);
+                    }
+                }
+                onSuccess(data.value.data);
+            } catch (error) {
+                console.error(errorMessage, error);
+                this.error = error.message;
+                useNuxtApp().$toast.error(error.message || errorMessage);
+            } finally {
+                this.setLoading(false);
             }
         },
     },

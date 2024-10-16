@@ -3,7 +3,6 @@
     <!-- Modals -->
     <a-modal
       v-model:open="open"
-      title="Add Product"
       @ok="handleOk"
       @cancel="handleCancel"
       ok-text="Submit"
@@ -15,7 +14,6 @@
     </a-modal>
     <a-modal
       v-model:open="edit_open"
-      title="Edit Variant"
       @ok="handleOk"
       @cancel="handleCancel"
       ok-text="Submit"
@@ -31,6 +29,7 @@
       <a-page-header
         class="div-header"
         title="Variants"
+        style="padding: 0%;"
         sub-title="Manage and organize your variants"
       >
         <template #extra>
@@ -66,11 +65,7 @@
       <a-table
         :dataSource="productStore.variants"
         :columns="columns"
-        :pagination="{
-          pageSize: 10,
-          showSizeChanger: true,
-          showQuickJumper: true,
-        }"
+        bordered
         :rowKey="(record) => record.id"
         :loading="productStore.loading"
         size="middle"
@@ -135,6 +130,7 @@
           </template>
           <template v-if="column.dataIndex === 'operation'">
             <div class="action-buttons">
+              
               <a-tooltip title="Edit">
                 <a-button
                   type="link"
@@ -150,7 +146,7 @@
                 ok-text="Yes"
                 cancel-text="No"
                 @confirm="onDelete(record.id)"
-                placement="topRight"
+                placement="bottom"
               >
                 <a-tooltip title="Delete">
                   <a-button
@@ -165,6 +161,11 @@
               <a-dropdown>
                 <template #overlay>
                   <a-menu>
+                    <a-menu-item
+                        v-if="record?.Product?.isComposition"
+                        key="rules" @click="onPriceRule(record.id)">
+                      <EyeOutlined /> Pice Rules
+                    </a-menu-item>
                     <a-menu-item
                         v-if="record?.Product?.isComposition"
                         key="view" @click="onCompositionView(record.id)">
@@ -216,6 +217,7 @@ import compositionForm from "~/components/product/products/compositionForm.vue";
 import compositionView from "~/components/product/products/compositionView.vue";
 import variantSerial from "~/components/product/products/variants/variantSerial.vue";
 import VariantsEditModal from "~/components/product/products/variants/variantsEditModal.vue";
+import PriceRulesTable from '~/components/product/priceRules/PriceRulesTable.vue';
 
 const productStore = useProductStore();
 const tabsStore = useTabsStore();
@@ -331,7 +333,9 @@ const onSerial = key => {
 const onCompositionView = key => {
   tabsStore.addTab('Product Composition', compositionView, { variant_id: key });
 };
-
+const onPriceRule = key => {
+  tabsStore.addTab('Variant Price Rules', PriceRulesTable, { variantId: key });
+};
 const pagination = ref({pageSize: 10});
 const edit = key => {
 };

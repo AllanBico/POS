@@ -1,100 +1,123 @@
 <template>
-  <a-form :model="newVariant" @submit.prevent="handleSubmit">
-    <div class="form-actions">
-      <a-button type="link" @click="handleAddAttribute" :icon="h(PlusOutlined)">Add New Attribute</a-button>
-      <a-button type="link" @click="handleAddAttributeValue" :icon="h(PlusOutlined)">Add New Attribute Value</a-button>
-    </div>
-
-    <a-table :dataSource="variants" :columns="columns" :pagination="false">
-      <template #bodyCell="{ column, record, index }">
-        <template v-if="column.dataIndex === 'attributes'">
-          <div v-for="(attributeSelection, attrIndex) in record.attributes" :key="attrIndex">
-            <a-select
-              v-model:value="attributeSelection.attributeId"
-              @change="(value) => fetchValuesForAttribute(value, index, attrIndex)"
-              placeholder="Select attribute"
-              style="width: 45%; margin-right: 5%;"
-            >
-              <a-select-option v-for="attribute in attributesStore.attributes" :key="attribute.id" :value="attribute.id">
-                {{ attribute.name }}
-              </a-select-option>
-            </a-select>
-            <a-select
-              v-model:value="attributeSelection.valueId"
-              placeholder="Select attribute value"
-              style="width: 45%;"
-            >
-              <a-select-option v-for="value in attributeSelection.attributeValues" :key="value.id" :value="value.id">
-                {{ value.value }}
-              </a-select-option>
-            </a-select>
-          </div>
-          <a-button @click="addNewAttribute(index)" type="dashed" block class="add-attribute-btn">
-            <plus-outlined />
-            Add Another Attribute
-          </a-button>
+  <h3 style="margin-top: 0">Create Attribute</h3>
+  <a-divider style="margin-bottom: 11px; margin-top: 11px" />
+  <a-form :model="newVariant" @submit.prevent="handleSubmit" layout="vertical">
+    <a-form-item >
+      <a-table bordered :dataSource="variants" :columns="columns" :pagination="false">
+        <template #bodyCell="{ column, record, index }">
+          <template v-if="column.dataIndex === 'attributes'">
+            <div v-for="(attributeSelection, attrIndex) in record.attributes" :key="attrIndex">
+              <a-row :gutter="[8, 8]">
+                <a-col :span="12">
+                  <a-form-item label="Attribute">
+                    <a-select
+                      v-model:value="attributeSelection.attributeId"
+                      @change="(value) => fetchValuesForAttribute(value, index, attrIndex)"
+                      placeholder="Select attribute"
+                      style="width: 100%"
+                    >
+                      <a-select-option v-for="attribute in attributesStore.attributes" :key="attribute.id" :value="attribute.id">
+                        {{ attribute.name }}
+                      </a-select-option>
+                    </a-select>
+                  </a-form-item>
+                </a-col>
+                <a-col :span="12">
+                  <a-form-item label="Attribute Value">
+                    <a-select
+                      v-model:value="attributeSelection.valueId"
+                      placeholder="Select attribute value"
+                      style="width: 100%"
+                    >
+                      <a-select-option v-for="value in attributeSelection.attributeValues" :key="value.id" :value="value.id">
+                        {{ value.value }}
+                      </a-select-option>
+                    </a-select>
+                  </a-form-item>
+                </a-col>
+              </a-row>
+            </div>
+            <a-button @click="addNewAttribute(index)" type="dashed" block class="add-attribute-btn">
+              <plus-outlined />
+              Add Another Attribute
+            </a-button>
+          </template>
+          <template v-else-if="column.dataIndex === 'sku'">
+            <a-form-item label="SKU">
+              <a-input v-model:value="record.sku" placeholder="Enter SKU" required />
+            </a-form-item>
+          </template>
+          <template v-else-if="column.dataIndex === 'price'">
+            <a-form-item label="Price">
+              <a-input-number v-model:value="record.price" placeholder="Enter price" :min="0" :step="0.01" required />
+            </a-form-item>
+          </template>
+          <template v-else-if="column.dataIndex === 'stockQuantity'">
+            <a-form-item label="Stock Quantity">
+              <a-input-number v-model:value="record.stockQuantity" placeholder="Enter stock quantity" :min="0" :step="1" />
+            </a-form-item>
+          </template>
+          <template v-else-if="column.dataIndex === 'code'">
+            <a-form-item label="Code">
+              <a-input v-model:value="record.code" placeholder="Enter code" />
+            </a-form-item>
+          </template>
+          <template v-else-if="column.dataIndex === 'partNumber'">
+            <a-form-item label="Part Number">
+              <a-input v-model:value="record.partNumber" placeholder="Enter part number" />
+            </a-form-item>
+          </template>
+          <template v-else-if="column.dataIndex === 'image'">
+            <a-form-item label="Image">
+              <a-upload
+                name="file"
+                :customRequest="(info) => handleImageUpload(info, index)"
+                :showUploadList="true"
+              >
+                <a-button icon="upload">Upload Image</a-button>
+              </a-upload>
+            </a-form-item>
+          </template>
+          <template v-else-if="column.dataIndex === 'destinationType'">
+            <a-form-item label="Destination Type">
+              <a-select v-model:value="record.destinationType" placeholder="Select Destination Type" required>
+                <a-select-option value="warehouse">Warehouse</a-select-option>
+                <a-select-option value="store">Store</a-select-option>
+              </a-select>
+            </a-form-item>
+          </template>
+          <template v-else-if="column.dataIndex === 'destinationId'">
+            <a-form-item label="Destination">
+              <a-select
+                v-model:value="record.destinationId"
+                placeholder="Select Destination"
+                v-if="record.destinationType"
+                required
+              >
+                <a-select-option
+                  v-for="option in getDestinationOptions(record.destinationType)"
+                  :key="option.id"
+                  :value="option.id"
+                >
+                  {{ option.name }}
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+          </template>
+          <template v-else-if="column.dataIndex === 'action'">
+            <a-button @click="removeVariant(index)" type="text" danger>
+              <delete-outlined />
+            </a-button>
+          </template>
         </template>
-        <template v-else-if="column.dataIndex === 'sku'">
-          <a-input v-model:value="record.sku" placeholder="Enter SKU" required />
-        </template>
-        <template v-else-if="column.dataIndex === 'price'">
-          <a-input-number v-model:value="record.price" placeholder="Enter price" :min="0" :step="0.01" required />
-        </template>
-        <template v-else-if="column.dataIndex === 'stockQuantity'">
-          <a-input-number v-model:value="record.stockQuantity" placeholder="Enter stock quantity" :min="0" :step="1" />
-        </template>
-        <template v-else-if="column.dataIndex === 'code'">
-          <a-input v-model:value="record.code" placeholder="Enter code" />
-        </template>
-        <template v-else-if="column.dataIndex === 'partNumber'">
-          <a-input v-model:value="record.partNumber" placeholder="Enter part number" />
-        </template>
-        <template v-else-if="column.dataIndex === 'image'">
-          <a-upload
-            name="file"
-            :customRequest="(info) => handleImageUpload(info, index)"
-            :showUploadList="true"
-          >
-            <a-button icon="upload">Upload Image</a-button>
-          </a-upload>
-        </template>
-        <template v-else-if="column.dataIndex === 'destinationType'">
-          <a-select v-model:value="record.destinationType" placeholder="Select Destination Type" required>
-            <a-select-option value="warehouse">Warehouse</a-select-option>
-            <a-select-option value="store">Store</a-select-option>
-          </a-select>
-        </template>
-        <template v-else-if="column.dataIndex === 'destinationId'">
-          <a-select
-            v-model:value="record.destinationId"
-            placeholder="Select Destination"
-            v-if="record.destinationType"
-            required
-          >
-            <a-select-option
-              v-for="option in getDestinationOptions(record.destinationType)"
-              :key="option.id"
-              :value="option.id"
-            >
-              {{ option.name }}
-            </a-select-option>
-          </a-select>
-        </template>
-        <template v-else-if="column.dataIndex === 'action'">
-          <a-button @click="removeVariant(index)" type="text" danger>
-            <delete-outlined />
-          </a-button>
-        </template>
-      </template>
-    </a-table>
-
-    <div class="form-actions">
+      </a-table>
+    </a-form-item>
+    <a-form-item>
       <a-button type="dashed" @click="addVariant" block icon="plus">Add Variant</a-button>
-    </div>
-
-    <div class="form-actions">
+    </a-form-item>
+    <a-form-item>
       <a-button type="primary" html-type="submit" :loading="loading">Submit</a-button>
-    </div>
+    </a-form-item>
   </a-form>
 
   <!-- Modals -->

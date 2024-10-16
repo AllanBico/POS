@@ -53,7 +53,8 @@ const routes = {
     variantImages: require('./routes/product/variantImage'),
     productWarranties: require('./routes/product/productWarranty'),
     productExpiries: require('./routes/product/productExpiry'),
-    deliveries: require('./routes/delivery/deliveryRoutes')
+    deliveries: require('./routes/delivery/deliveryRoutes'),
+    priceRules: require('./routes/product/priceRules')
 };
 
 dotenv.config();

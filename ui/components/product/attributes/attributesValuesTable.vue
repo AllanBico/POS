@@ -3,7 +3,6 @@
     <!-- Modals -->
     <a-modal
       v-model:open="isAddModalOpen"
-      title="Create Attribute Value"
       @ok="handleModalOk"
       @cancel="handleModalCancel"
       ok-text="Submit"
@@ -19,7 +18,6 @@
 
     <a-modal
       v-model:open="isEditModalOpen"
-      title="Edit Attribute Value"
       @ok="handleModalOk"
       @cancel="handleModalCancel"
       ok-text="Submit"
@@ -39,6 +37,7 @@
         class="div-header"
         :title="`${attribute?.name} Attribute Values`"
         :sub-title="`Manage and organize your attribute values`"
+        style="padding: 0%;"
       >
         <template #extra>
           <a-button
@@ -78,6 +77,7 @@
         :loading="attributesStore.loading"
         size="middle"
         @change="handleTableChange"
+        bordered
       >
         <!-- Custom filter dropdown template -->
         <template

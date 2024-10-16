@@ -1,54 +1,50 @@
 <template>
-  <a-form layout="vertical" :form="form" @submit.prevent="handleSubmit">
-    <!-- Other fields remain the same -->
-
-    <a-form-item label="Coupon Code" :rules="[{ required: true, message: 'Please input the coupon code!' }]">
-      <a-input v-model:value="form.code" />
-    </a-form-item>
-
-    <a-form-item label="Discount Type" :rules="[{ required: true, message: 'Please select a discount type!' }]">
-      <a-select v-model:value="form.discountType" placeholder="Select discount type">
-        <a-select-option value="percentage">Percentage</a-select-option>
-        <a-select-option value="fixed_amount">Fixed Amount</a-select-option>
-        <a-select-option value="buy_x_get_y">Buy X Get Y</a-select-option>
-      </a-select>
-    </a-form-item>
-
-    <a-form-item label="Discount Value" :rules="[{ required: true, message: 'Please input the discount value!' }]">
-      <a-input-number v-model:value="form.discountValue" min="0" />
-    </a-form-item>
-
-    <a-form-item label="Minimum Purchase Amount">
-      <a-input-number v-model:value="form.minimumPurchaseAmount" min="0" />
-    </a-form-item>
-
-    <a-form-item label="Expiry Date" :rules="[{ required: true, message: 'Please select an expiry date!' }]" >
-      <a-date-picker v-model:value="form.expiryDate"  value-format="YYYY-MM-DD"/>
-    </a-form-item>
-
-    <a-form-item label="Applicable To">
-      <a-select v-model:value="form.applicableTo" @change="handleApplicableToChange">
-        <a-select-option value="product">Product</a-select-option>
-        <a-select-option value="variant">Variant</a-select-option>
-        <a-select-option value="category">Category</a-select-option>
-        <a-select-option value="subcategory">Subcategory</a-select-option>
-      </a-select>
-    </a-form-item>
-
-    <a-form-item label="Applicable ID" v-if="form.applicableTo && applicableOptions.length">
-      <a-select v-model:value="form.applicableId" placeholder="Select applicable item">
-        <a-select-option v-for="option in applicableOptions" :key="option.id" :value="option.id">
-          {{ option?.name || option?.sku }}
-        </a-select-option>
-      </a-select>
-    </a-form-item>
-
-    <a-form-item>
-      <a-button type="primary" :loading="loading" html-type="submit">Update</a-button>
-    </a-form-item>
-  </a-form>
+  <div class="coupon-edit-modal">
+    <h3 style="margin-top: 0">Edit Coupon</h3>
+    <a-divider style="margin-bottom: 11px; margin-top: 11px" />
+    <a-form layout="vertical" :form="form" @submit.prevent="handleSubmit">
+      <a-form-item label="Coupon Code" :rules="[{ required: true, message: 'Please input the coupon code!' }]">
+        <a-input v-model:value="form.code" placeholder="Enter coupon code" />
+      </a-form-item>
+      <a-form-item label="Discount Type" :rules="[{ required: true, message: 'Please select a discount type!' }]">
+        <a-select v-model:value="form.discountType" placeholder="Select discount type">
+          <a-select-option value="percentage">Percentage</a-select-option>
+          <a-select-option value="fixed_amount">Fixed Amount</a-select-option>
+          <a-select-option value="buy_x_get_y">Buy X Get Y</a-select-option>
+        </a-select>
+      </a-form-item>
+      <a-form-item label="Discount Value" :rules="[{ required: true, message: 'Please input the discount value!' }]">
+        <a-input-number v-model:value="form.discountValue" min="0" />
+      </a-form-item>
+      <a-form-item label="Minimum Purchase Amount">
+        <a-input-number v-model:value="form.minimumPurchaseAmount" min="0" />
+      </a-form-item>
+      <a-form-item label="Expiry Date" :rules="[{ required: true, message: 'Please select an expiry date!' }]" >
+        <a-date-picker v-model:value="form.expiryDate"  value-format="YYYY-MM-DD"/>
+      </a-form-item>
+      <a-form-item label="Applicable To">
+        <a-select v-model:value="form.applicableTo" @change="handleApplicableToChange">
+          <a-select-option value="product">Product</a-select-option>
+          <a-select-option value="variant">Variant</a-select-option>
+          <a-select-option value="category">Category</a-select-option>
+          <a-select-option value="subcategory">Subcategory</a-select-option>
+        </a-select>
+      </a-form-item>
+      <a-form-item label="Applicable ID" v-if="form.applicableTo && applicableOptions.length">
+        <a-select v-model:value="form.applicableId" placeholder="Select applicable item">
+          <a-select-option v-for="option in applicableOptions" :key="option.id" :value="option.id">
+            {{ option?.name || option?.sku }}
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+      <a-form-item >
+        <a-button type="primary" :loading="loading" html-type="submit" block size="large">
+          Update
+        </a-button>
+      </a-form-item>
+    </a-form>
+  </div>
 </template>
-
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { useCouponStore } from '~/stores/CouponStore'; // Assuming a store for managing coupons

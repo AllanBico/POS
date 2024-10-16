@@ -1,15 +1,21 @@
 <template>
-  <a-form :form="form" @submit.prevent="updatePayment">
-    <a-form-item label="name" :rules="[{ required: true, message: 'Please input payment name!' }]">
-      <a-input v-model:value="form.name"/>
-    </a-form-item>
-    <a-form-item label="Description" :rules="[{ required: true, message: 'Please input payment description!' }]">
-      <a-textarea :rows="4" v-model:value="form.description"/>
-    </a-form-item>
-    <a-form-item>
-      <a-button type="primary" html-type="submit">Submit</a-button>
-    </a-form-item>
-  </a-form>
+  <div class="payment-method-edit-modal">
+    <h3 style="margin-top: 0">Edit Payment Method</h3>
+    <a-divider style="margin-bottom: 11px; margin-top: 11px" />
+    <a-form layout="vertical" :form="form" @submit.prevent="updatePayment">
+      <a-form-item label="Payment Method Name" :rules="[{ required: true, message: 'Please input your name!' }]">
+        <a-input v-model:value="form.name" placeholder="Enter payment method name" />
+      </a-form-item>
+      <a-form-item label="Description" :rules="[{ required: true, message: 'Please input your description!' }]">
+        <a-textarea :rows="4" v-model:value="form.description" placeholder="Enter payment method description" />
+      </a-form-item>
+      <a-form-item>
+        <a-button type="primary" :loading="paymentMethodStore.loading" html-type="submit" block size="large">
+          Submit
+        </a-button>
+      </a-form-item>
+    </a-form>
+  </div>
 </template>
 <script setup>
 import {ref, onMounted, watch} from 'vue';
@@ -52,6 +58,7 @@ watch(() => props.payment_id, (newpaymentId) => {
 
 const updatePayment = async () => {
   try {
+    paymentMethodStore.setLoading(true);
     await paymentMethodStore.updatePaymentMethod(paymentId.value, form.value);
 
 
@@ -62,6 +69,8 @@ const updatePayment = async () => {
     }
   } catch (err) {
     error.value = err.message || 'Failed to update Payment Method';
+  } finally {
+    paymentMethodStore.setLoading(false);
   }
 };
 

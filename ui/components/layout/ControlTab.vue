@@ -8,8 +8,6 @@
     <!-- Search Icon -->
     <a-button type="link" :icon="h(SearchOutlined)" @click="showSearchModal" />
 
-    <!-- Settings Icon -->
-    <a-button type="link" :icon="h(SettingOutlined)" />
 
     <!-- Dropdown with Avatar -->
     <a-dropdown>
@@ -124,6 +122,36 @@
       Start typing to search...
     </div>
   </a-modal>
+
+  <!-- Notification Drawer -->
+  <a-drawer
+      v-model:visible="isNotificationDrawerVisible"
+      placement="right"
+      :closable="false"
+      :width="500"
+      class="notification-drawer"
+  >
+    <template #title>
+      Notifications
+    </template>
+    <a-list
+        item-layout="horizontal"
+        :data-source="notifications"
+        size="small"
+    >
+      <template #renderItem="{ item }">
+        <a-list-item>
+          <a-list-item-meta
+              :description="item.description"
+          >
+            <template #title>
+              <span>{{ item.title }}</span>
+            </template>
+          </a-list-item-meta>
+        </a-list-item>
+      </template>
+    </a-list>
+  </a-drawer>
 </template>
 
 <script setup>
@@ -132,7 +160,7 @@ import { useProductStore } from '~/stores/product/ProductStore.js';
 import { useCustomerStore } from '~/stores/CustomerStore.js';
 import { useSerialNumberStore } from '~/stores/SerialNumberStore.js';
 import { BellOutlined, SettingOutlined, UserOutlined, SearchOutlined } from '@ant-design/icons-vue';
-import { notification } from 'ant-design-vue';
+import { notification, Dropdown, Menu, Button, Drawer, List, ListItem, ListItemMeta } from 'ant-design-vue';
 import Mousetrap from 'mousetrap';
 import { useTabsStore } from '~/stores/tabsStore.js';
 import productView from '~/components/product/products/productView.vue';
@@ -151,6 +179,21 @@ const searchResults = ref([]);
 const CustomerSearchResults = ref([]);
 const SerialSearchResults = ref([]);
 const BatchSearchResults = ref([]);
+const isNotificationDrawerVisible = ref(false);
+const notifications = ref([
+  {
+    title: 'New Order Received',
+    description: 'Order #12345 from John Doe',
+  },
+  {
+    title: 'Inventory Update',
+    description: 'Product X is now in stock',
+  },
+  {
+    title: 'System Maintenance',
+    description: 'Scheduled maintenance on Sunday, 10:00 PM',
+  },
+]);
 
 // Open search modal
 const showSearchModal = () => {
@@ -211,13 +254,7 @@ onBeforeUnmount(() => {
 
 // Show notifications when Bell icon is clicked
 const showNotifications = () => {
-  notification.open({
-    message: 'Notifications',
-    description: 'You have 4 new notifications.',
-    onClick: () => {
-      console.log('Notification Clicked!');
-    },
-  });
+  isNotificationDrawerVisible.value = true;
 };
 
 const onProductView = (id) => {

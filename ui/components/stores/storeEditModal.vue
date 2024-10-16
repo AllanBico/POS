@@ -72,7 +72,6 @@ import { ShopOutlined, EnvironmentOutlined, EditOutlined } from '@ant-design/ico
 
 const storeStore = useStoreStore();
 const emit = defineEmits(['submit-success']);
-const { $toast } = useNuxtApp();
 const loading = ref(false);
 const props = defineProps({
   store_id: {
@@ -98,7 +97,6 @@ const fetchStore = async () => {
     }
   } catch (error) {
     console.error('Error Fetching Store:', error);
-    $toast.error(error.message || 'Failed to load Store');
   } finally {
     loading.value = false;
   }
@@ -123,10 +121,8 @@ const handleSubmit = async () => {
     });
 
     emit('submit-success');
-    $toast.success('Store updated successfully!');
   } catch (error) {
     console.error('Error Updating Store:', error);
-    $toast.error(error.message || 'Error Updating Store');
   } finally {
     loading.value = false;
   }

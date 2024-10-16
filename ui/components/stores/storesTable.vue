@@ -34,6 +34,7 @@
       <a-page-header
         class="div-header"
         title="Stores"
+        style="padding: 0%;"
         sub-title="Manage and organize your stores"
       >
         <template #extra>
@@ -165,7 +166,7 @@ import {
 
 const storeStore = useStoreStore();
 storeStore.fetchStores();
-
+console.log('storeStore.stores',storeStore.stores)
 // Reactive variables
 const isAddModalOpen = ref(false);
 const isEditModalOpen = ref(false);
@@ -174,14 +175,7 @@ const searchInput = ref(null);
 
 // Table columns configuration
 const columns = [
-  {
-    title: "#",
-    dataIndex: "index",
-    width:"5%",
-    sorter: (a, b) => a.index.localeCompare(b.index),
-    onFilter: (value, record) =>
-      record.index.toLowerCase().includes(value.toLowerCase()),
-  },
+
   {
     title: "Name",
     dataIndex: "name",

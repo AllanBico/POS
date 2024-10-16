@@ -125,6 +125,16 @@
                   <template #icon><EyeOutlined /></template>
                 </a-button>
               </a-tooltip>
+              <a-tooltip title="Generate Delivery">
+                <a-button
+                  type="link"
+                  class="delivery-btn"
+                  @click="onGenerateDelivery(record.id)"
+                  :style="{ color: '#faad14' }"
+                >
+                  <template #icon><FilePdfOutlined /></template>
+                </a-button>
+              </a-tooltip>
               <a-popconfirm
                 title="Are you sure you want to delete this order?"
                 ok-text="Yes"
@@ -243,6 +253,10 @@ const onView = (key) => {
 
 const onDelete = async (key) => {
   await orderStore.deleteOrder(key);
+};
+
+const onGenerateDelivery = async (key) => {
+  await orderStore.createDelivery(key);
 };
 
 const handleAdd = () => {

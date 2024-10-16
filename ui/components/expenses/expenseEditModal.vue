@@ -1,53 +1,63 @@
 <template>
-  <a-form :form="form" @submit.prevent="updateExpense" layout="vertical">
-    <a-form-item label="Expense Category" :rules="[{ required: true, message: 'Please select an expense category' }]">
-      <a-select v-model:value="form.expenseCategoryId" placeholder="Select an expense category">
-        <a-select-option v-for="category in categoryStore.expenseCategories" :key="category.id" :value="category.id">
-          {{ category.name }}
-        </a-select-option>
-      </a-select>
-    </a-form-item>
+  <div class="expense-edit-modal">
+    <h3 style="margin-top: 0">Edit Expense</h3>
+    <a-divider style="margin-bottom: 11px; margin-top: 11px" />
+    <a-form layout="vertical" :form="form" @submit.prevent="updateExpense">
+      <a-form-item label="Expense Category" :rules="[{ required: true, message: 'Please select an expense category' }]">
+        <a-select v-model:value="form.expenseCategoryId" placeholder="Select an expense category">
+          <a-select-option v-for="category in categoryStore.expenseCategories" :key="category.id" :value="category.id">
+            {{ category.name }}
+          </a-select-option>
+        </a-select>
+      </a-form-item>
 
-    <a-form-item label="Date of Expense" :rules="[{ required: true, message: 'Please select a date' }]">
-      <a-date-picker v-model:date="form.date" :format="dateFormat" placeholder="Select date" />
-    </a-form-item>
+      <a-form-item label="Date of Expense" :rules="[{ required: true, message: 'Please select a date' }]">
+        <a-date-picker v-model:date="form.date" :format="dateFormat" placeholder="Select date" />
+      </a-form-item>
 
-    <a-form-item label="Amount" :rules="[{ required: true, message: 'Please enter the amount' }]">
-      <a-input-number v-model:value="form.amount" placeholder="Enter amount" :min="0" />
-    </a-form-item>
+      <a-form-item label="Amount" :rules="[{ required: true, message: 'Please enter the amount' }]">
+        <a-input-number v-model:value="form.amount" placeholder="Enter amount" :min="0" />
+      </a-form-item>
 
-    <a-form-item label="Description">
-      <a-input v-model:value="form.description" placeholder="Enter description" />
-    </a-form-item>
+      <a-form-item label="Description" :rules="[{ required: true, message: 'Please input your description!' }]">
+        <a-textarea :rows="4" v-model:value="form.description" placeholder="Enter description" />
+      </a-form-item>
 
-    <a-form-item label="Reference Number">
-      <a-input v-model:value="form.referenceNumber" placeholder="Enter reference number" />
-    </a-form-item>
+      <a-form-item label="Reference Number">
+        <a-input v-model:value="form.referenceNumber" placeholder="Enter reference number" />
+      </a-form-item>
 
-    <a-form-item label="Payment Method" :rules="[{ required: true, message: 'Please select a payment method' }]">
-      <a-select v-model:value="form.paymentMethodId" placeholder="Select a payment method">
-        <a-select-option v-for="method in paymentMethodStore.paymentMethods" :key="method.id" :value="method.id">
-          {{ method.name }}
-        </a-select-option>
-      </a-select>
-    </a-form-item>
+      <a-form-item label="Payment Method" :rules="[{ required: true, message: 'Please select a payment method' }]">
+        <a-select v-model:value="form.paymentMethodId" placeholder="Select a payment method">
+          <a-select-option v-for="method in paymentMethodStore.paymentMethods" :key="method.id" :value="method.id">
+            {{ method.name }}
+          </a-select-option>
+        </a-select>
+      </a-form-item>
 
-    <a-form-item label="Paid By">
-      <a-input v-model:value="form.paidBy" placeholder="Enter who paid" />
-    </a-form-item>
+      <a-form-item label="Paid By" :rules="[{ required: true, message: 'Please select a user' }]">
+        <a-select v-model:value="form.paidById" placeholder="Select a user">
+          <a-select-option v-for="user in userStore.users" :key="user.id" :value="user.id">
+            {{ user.name }}
+          </a-select-option>
+        </a-select>
+      </a-form-item>
 
-    <a-form-item label="Supplier (Optional)">
-      <a-select v-model:value="form.supplierId" placeholder="Select a supplier" allow-clear>
-        <a-select-option v-for="supplier in supplierStore.suppliers" :key="supplier.id" :value="supplier.id">
-          {{ supplier.name }}
-        </a-select-option>
-      </a-select>
-    </a-form-item>
+      <a-form-item label="Supplier (Optional)">
+        <a-select v-model:value="form.supplierId" placeholder="Select a supplier" allow-clear>
+          <a-select-option v-for="supplier in supplierStore.suppliers" :key="supplier.id" :value="supplier.id">
+            {{ supplier.name }}
+          </a-select-option>
+        </a-select>
+      </a-form-item>
 
-    <a-form-item>
-      <a-button type="primary" html-type="submit">Submit</a-button>
-    </a-form-item>
-  </a-form>
+      <a-form-item>
+        <a-button type="primary" :loading="loading" html-type="submit" block size="large">
+          Submit
+        </a-button>
+      </a-form-item>
+    </a-form>
+  </div>
 </template>
 
 <script setup>
@@ -56,6 +66,7 @@ import { useExpenseStore } from '~/stores/expenses/expenseStore.js';
 import { useExpenseCategoryStore } from '~/stores/expenses/ExpenseCategory.js';
 import { usePaymentMethodStore } from '~/stores/PaymentMethodStore.js';
 import { useSupplierStore } from '~/stores/product/SupplierStore.js';
+import { useUserStore } from '~/stores/UserStore.js';
 import dayjs from 'dayjs';
 const props = defineProps({
   expenseId: {
@@ -70,6 +81,7 @@ const expenseStore = useExpenseStore();
 const categoryStore = useExpenseCategoryStore();
 const paymentMethodStore = usePaymentMethodStore();
 const supplierStore = useSupplierStore();
+const userStore = useUserStore();
 const dateFormat = 'YYYY-MM-DD';
 const form = ref({
   expenseCategoryId: null,
@@ -78,20 +90,25 @@ const form = ref({
   description: '',
   referenceNumber: '',
   paymentMethodId: null,
-  paidBy: '',
+  paidById: null,
   supplierId: null
 });
+const loading = ref(false);
+const error = ref(null);
 
 const fetchExpense = async () => {
   try {
+    loading.value = true;
     const expense = await expenseStore.ExpenseById(props.expenseId);
     if (expense) {
       form.value = { ...expense };
     } else {
-      console.error('Expense not found');
+      error.value = 'Expense not found';
     }
   } catch (error) {
-    console.error('Error fetching expense:', error);
+    error.value = error.message || 'Failed to load Expense';
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -100,6 +117,7 @@ const fetchData = async () => {
     await categoryStore.fetchExpenseCategories();
     await paymentMethodStore.fetchPaymentMethods();
     await supplierStore.fetchSuppliers();
+    await userStore.fetchUsers();
     await fetchExpense();
   } catch (error) {
     console.error('Error fetching data:', error);
@@ -114,10 +132,17 @@ onMounted(fetchData);
 
 const updateExpense = async () => {
   try {
+    loading.value = true;
     await expenseStore.updateExpense(props.expenseId, form.value);
-    emit('submit-success');
-  } catch (error) {
-    console.error('Error updating expense:', error);
+    if (expenseStore.error) {
+      error.value = expenseStore.error;
+    } else {
+      emit('submit-success');
+    }
+  } catch (err) {
+    error.value = err.message || 'Failed to update expense';
+  } finally {
+    loading.value = false;
   }
 };
 </script>

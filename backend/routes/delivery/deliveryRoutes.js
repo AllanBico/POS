@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { DeliveryNote, DeliveryLineItem, Variant, SalesOrder, SalesOrderLineItem } = require('../../models/associations'); // Import models
+const { DeliveryNote, DeliveryLineItem, Variant, SalesOrder, SalesOrderLineItem, Product} = require('../../models/associations'); // Import models
 const sequelize = require('../../config/db');
 const authenticateToken = require("../../middleware/auth");
 // Create a delivery note with line items
@@ -44,7 +44,7 @@ router.get('/',authenticateToken, async (req, res) => {
     console.log("Fetching deliveries...");
     try {
         const deliveries = await DeliveryNote.findAll({
-            include: [{ model: DeliveryLineItem, include: [Variant] }],
+            include: [{ model: DeliveryLineItem, include: [{ model: Variant, include: [{ model: Product, as: 'Product' }] }] }],
         });
         console.log(`Found ${deliveries.length} deliveries`);
         console.log("deliveries",deliveries)

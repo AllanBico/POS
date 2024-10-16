@@ -1,16 +1,70 @@
 const express = require('express');
-const router = express.Router();
-const {
-    Product, Variant, ProductTax, Category, Subcategory, Unit, Brand, VariantImage, Taxes,
+const { Product, Variant, ProductTax, Category, Subcategory, Unit, Brand, VariantImage, Taxes,
     VariantAttributeValue,
     AttributeValue,
     Attribute, Inventory, Warehouse, Store
 } = require('../../models/associations');
 const authenticateToken = require("../../middleware/auth");
+const { ValidationError, Op } = require('sequelize');
 const sequelize = require('../../config/db');
+const router = express.Router();
 
-router.post('/', authenticateToken, async (req, res) => {
+// Utility function to handle async routes
+const asyncHandler = fn => (req, res, next) =>
+    Promise.resolve(fn(req, res, next)).catch(next);
 
+// Validate product input
+const validateProductInput = (name,  categoryId,  brandId, lowStockAlert, unitId) => {
+    const errors = [];
+    if (!name) errors.push({field: 'name', message: 'Name is required'});
+    if (!categoryId) errors.push({field: 'categoryId', message: 'Category is required'});
+    if (!brandId) errors.push({field: 'brandId', message: 'Brand  is required'});
+    if (!lowStockAlert) errors.push({field: 'lowStockAlert', message: 'Low Stock Alert is required'});
+    if (!unitId) errors.push({field: 'unitId', message: 'Unit is required'});
+    if (errors.length > 0) {
+        console.log('Validation errors:', errors); // Log the errors
+        const error = new Error('Invalid product input');
+        error.status = 400;
+        error.errors = errors;
+        return error;
+    }
+
+};
+
+// Emit socket event to all clients except the sender
+const emitToOthers = (req, event, data) => {
+    try {
+        const socketId = req.headers['x-socket-id'];
+        if (req.io && typeof req.io.emit === 'function') {
+            req.io.emit(event, data, { except: socketId });
+        }
+    } catch (error) {
+        console.error('Error emitting socket event:', error);
+    }
+};
+
+// Middleware for handling 400 and 500 errors
+const handleError = (err, req, res, next) => {
+    console.error(err);
+    res.status(err.status || 500).json({
+        message: err.message || 'Internal server error',
+        status: err.status || 500
+    });
+};
+
+const checkDuplicateName = async (name, id = null) => {
+    const whereClause = {
+        name: { [Op.iLike]: name.toLowerCase() }
+    };
+    if (id) {
+        whereClause.id = { [Op.ne]: id };
+    }
+    const existingProduct = await Product.findOne({ where: whereClause });
+    return !!existingProduct;
+};
+
+// Create a product
+router.post('/', authenticateToken, asyncHandler(async (req, res) => {
     try {
         const {
             name,
@@ -25,22 +79,16 @@ router.post('/', authenticateToken, async (req, res) => {
             selectedTaxes
         } = req.body;
 
-        console.log("selectedTaxes", selectedTaxes);
+        console.log('req.body', req.body); // Log the request body for debugging
 
-        const errors = [];
-        if (!name) errors.push({field: 'name', message: 'Name is required'});
-        if (!description) errors.push({field: 'description', message: 'Description is required'});
-        if (!categoryId) errors.push({field: 'categoryId', message: 'Category ID is required'});
-        if (!subcategoryId) errors.push({field: 'subcategoryId', message: 'Subcategory ID is required'});
-        if (!vatType) errors.push({field: 'vatType', message: 'VAT Type is required'});
-        if (!brandId) errors.push({field: 'brandId', message: 'Brand ID is required'});
-        if (!lowStockAlert) errors.push({field: 'lowStockAlert', message: 'Low Stock Alert is required'});
-        if (!unitId) errors.push({field: 'unitId', message: 'Unit ID is required'});
-
-        if (errors.length > 0) {
-            return res.status(400).json({errors});
+        const validationError = validateProductInput(name,  categoryId,  brandId, lowStockAlert, unitId);
+        if (validationError) {
+            return res.status(400).json({ message: validationError.errors.map(error => error.message).join(', ') });
         }
-
+        const isDuplicate = await checkDuplicateName(name); // Check for duplicate
+        if (isDuplicate) {
+            return res.status(400).json({ message: 'Product with this name already exists' });
+        }
         // Create the product
         const product = await Product.create({
             name,
@@ -53,6 +101,8 @@ router.post('/', authenticateToken, async (req, res) => {
             unitId,
             isComposition
         });
+
+        console.log('product', product); // Log the created product for debugging
 
         // Save selected taxes
         if (selectedTaxes && Array.isArray(selectedTaxes)) {
@@ -71,63 +121,18 @@ router.post('/', authenticateToken, async (req, res) => {
             include: [{model: ProductTax, as: 'taxes'}]
         });
 
-        res.status(201).json(productWithTaxes);
+        console.log('productWithTaxes', productWithTaxes); // Log the product with taxes for debugging
+
+        res.status(201).json({ data: { value: productWithTaxes }, message: 'Product created successfully' });
+        emitToOthers(req, 'newProduct', productWithTaxes);
     } catch (error) {
         console.error('Error creating product:', error);
-        res.status(500).json({error: error.message});
+        res.status(500).json({message: error.message});
     }
-});
-
-// Create a Product
-// router.post('/', authenticateToken, async (req, res) => {
-//     try {
-//         const {
-//             name,
-//             description,
-//             categoryId,
-//             subcategoryId,
-//             vatType,
-//             brandId,
-//             lowStockAlert,
-//             unitId,
-//             isComposition,
-//             selectedTaxes
-//         } = req.body;
-//         console.log("selectedTaxes", selectedTaxes)
-//         const errors = [];
-//         if (!name) errors.push({field: 'name', message: 'Name is required'});
-//         if (!description) errors.push({field: 'description', message: 'Description is required'});
-//         if (!categoryId) errors.push({field: 'categoryId', message: 'Category ID is required'});
-//         if (!subcategoryId) errors.push({field: 'subcategoryId', message: 'Subcategory ID is required'});
-//         if (!vatType) errors.push({field: 'vatType', message: 'VAT Type is required'});
-//         if (!brandId) errors.push({field: 'brandId', message: 'Brand ID is required'});
-//         if (!lowStockAlert) errors.push({field: 'lowStockAlert', message: 'Low Stock Alert is required'});
-//         if (!unitId) errors.push({field: 'unitId', message: 'Unit ID is required'});
-//
-//         if (errors.length > 0) {
-//             return res.status(400).json({errors});
-//         }
-//         const product = await Product.create({
-//             name,
-//             description,
-//             categoryId,
-//             subcategoryId,
-//             vatType,
-//             brandId,
-//             lowStockAlert,
-//             unitId,
-//             isComposition
-//         });
-//         res.status(201).json(product);
-//     } catch (error) {
-//         res.status(500).json({error: error.message});
-//     }
-// });
+}));
 
 // Get all Products
-router.get('/', authenticateToken, async (req, res) => {
-
-
+router.get('/', authenticateToken, asyncHandler(async (req, res) => {
     try {
         const socketId = req.headers['x-socket-id'];  // Access the socketId from the request headers
 
@@ -144,17 +149,17 @@ router.get('/', authenticateToken, async (req, res) => {
         });
         if (!products) {
             console.error('Error fetching products:', error);
-            res.status(404).json({error: 'Products not found'});
+            res.status(404).json({message: 'Products not found'});
         } else {
-            res.status(200).json(products);
+            res.status(200).json({ data: { value: products }, message: 'Products fetched successfully' });
         }
     } catch (error) {
         console.error('Error fetching products:', error);
-        res.status(500).json({error: error.message});
+        res.status(500).json({message: error.message});
     }
-});
+}));
 // Get a Product by ID
-router.get('/:id', authenticateToken, async (req, res) => {
+router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
     try {
         const productId = req.params.id;
 
@@ -185,17 +190,17 @@ router.get('/:id', authenticateToken, async (req, res) => {
 
         if (!product) {
             console.error(`Error fetching product with id ${productId}: Product not found`);
-            return res.status(404).json({error: 'Product not found'});
+            return res.status(404).json({message: 'Product not found'});
         }
 
-        res.json(product);
+        res.status(200).json({ data: { value: product }, message: 'Product fetched successfully' });
     } catch (error) {
         console.error(`Error fetching product with id ${req.params.id}:`, error);
-        res.status(500).json({error: 'Something went wrong'});
+        res.status(500).json({message: 'Something went wrong'});
     }
-});
+}));
 // Update a Product
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', authenticateToken, asyncHandler(async (req, res) => {
     const transaction = await sequelize.transaction();
     try {
         const socketId = req.headers['x-socket-id'];  // Access the socketId from the request headers
@@ -207,26 +212,22 @@ router.put('/:id', authenticateToken, async (req, res) => {
             vatType, brandId, lowStockAlert, unitId, selectedTaxes
         } = req.body;
 
-        // Check if required fields are missing
-        const missingFields = [];
-        const requiredFields = { name, description, categoryId, subcategoryId, vatType, brandId, lowStockAlert, unitId };
-
-        for (const [key, value] of Object.entries(requiredFields)) {
-            if (!value) missingFields.push(key);
+        const validationError = validateProductInput(name,  categoryId,  brandId, lowStockAlert, unitId);
+        if (validationError) {
+            return res.status(400).json({ message: validationError.errors.map(error => error.message).join(', ') });
         }
 
-        if (missingFields.length > 0) {
-            await transaction.rollback();
-            return res.status(400).json({ error: `Missing required fields: ${missingFields.join(', ')}` });
+        const isDuplicate = await checkDuplicateName(name); // Check for duplicate
+        if (isDuplicate) {
+            return res.status(400).json({ message: 'Product with this name already exists' });
         }
-
         // Attempt to update the product
         const updatedProduct = await Product.findOne({ where: { id: req.params.id }, transaction });
 
         if (!updatedProduct) {
             await transaction.rollback();
             console.error(`Error updating product with id ${req.params.id}: Product not found`);
-            return res.status(404).json({ error: 'Product not found' });
+            return res.status(404).json({ message: 'Product not found' });
         }
 
         await updatedProduct.update({
@@ -273,33 +274,38 @@ router.put('/:id', authenticateToken, async (req, res) => {
 
         // Commit the transaction
         await transaction.commit();
-        res.status(200).json(updatedProduct);
+        res.status(200).json({ data: { value: updatedProduct }, message: 'Product updated successfully' });
+        emitToOthers(req, 'updateProduct', updatedProduct);
 
     } catch (error) {
         // Rollback transaction and handle the error
         if (transaction) await transaction.rollback();
         console.error(`Error updating product with id ${req.params.id}:`, error);
-        res.status(500).json({ error: 'An error occurred while updating the product.' });
+        res.status(500).json({ message: 'An error occurred while updating the product.' });
     }
-});
+}));
 
 
 
 // Delete a Product
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', authenticateToken, asyncHandler(async (req, res) => {
     try {
         const deleted = await Product.destroy({
             where: {id: req.params.id}
         });
         if (deleted) {
-            res.status(204).send();
+            res.status(200).json({ message: 'Product deleted successfully' });
+            emitToOthers(req, 'deleteProduct', req.params.id);
         } else {
-            res.status(404).json({error: 'Product not found'});
+            res.status(404).json({message: 'Product not found'});
         }
     } catch (error) {
-        res.status(500).json({error: error.message});
+        res.status(500).json({message: error.message});
     }
-});
+}));
 
+
+// Error handling middleware
+router.use(handleError);
 
 module.exports = router;

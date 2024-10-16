@@ -3,20 +3,19 @@
     <!-- Modals -->
     <a-modal
       v-model:open="open"
-      title="Add Coupon"
       @ok="handleOk"
       @cancel="handleCancel"
       ok-text="Submit"
       cancel-text="Cancel"
+      width="80%"
       :maskClosable="false"
     >
-      <coupon-add-modal @submit-success="handleSubmitSuccess"></coupon-add-modal>
-      <template #footer></template>
+      <coupon-add-modal @submit-success="handleSubmitSuccess" />
+      <template #footer />
     </a-modal>
 
     <a-modal
       v-model:open="edit_open"
-      title="Edit Coupon"
       @ok="handleOk"
       @cancel="handleCancel"
       ok-text="Submit"
@@ -26,8 +25,8 @@
       <coupon-edit-modal
         @submit-success="handleSubmitSuccess"
         :coupon-id="coupon_id"
-      ></coupon-edit-modal>
-      <template #footer></template>
+      />
+      <template #footer />
     </a-modal>
 
     <!-- Header -->
@@ -35,6 +34,7 @@
       <a-page-header
         class="div-header"
         title="Coupons"
+        style="padding: 0%;"
         sub-title="Manage and organize your coupons"
       >
         <template #extra>
@@ -63,6 +63,7 @@
         :rowKey="(record) => record.id"
         :loading="couponStore.loading"
         size="middle"
+        bordered
       >
         <!-- Custom filter dropdown template -->
         <template
@@ -79,8 +80,8 @@
               ref="searchInput"
               :placeholder="`Search ${column.title}`"
               :value="selectedKeys[0]"
-              @change="
-                (e) => setSelectedKeys(e.target.value ? [e.target.value] : [])
+              @change="(e) =>
+                setSelectedKeys(e.target.value ? [e.target.value] : [])
               "
               @pressEnter="
                 handleSearch(selectedKeys, confirm, column.dataIndex)
@@ -90,47 +91,55 @@
               type="primary"
               @click="handleSearch(selectedKeys, confirm, column.dataIndex)"
             >
-              <template #icon><SearchOutlined /></template>
+              <template #icon>
+                <SearchOutlined />
+              </template>
               Search
             </a-button>
-            <a-button @click="handleReset(clearFilters)">
-              Reset
-            </a-button>
+            <a-button @click="handleReset(clearFilters)">Reset</a-button>
           </div>
         </template>
 
         <!-- Custom filter icon -->
         <template #customFilterIcon="{ filtered }">
-          <search-outlined
-            :class="{ 'text-primary': filtered }"
-          />
+          <search-outlined :class="{ 'text-primary': filtered }" />
         </template>
 
         <!-- Custom render for operation column -->
         <template #bodyCell="{ column, record, index }">
           <template v-if="column.dataIndex === 'operation'">
-            <a-dropdown :trigger="['click']">
-              <template #overlay>
-                <a-menu>
-                  <a-menu-item key="edit">
-                    <a @click="onEdit(record.id)" class="edit-link">
-                      <EditOutlined /> Edit
-                    </a>
-                  </a-menu-item>
-                  <a-menu-item key="delete">
-                    <a-popconfirm
-                      :title="`Are you sure you want to delete this coupon: ${record.code}?`"
-                      ok-text="Yes"
-                      cancel-text="No"
-                      @confirm="onDelete(record.id)"
-                    >
-                      <a class="delete-link"><DeleteOutlined /> Delete</a>
-                    </a-popconfirm>
-                  </a-menu-item>
-                </a-menu>
-              </template>
-              <a-button class="actions-btn"> Actions <DownOutlined /> </a-button>
-            </a-dropdown>
+            <div class="operation-buttons">
+              <a-tooltip title="Edit">
+                <a-popconfirm
+                  title="Are you sure you want to edit this coupon?"
+                  ok-text="Yes"
+                  cancel-text="No"
+                  @confirm="onEdit(record.id)"
+                >
+                  <a-button
+                    class="edit-btn"
+                    :style="{ color: '#1890ff' }"
+                  >
+                    <template #icon><EditOutlined /></template>
+                  </a-button>
+                </a-popconfirm>
+              </a-tooltip>
+              <a-tooltip title="Delete">
+                <a-popconfirm
+                  title="Are you sure you want to delete this coupon?"
+                  ok-text="Yes"
+                  cancel-text="No"
+                  @confirm="onDelete(record.id)"
+                >
+                  <a-button
+                    class="delete-btn"
+                    :style="{ color: '#ff4d4f' }"
+                  >
+                    <template #icon><DeleteOutlined /></template>
+                  </a-button>
+                </a-popconfirm>
+              </a-tooltip>
+            </div>
           </template>
           <template v-else-if="column.dataIndex === 'index'">
             {{ index + 1 }}
@@ -146,7 +155,13 @@ import { ref } from 'vue';
 import { useCouponStore } from '~/stores/CouponStore.js';
 import CouponAddModal from '~/components/coupons/CouponAddModal.vue';
 import CouponEditModal from '~/components/coupons/CouponEditModal.vue';
-import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined, DownOutlined } from '@ant-design/icons-vue';
+import {
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+  SearchOutlined,
+  DownOutlined,
+} from '@ant-design/icons-vue';
 
 const couponStore = useCouponStore();
 const open = ref(false);
@@ -156,13 +171,7 @@ const coupon_id = ref(null);
 couponStore.fetchCoupons();
 
 const columns = [
-  {
-    title: "Index",
-    dataIndex: "index",
-    sorter: (a, b) => a.index.localeCompare(b.index),
-    onFilter: (value, record) =>
-      record.index.toLowerCase().includes(value.toLowerCase()),
-  },
+
   {
     title: 'Code',
     dataIndex: 'code',
@@ -245,7 +254,7 @@ const handleReset = (clearFilters) => {
 
 .div-header-card {
   margin-bottom: 24px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .div-header {
@@ -268,7 +277,7 @@ const handleReset = (clearFilters) => {
   background-color: #ffffff;
   padding: 24px;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 :deep(.ant-table) {
@@ -317,15 +326,31 @@ const handleReset = (clearFilters) => {
   border-color: #d9d9d9;
 }
 
-.edit-link, .delete-link {
+.edit-link,
+.delete-link {
   color: #001529;
 }
 
-.edit-link:hover, .delete-link:hover {
+.edit-link:hover,
+.delete-link:hover {
   color: #ff4d4f;
 }
 
 .text-primary {
   color: #1890ff;
+}
+
+.operation-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.edit-btn,
+.delete-btn {
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  font-size: 16px;
+  cursor: pointer;
 }
 </style>

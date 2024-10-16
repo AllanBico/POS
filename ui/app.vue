@@ -20,7 +20,9 @@ import { reactive, onMounted, ref } from 'vue';
 import { useCategoryStore } from '~/stores/product/CategoryStore.js';
 import { useAuthStore } from "~/stores/AuthStore.js";
 import {useSettingsStore} from "~/stores/settingsStore.js";
-
+import { useAttributesStore } from "~/stores/product/AttributeStore.js";
+import { useUnitStore } from '~/stores/product/UnitStore.js';
+import { useBrandStore } from "~/stores/product/BrandStore.js";
 definePageMeta({ middleware: 'auth' });
 const router = useRouter();
 
@@ -90,23 +92,32 @@ const theme = reactive({
 
 const loading = ref(true); // Add loading state
 
-// Function to load data from the store before the app starts
-const loadData = async () => {
+
+const loadData = () => {
+  loading.value = true; 
   const authStore = useAuthStore();
   const categoryStore = useCategoryStore();
   const settingsStore = useSettingsStore();
-
-  loading.value = true; // Set loading to true before fetching
-  try {
-    await authStore.fetchPermissions(); // Fetch permissions from the store
-    await settingsStore.fetchSettings()
-    await categoryStore.fetchCategories(); // Fetch categories from the store
-
-  } catch (error) {
-    console.error('Error fetching data:', error);
-  } finally {
-    loading.value = false; // Set loading to false after fetching
-  }
+  const attributesStore = useAttributesStore(); 
+  const brandStore = useBrandStore();
+  const unitStore = useUnitStore();
+  return Promise.all([
+    authStore.fetchPermissions(), 
+    settingsStore.fetchSettings(),
+    categoryStore.fetchCategories(), 
+    attributesStore.fetchAttributes(),
+    unitStore.fetchUnits(),
+    brandStore.fetchBrands(),
+  ])
+    .then(() => {
+      console.log('Data loaded successfully');
+    })
+    .catch((error) => {
+      console.error('Error fetching data:', error);
+    })
+    .finally(() => {
+      loading.value = false; // Set loading to false after fetching
+    });
 };
 
 router.beforeResolve(async (to, from, next) => {

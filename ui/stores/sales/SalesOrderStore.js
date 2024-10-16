@@ -216,5 +216,26 @@ export const useSalesOrderStore = defineStore('salesOrder', {
                 this.setLoading(false);
             }
         },
+        // Create a delivery for a sales order
+        async createDelivery(salesOrderId) {
+            this.setLoading(true);
+            const config = useRuntimeConfig();
+            const apiUrl = `${config.public.baseURL}/api/orders/delivery/${salesOrderId}`;
+
+            try {
+                const { data, error } = await useFetch(apiUrl, {
+                    method: 'POST',
+                    credentials: 'include',
+                });
+                if (error.value) throw error.value;
+
+                // Optionally, you can handle the response data here
+                return data.value;
+            } catch (error) {
+                this.handleError(error, 'Failed to create delivery');
+            } finally {
+                this.setLoading(false);
+            }
+        },
     },
 });

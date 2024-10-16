@@ -3,7 +3,6 @@
     <!-- Modals -->
     <a-modal
       v-model:open="open"
-      title="Add Expense"
       :footer="null"
       :maskClosable="false"
     >
@@ -12,7 +11,6 @@
 
     <a-modal
       v-model:open="edit_open"
-      title="Edit Expense"
       :footer="null"
       :maskClosable="false"
     >
@@ -27,6 +25,7 @@
       <a-page-header
         class="header"
         title="Expenses"
+        style="padding: 0%;"
         sub-title="Manage and organize your expenses"
       >
         <template #extra>
@@ -141,6 +140,9 @@
               </a-popconfirm>
             </div>
           </template>
+          <template v-if="column.dataIndex === 'date'">
+            {{ formatDate(record.date) }}
+          </template>
         </template>
       </a-table>
     </div>
@@ -152,6 +154,7 @@ import { ref } from 'vue';
 import { useExpenseStore } from '~/stores/expenses/expenseStore.js';
 import ExpenseAddModal from "~/components/expenses/expenseAddModal.vue";
 import ExpenseEditModal from "~/components/expenses/expenseEditModal.vue";
+const { initDateFormat, formatDate } = useDateFormatter();
 import {
   DeleteOutlined,
   EditOutlined,
@@ -167,7 +170,7 @@ import 'jspdf-autotable';
 
 const expenseStore = useExpenseStore();
 expenseStore.fetchExpenses();
-
+console.log('expenseStore.expenses',expenseStore.expenses)
 const open = ref(false);
 const edit_open = ref(false);
 const expense_id = ref(null);
@@ -176,19 +179,19 @@ const searchInput = ref(null);
 const columns = [
   {
     title: 'Expense Category',
-    customRender: ({record}) => record.ExpenseCategory ? record.ExpenseCategory.name : '',
+    customRender: ({record}) => record.expenseCategory ? record.expenseCategory.name : '',
     key: 'ExpenseCategory',
-    sorter: (a, b) => a.ExpenseCategory.name.localeCompare(b.ExpenseCategory.name),
+    sorter: (a, b) => a.EepenseCategory.name.localeCompare(b.expenseCategory.name),
     customFilterDropdown: true,
-    onFilter: (value, record) => record.ExpenseCategory.name.toString().toLowerCase().includes(value.toLowerCase()),
+    onFilter: (value, record) => record.expenseCategory.name.toString().toLowerCase().includes(value.toLowerCase()),
   },
   {
     title: 'Payment Method',
-    customRender: ({record}) => record.PaymentMethod ? record.PaymentMethod.name : '',
+    customRender: ({record}) => record.paymentMethod ? record.paymentMethod.name : '',
     key: 'PaymentMethod',
-    sorter: (a, b) => a.PaymentMethod.name.localeCompare(b.PaymentMethod.name),
+    sorter: (a, b) => a.paymentMethod.name.localeCompare(b.paymentMethod.name),
     customFilterDropdown: true,
-    onFilter: (value, record) => record.PaymentMethod.name.toString().toLowerCase().includes(value.toLowerCase()),
+    onFilter: (value, record) => record.paymentMethod.name.toString().toLowerCase().includes(value.toLowerCase()),
   },
   {
     title: 'Amount',

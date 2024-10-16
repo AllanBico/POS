@@ -28,9 +28,10 @@
     </a-modal>
 
     <!-- Header -->
-    <a-card class="div-header-card" :bordered="false">
+    <a-card class="div-header-card" :bordered="false" >
       <a-page-header
         class="div-header"
+        style="padding: 0%;"
         title="Categories"
         sub-title="Manage and organize your product categories"
       >
@@ -68,11 +69,7 @@
       <a-table
         :dataSource="categoryStore.categories"
         :columns="columns"
-        :pagination="{
-          pageSize: 10,
-          showSizeChanger: true,
-          showQuickJumper: true,
-        }"
+
         :rowKey="(record) => record.id"
         :loading="categoryStore.loading"
         size="middle"
@@ -143,7 +140,7 @@
                 ok-text="Yes"
                 cancel-text="No"
                 @confirm="handleDeleteCategory(record.id)"
-                placement="topRight"
+                placement="bottom"
               >
                 <a-tooltip title="Delete">
                   <a-button
@@ -201,13 +198,7 @@ const canDeleteCategory = computed(() => authStore.hasPermission('category', 'de
 
 // Table columns configuration
 const columns = [
-  {
-    title: "#",
-    dataIndex: "index",
-    width: '5%',
-    sorter: (a, b) => a.index - b.index,
-    onFilter: (value, record) => record.index.toString().includes(value),
-  },
+
   {
     title: "Name",
     dataIndex: "name",
@@ -280,24 +271,44 @@ const handleReset = (clearFilters) => {
 const handleTableChange = (pagination, filters, sorter) => {
   console.log('Table changed:', pagination, filters, sorter);
   // TODO: Implement table change logic if needed
+  const filteredData = categoryStore.categories.filter(category => {
+    // Check if the category matches the filters
+    let matches = true;
+    if (filters) { // Check if filters is not null
+      for (const key in filters) {
+        if (filters[key] && filters[key].length > 0 && !filters[key].includes(category[key])) {
+          matches = false;
+          break;
+        }
+      }
+    }
+    return matches;
+  });
+  console.log('filteredData',filteredData)
+  exportToExcel(filteredData);
+  exportToPDF(filteredData);
 };
 
-const exportToExcel = () => {
-  const data = categoryStore.categories.map(category => ({
-    Name: category.name,
-    Description: category.description
-  }));
-  const ws = XLSX.utils.json_to_sheet(data);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Categories");
-  XLSX.writeFile(wb, "categories.xlsx");
+const exportToExcel = (data) => {
+  console.log('export data',data)
+  if (Array.isArray(data)) {
+    const ws = XLSX.utils.json_to_sheet(data.map(category => ({
+      Name: category.name,
+      Description: category.description
+    })));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Categories");
+    XLSX.writeFile(wb, "categories.xlsx");
+  } else {
+    console.error("Error exporting to Excel: Data is not an array.");
+  }
 };
 
-const exportToPDF = () => {
+const exportToPDF = (data) => {
   const doc = new jsPDF();
   doc.autoTable({
     head: [['Name', 'Description']],
-    body: categoryStore.categories.map(category => [category.name, category.description]),
+    body: data.map(category => [category.name, category.description]),
   });
   doc.save('categories.pdf');
 };

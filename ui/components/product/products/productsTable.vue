@@ -1,10 +1,8 @@
 <template>
   <div class="div-container">
-
     <!-- Modals -->
     <a-modal
         v-model:open="is_visible"
-        title="Add Variants"
         @ok="handleModalOk"
         @cancel="handleModalCancel"
         ok-text="Submit"
@@ -30,7 +28,6 @@
 
     <a-modal
       v-model:open="isEditModalOpen"
-      title="Edit Product"
       @ok="handleModalOk"
       @cancel="handleModalCancel"
       ok-text="Submit"
@@ -49,6 +46,7 @@
       <a-page-header
         class="div-header"
         title="Products"
+        style="padding: 0%;"
         sub-title="Manage and organize your products"
       >
         <template #extra>
@@ -84,15 +82,12 @@
       <a-table
         :dataSource="productStore.products"
         :columns="columns"
-        :pagination="{
-          pageSize: 10,
-          showSizeChanger: true,
-          showQuickJumper: true,
-        }"
+        bordered
         :rowKey="(record) => record.id"
         :loading="productStore.loading"
         size="middle"
         @change="handleTableChange"
+        :pagination="pagination"
       >
         <!-- Custom filter dropdown template -->
         <template
@@ -165,7 +160,7 @@
                 ok-text="Yes"
                 cancel-text="No"
                 @confirm="handleDeleteProduct(record.id)"
-                placement="topRight"
+                placement="bottom"
               >
                 <a-tooltip title="Delete">
                   <a-button
@@ -186,9 +181,6 @@
                     <a-menu-item key="duplicate" @click="onAdd(record.id)">
                       <CopyOutlined /> Add Variant
                     </a-menu-item>
-                    <a-menu-item key="archive">
-                      <InboxOutlined /> Archive
-                    </a-menu-item>
                   </a-menu>
                 </template>
                 <a-button type="link">
@@ -204,6 +196,7 @@
               :data-source="record.variants"
               :pagination="false"
               size="small"
+              :rowClassName="(_record, index) => index % 2 === 1 ? 'table-row-light' : 'table-row-dark'"
           >
             <template #bodyCell="{ column, text }">
               <template v-if="column.dataIndex === 'price'">
@@ -256,6 +249,7 @@ const isAddModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const selectedProductId = ref(null);
 const searchInput = ref(null);
+const pagination = ref({pageSize: 10});
 
 // Table columns configuration
 const columns = [
@@ -326,7 +320,6 @@ const variantColumns = [
   { title: 'Part Number', dataIndex: 'partNumber', key: 'partNumber' },
 ];
 
-const pagination = ref({pageSize: 10});
 const onView = (id) => {
   tabsStore.addTab('Product', productView, { id });
 };
@@ -491,9 +484,15 @@ const exportToPDF = () => {
   margin-right: 8px;
 }
 
-
-
 .text-primary {
   color: #1890ff;
+}
+
+.table-row-light {
+  background-color: #fafafa;
+}
+
+.table-row-dark {
+  background-color: #ffffff;
 }
 </style>

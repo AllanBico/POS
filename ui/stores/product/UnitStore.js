@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import { useRuntimeConfig, useNuxtApp, useState } from '#app';
 
 export const useUnitStore = defineStore('unit', {
     state: () => ({
@@ -6,124 +7,157 @@ export const useUnitStore = defineStore('unit', {
         loading: false,
         error: null,
     }),
+
     getters: {
         UnitById: (state) => (id) => {
-            const unit = state.units.find((unit) => unit.id === id);
-            if (!unit) return null;
+            const unit = state.units.find(unit => unit.id === id);
+            if (!unit) {
+                console.warn(`Unit with id ${id} not found`);
+            }
             return unit;
         },
     },
+
     actions: {
-        // Fetch all units
         async fetchUnits() {
-            const { $toast } = useNuxtApp();
-            this.loading = true;
-            this.error = null;
-            try {
-                const config = useRuntimeConfig();
-                const apiUrl = `${config.public.baseURL}/api/units`;
-                const { data, error } = await useFetch(apiUrl,{credentials: 'include'});
-                if (error.value) {
-                    console.error('Error fetching units:', error.value);
-                    throw error.value;
-                }
-                this.units = data.value || [];
-            } catch (err) {
-                this.error = err.message || 'An unexpected error occurred';
-                $toast.error(this.error);
-            } finally {
-                this.loading = false;
-            }
+            await this.performApiCall('GET', '/api/units', null, (data) => {
+                console.log('Fetched units:', data);
+                this.units = data.data.value; // Access the data from the API response
+            }, 'Failed to fetch units');
         },
 
-        // Create a new unit
         async createUnit(unit) {
-            const { $toast } = useNuxtApp();
-            try {
-                const config = useRuntimeConfig();
-                const apiUrl = `${config.public.baseURL}/api/units`;
-                const { data, error } = await useFetch(apiUrl, {
-                    method: 'POST',
-                    body: unit,
-                    credentials: 'include'
-                });
-                if (error.value) {
-                    console.error('Error creating unit:', error.value);
-                    $toast.error('Error creating unit');
-                    throw error.value;
+            await this.performApiCall('POST', '/api/units', unit, (data) => {
+                this.handleUnitCreation(data.data.value); // Access the data from the API response
+                if (data.message) {
+                    useNuxtApp().$toast.success(data.message); // Access the message from the API response
                 }
-                this.units.push(data.value);
-                $toast.success('Unit Created');
-            } catch (err) {
-                this.error = err.message || 'An unexpected error occurred';
-                $toast.error(this.error);
-            }
+            }, 'Failed to create unit');
         },
 
-        // Update an existing unit
         async updateUnit(id, updatedUnit) {
-            const { $toast } = useNuxtApp();
-            try {
-                const config = useRuntimeConfig();
-                const apiUrl = `${config.public.baseURL}/api/units/${id}`;
-                const { data, error } = await useFetch(apiUrl, {
-                    method: 'PUT',
-                    body: updatedUnit,
-                    credentials: 'include'
-                });
-                if (error.value) {
-                    console.error('Error updating unit:', error.value);
-                    throw error.value;
+            await this.performApiCall('PUT', `/api/units/${id}`, updatedUnit, (data) => {
+                this.handleUnitUpdate(data.data.value); // Access the data from the API response
+                if (data.message) {
+                    useNuxtApp().$toast.success(data.message); // Access the message from the API response
                 }
-
-                const index = this.units.findIndex((unit) => unit.id === id);
-                if (index !== -1) {
-                    this.units[index] = data.value;
-                }
-                $toast.success("Unit Updated");
-            } catch (err) {
-                this.error = err.message || 'An unexpected error occurred';
-                $toast.error(this.error);
-            }
+            }, `Failed to update unit with ID: ${id}`);
         },
 
-        // Delete a unit
         async deleteUnit(id) {
-            const { $toast } = useNuxtApp();
+            await this.performApiCall('DELETE', `/api/units/${id}`, null, (data) => {
+                this.handleUnitDeletion(id);
+                if (data.message) {
+                    useNuxtApp().$toast.warning(data.message); // Access the message from the API response
+                }
+            }, `Failed to delete unit with ID: ${id}`);
+        },
+
+        // Socket event handlers
+        socketUpdateUnit(unit) {
+            this.handleUnitUpdate(unit);
+        },
+
+        socketCreateUnit(unit) {
+            this.handleUnitCreation(unit);
+        },
+
+        socketDeleteUnit(id) {
+            this.handleUnitDeletion(id);
+        },
+
+        // Utility functions
+        setLoading(isLoading) {
+            this.loading = isLoading;
+        },
+
+        async performApiCall(method, endpoint, body, onSuccess, errorMessage) {
+            this.setLoading(true);
+            this.error = null;
+            const config = useRuntimeConfig();
+            const socketId = useState('socketId').value;
+            const apiUrl = `${config.public.baseURL}${endpoint}`;
+
             try {
-                const config = useRuntimeConfig();
-                const apiUrl = `${config.public.baseURL}/api/units/${id}`;
-                const { error } = await useFetch(apiUrl, {
-                    method: 'DELETE',
-                    credentials: 'include'
+                const { data, error } = await useFetch(apiUrl, {
+                    method,
+                    body,
+                    credentials: 'include',
+                    headers: {
+                        'x-socket-id': socketId,
+                    },
                 });
+
                 if (error.value) {
-                    console.error('Error deleting unit:', error.value);
-                    throw error.value;
+                    // Handle network errors
+                    if (error.value.status === 400) {
+                        throw new Error('Invalid input. Please check your data and try again.');
+                    } else if (error.value.status === 404) {
+                        throw new Error('The requested resource was not found.');
+                    } else if (error.value.status === 500) {
+                        throw new Error('An internal server error occurred. Please try again later.');
+                    } else if (error.value.data.message) {
+                        throw new Error(error.value.data.message);
+                    } else {
+                        throw new Error(errorMessage);
+                    }
                 }
 
-                this.units = this.units.filter((unit) => unit.id !== id);
-                $toast.warning("Unit Deleted");
-            } catch (err) {
-                this.error = err.message || 'An unexpected error occurred';
-                $toast.error(this.error);
+                // Check if data is available before accessing it
+                if (data.value && data.value.data) {
+                    onSuccess(data.value);
+                } else if (data.value && data.value.message) {
+                    // Handle cases where only a message is returned (e.g., DELETE)
+                    onSuccess(data.value);
+                } else {
+                    // Handle case where data is missing
+                    console.error('No data received from API:', data.value);
+                    this.error = 'No data received from API';
+                    useNuxtApp().$toast.error('No data received from API');
+                }
+            } catch (error) {
+                console.error(errorMessage, error);
+                this.error = error.message;
+                useNuxtApp().$toast.error(error.message || errorMessage);
+            } finally {
+                this.setLoading(false);
             }
         },
-        // Socket event handlers
-        async socketUpdateUnit(unit) {
-            const index = this.units.findIndex((obj) => obj.id === unit.id);
-            if (index !== -1) this.units[index] = unit;
+
+        handleUnitUpdate(unit) {
+            if (unit && unit.id) {
+                const index = this.units.findIndex(cat => cat.id === unit.id);
+                if (index !== -1) {
+                    this.units.splice(index, 1, unit); // Replace the existing unit with the updated one
+                } else {
+                    console.warn('Unit not found for update:', unit);
+                }
+            } else {
+                console.warn('Invalid unit data received for update:', unit);
+            }
         },
-        async socketCreateUnit(unit) {
-            const exists = this.units.some((obj) => obj.id === unit.id);
-            // Only add the unit if it doesn't already exist
-            if (!exists) {
+
+        handleUnitCreation(unit) {
+            if (unit && unit.id && !this.units.some(cat => cat.id === unit.id)) {
                 this.units.push(unit);
+            } else {
+                console.warn('Invalid unit data received for creation or duplicate found:', unit);
             }
         },
-        async socketDeleteUnit(id) {
-            const index = this.units.findIndex((unit) => unit.id === id);
-            if (index !== -1) this.units.splice(index, 1);
+
+        handleUnitDeletion(id) {
+            const unitId = parseInt(id, 10);
+            if (!isNaN(unitId)) {
+                const originalUnitsLength = this.units.length;
+                this.units = this.units.filter(unit => unit.id !== unitId);
+                if (this.units.length < originalUnitsLength) {
+                    console.log('Unit Deleted via Socket');
+                } else {
+                    console.warn('Unit ID not found for deletion:', id);
+                }
+            } else {
+                console.warn('Invalid unit ID received for deletion:', id);
+            }
         },
     },
 });

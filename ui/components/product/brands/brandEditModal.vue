@@ -105,7 +105,7 @@ const updateBrand = async () => {
       $toast.error(brandStore.error);
     } else {
       emit('submit-success');
-      $toast.success('Brand updated successfully!');
+
     }
   } catch (err) {
     $toast.error(err.message || 'Failed to update brand');

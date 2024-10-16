@@ -13,6 +13,10 @@ export default defineNuxtConfig({
   css: [
     '@/assets/styles/ant-theme.less',  // Custom Ant Design theme
   ],
+  devServer: {
+    host: '0.0.0.0',
+    port: 3000
+},
   pwa: {
     manifest: {
       name: 'Nuxt 3 Inventory & POS',

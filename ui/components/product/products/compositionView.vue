@@ -1,7 +1,6 @@
 <template>
   <a-modal
       v-model:open="open"
-      title="Add Composition"
       @ok="handleOk"
       @cancel="handleCancel"
       ok-text="Submit"
@@ -12,7 +11,6 @@
     <composition-form @submit-success="handleSubmitSuccess" :variant_id="variant_id"></composition-form></a-modal>
   <a-modal
       v-model:open="edit_open"
-      title="Edit Composition"
       @ok="handleOk"
       @cancel="handleCancel"
       ok-text="Submit"
@@ -28,6 +26,7 @@
     <a-card class="header-card" :bordered="false">
       <a-page-header
           class="header"
+          style="padding: 0%;"
           :title="`${variant?.Product?.name || 'Unknown Product'} (${variant?.sku || 'No SKU'}) Compositions`"
           sub-title="Manage and organize your product compositions"
       >
@@ -64,11 +63,7 @@
       <a-table
           :dataSource="productStore.compositions"
           :columns="columns"
-          :pagination="{
-          pageSize: 10,
-          showSizeChanger: true,
-          showQuickJumper: true,
-        }"
+          bordered
           :rowKey="(record) => record.id"
           :loading="loading"
           size="middle"
@@ -159,7 +154,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useProductStore } from "~/stores/product/ProductStore.js";
 import {
   DeleteOutlined,
@@ -227,7 +222,8 @@ const columns = [
 
 const fetchCompositions = async () => {
   try {
-    compositions.value = await productStore.fetchCompositionsByVariantId(parseInt(props.variant_id));
+    await productStore.fetchComposition(parseInt(props.variant_id));
+    compositions.value =  productStore.compositions
     console.log("compositions.value", compositions.value);
   } catch (err) {
     console.error('Error fetching compositions:', err);
@@ -237,6 +233,10 @@ const fetchCompositions = async () => {
 };
 
 onMounted(() => {
+  fetchCompositions();
+});
+
+watch(() => props.variant_id, (newVariantId) => {
   fetchCompositions();
 });
 

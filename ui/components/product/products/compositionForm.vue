@@ -1,6 +1,8 @@
 <template>
   <div class="composition-form-container">
-    <a-form @submit.prevent="submitForm" layout="vertical">
+    <h3 style="margin-top: 0">Create Compositions</h3>
+    <a-divider style="margin-bottom: 11px; margin-top: 11px" />
+    <a-form layout="vertical" @submit.prevent="submitForm">
       <!-- Dynamic Ingredient Rows -->
       <div v-for="(ingredient, index) in ingredientRows" :key="index" class="ingredient-row">
         <a-row :gutter="16">
@@ -8,12 +10,12 @@
             <a-form-item label="Ingredient">
               <a-select
                 v-model:value="ingredient.ingredientVariantId"
-                placeholder="Select Ingredient"
+                placeholder="Select Compsitions"
                 style="width: 100%"
+                show-search
+                :filter-option="filterOption"
+                :options="variantOptions"
               >
-                <a-select-option v-for="variant in variants" :key="variant.id" :value="variant.id">
-                  {{ variant.sku }}
-                </a-select-option>
               </a-select>
             </a-form-item>
           </a-col>
@@ -49,14 +51,17 @@
 
       <!-- Submit button -->
       <a-form-item>
-        <a-button type="primary" html-type="submit" block>Submit</a-button>
+        <a-button type="primary" html-type="submit" block>
+          <template #icon><PlusOutlined /></template>
+          Create Composition
+        </a-button>
       </a-form-item>
     </a-form>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue';
+import { ref, reactive, computed, watch } from 'vue';
 import { useProductStore } from '~/stores/product/ProductStore.js';
 import {
   DeleteOutlined,
@@ -106,10 +111,28 @@ const submitForm = async () => {
     console.error('Error adding composition', error);
   }
 };
+
+// Create `variantOptions` to transform variants into the {value, label} format
+const variantOptions = computed(() =>
+productStore.variants.map(variant => ({
+      value: variant.id,
+      label: `${variant.Product.name} (${variant.sku})`
+    }))
+);
+
+// Define a filter option function for search
+const filterOption = (input, option) => {
+  if (productStore.variants) { // Check if variants is defined
+    return option.label.toLowerCase().includes(input.toLowerCase());
+  }
+  return false; // Return false if variants is undefined
+};
 </script>
 
 <style scoped>
-
+.composition-form-container {
+  padding: 1px;
+}
 
 .ingredient-row {
   margin-bottom: 16px;

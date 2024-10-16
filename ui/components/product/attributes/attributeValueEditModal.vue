@@ -1,12 +1,18 @@
 <template>
-  <a-form :form="form" @submit.prevent="handleSubmit">
-    <a-form-item label="Value" :rules="[{ required: true, message: 'Please input the attribute Value!' }]">
-      <a-input v-model:value="form.value"/>
-    </a-form-item>
-    <a-form-item>
-      <a-button type="primary" html-type="submit">Submit</a-button>
-    </a-form-item>
-  </a-form>
+  <div class="attribute-value-edit-modal">
+    <h3 style="margin-top: 0">Edit Attribute Value</h3>
+    <a-divider style="margin-bottom: 11px; margin-top: 11px" />
+    <a-form layout="vertical" :form="form" @submit.prevent="handleSubmit">
+      <a-form-item label="Value" :rules="[{ required: true, message: 'Please input the attribute Value!' }]">
+        <a-input v-model:value="form.value" placeholder="Enter attribute value" />
+      </a-form-item>
+      <a-form-item>
+        <a-button type="primary" html-type="submit" block size="large">
+          Submit
+        </a-button>
+      </a-form-item>
+    </a-form>
+  </div>
 </template>
 <script setup>
 import { ref, onMounted, watch } from 'vue';

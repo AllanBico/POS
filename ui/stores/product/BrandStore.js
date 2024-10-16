@@ -1,5 +1,6 @@
+// stores/BrandStore.js
 import { defineStore } from 'pinia';
-import { useNuxtApp, useRuntimeConfig, useFetch } from '#app';
+import { useRuntimeConfig, useNuxtApp, useState } from '#app';
 
 export const useBrandStore = defineStore('brand', {
     state: () => ({
@@ -7,142 +8,151 @@ export const useBrandStore = defineStore('brand', {
         error: null,
         loading: false,
     }),
+
     getters: {
         getBrandById: (state) => (id) => {
             const brand = state.brands.find(brand => brand.id === id);
             if (!brand) {
-                console.error(`Brand with id ${id} not found`);
-                return null;
+                console.warn(`Brand with id ${id} not found`);
             }
             return brand;
         },
     },
+
     actions: {
-        setLoading(loading) {
-            this.loading = loading;
-        },
-
-        setError(error) {
-            this.error = error;
-        },
-
-        clearError() {
-            this.error = null;
-        },
-
-        handleError(error, message = 'An error occurred') {
-            const { $toast } = useNuxtApp();
-            this.setError(error);
-            $toast.error(message);
-            console.error(message, error);
-        },
-
         async fetchBrands() {
-            this.setLoading(true);
-            this.clearError();
-            try {
-                const config = useRuntimeConfig();
-                const apiUrl = `${config.public.baseURL}/api/brands`;
-                const { data, error } = await useFetch(apiUrl, {
-                    credentials: 'include',
-                });
-
-                if (error.value) throw error.value;
-
-                this.brands = data.value;
-            } catch (error) {
-                this.handleError(error, 'Error fetching brands');
-            } finally {
-                this.setLoading(false);
-            }
+            await this.performApiCall('GET', '/api/brands', null, (data) => {
+                this.brands = data;
+            }, 'Failed to fetch brands');
         },
 
         async createBrand(brand) {
-            this.setLoading(true);
-            this.clearError();
-            try {
-                const config = useRuntimeConfig();
-                const apiUrl = `${config.public.baseURL}/api/brands`;
-                const { data, error } = await useFetch(apiUrl, {
-                    method: 'POST',
-                    body: brand,
-                    credentials: 'include',
-                });
-
-                if (error.value) throw error.value;
-
-                this.brands.push(data.value);
+            await this.performApiCall('POST', '/api/brands', brand, (data) => {
+                this.handleBrandCreation(data);
                 useNuxtApp().$toast.success('Brand Created');
-            } catch (error) {
-                this.handleError(error, 'Error creating brand');
-            } finally {
-                this.setLoading(false);
-            }
+            }, 'Failed to create brand');
         },
 
         async updateBrand(id, updatedBrand) {
-            this.setLoading(true);
-            this.clearError();
-            try {
-                const config = useRuntimeConfig();
-                const apiUrl = `${config.public.baseURL}/api/brands/${id}`;
-                const { data, error } = await useFetch(apiUrl, {
-                    method: 'PUT',
-                    body: updatedBrand,
-                    credentials: 'include',
-                });
-
-                if (error.value) throw error.value;
-
-                const index = this.brands.findIndex((brand) => brand.id === id);
-                if (index !== -1) {
-                    this.brands[index] = data.value;
-                }
+            await this.performApiCall('PUT', `/api/brands/${id}`, updatedBrand, (data) => {
+                this.handleBrandUpdate(data);
                 useNuxtApp().$toast.success('Brand Updated');
-            } catch (error) {
-                this.handleError(error, 'Error updating brand');
-            } finally {
-                this.setLoading(false);
-            }
+            }, `Failed to update brand with ID: ${id}`);
         },
 
         async deleteBrand(id) {
-            this.setLoading(true);
-            this.clearError();
-            try {
-                const config = useRuntimeConfig();
-                const apiUrl = `${config.public.baseURL}/api/brands/${id}`;
-                const { error } = await useFetch(apiUrl, {
-                    method: 'DELETE',
-                    credentials: 'include',
-                });
-
-                if (error.value) throw error.value;
-
-                this.brands = this.brands.filter((brand) => brand.id !== id);
-                useNuxtApp().$toast.success('Brand Deleted');
-            } catch (error) {
-                this.handleError(error, 'Error deleting brand');
-            } finally {
-                this.setLoading(false);
-            }
+            await this.performApiCall('DELETE', `/api/brands/${id}`, null, () => {
+                this.handleBrandDeletion(id);
+                useNuxtApp().$toast.warning('Brand Deleted');
+            }, `Failed to delete brand with ID: ${id}`);
         },
 
         // Socket event handlers
         socketUpdateBrand(brand) {
-            const index = this.brands.findIndex(obj => obj.id === brand.id);
-            if (index !== -1) this.brands[index] = brand;
+            this.handleBrandUpdate(brand);
         },
 
         socketCreateBrand(brand) {
-            if (!this.brands.some(obj => obj.id === brand.id)) {
-                this.brands.push(brand);
-            }
+            this.handleBrandCreation(brand);
         },
 
         socketDeleteBrand(id) {
-            const index = this.brands.findIndex(brand => brand.id === id);
-            if (index !== -1) this.brands.splice(index, 1);
+            this.handleBrandDeletion(id);
+        },
+
+        // Utility functions
+        setLoading(isLoading) {
+            this.loading = isLoading;
+        },
+
+        async performApiCall(method, endpoint, body, onSuccess, errorMessage) {
+            this.setLoading(true);
+            this.error = null;
+            const config = useRuntimeConfig();
+            const socketId = useState('socketId').value;
+            const apiUrl = `${config.public.baseURL}${endpoint}`;
+
+            try {
+                const { data, error } = await useFetch(apiUrl, {
+                    method,
+                    body,
+                    credentials: 'include',
+                    headers: {
+                        'x-socket-id': socketId,
+                    },
+                });
+
+                if (error.value) {
+                    // Handle network errors
+                    if (error.value.status === 400) {
+                        throw new Error('Invalid input. Please check your data and try again.');
+                    } else if (error.value.status === 404) {
+                        throw new Error('The requested resource was not found.');
+                    } else if (error.value.status === 500) {
+                        throw new Error('An internal server error occurred. Please try again later.');
+                    } else if (error.value.data.message) {
+                        throw new Error(error.value.data.message);
+                    } else {
+                        throw new Error(errorMessage);
+                    }
+                }
+
+                // Check if data is available before accessing it
+                if (data.value && data.value.data) {
+                    onSuccess(data.value.data);
+                } else if (data.value && data.value.message) {
+                    // Handle cases where only a message is returned (e.g., DELETE)
+                    onSuccess(data.value);
+                } else {
+                    // Handle case where data is missing
+                    console.error('No data received from API:', data.value);
+                    this.error = 'No data received from API';
+                    useNuxtApp().$toast.error('No data received from API');
+                }
+            } catch (error) {
+                console.error(errorMessage, error);
+                this.error = error.message;
+                useNuxtApp().$toast.error(error.message || errorMessage);
+            } finally {
+                this.setLoading(false);
+            }
+        },
+
+        handleBrandUpdate(brand) {
+            if (brand && brand.id) {
+                const index = this.brands.findIndex(b => b.id === brand.id);
+                if (index !== -1) {
+                    this.brands.splice(index, 1, brand); // Replace the existing brand with the updated one
+                    console.log('brand',brand)
+                } else {
+                    console.warn('Brand not found for update:', brand);
+                }
+            } else {
+                console.warn('Invalid brand data received for update:', brand);
+            }
+        },
+
+        handleBrandCreation(brand) {
+            if (brand && brand.id && !this.brands.some(brand => brand.id === brand.id)) {
+                this.brands.push(brand);
+            } else {
+                console.warn('Invalid brand data received for creation or duplicate found:', brand);
+            }
+        },
+
+        handleBrandDeletion(id) {
+            const brandId = parseInt(id, 10);
+            if (!isNaN(brandId)) {
+                const initialLength = this.brands.length;
+                this.brands = this.brands.filter(brand => brand.id !== brandId);
+                if (this.brands.length < initialLength) {
+                    console.log('Brand Deleted via Socket');
+                } else {
+                    console.warn('Brand ID not found for deletion:', id);
+                }
+            } else {
+                console.warn('Invalid brand ID received for deletion:', id);
+            }
         },
     },
 });

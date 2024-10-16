@@ -61,7 +61,6 @@ import { ShopOutlined, EnvironmentOutlined, PlusOutlined } from '@ant-design/ico
 
 const warehouseStore = useWarehouseStore();
 const emit = defineEmits(['submit-success']);
-const { $toast } = useNuxtApp();
 const loading = ref(false);
 const form = ref({
   name: '',
@@ -84,7 +83,7 @@ const handleSubmit = async () => {
 
     form.value = { name: '', location: '', description: '' };
     emit('submit-success');
-    $toast.success('Warehouse added successfully!');
+
   } catch (error) {
     console.error('Error Adding Warehouse:', error);
     $toast.error(error.message || 'Error Creating Warehouse');

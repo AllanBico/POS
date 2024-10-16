@@ -81,7 +81,7 @@ const form = ref({
 const fetchWarehouse = async () => {
   try {
     loading.value = true;
-    const fetchedWarehouse = await warehouseStore.getWarehouseById(warehouseId.value);
+    const fetchedWarehouse = await warehouseStore.WarehouseById(warehouseId.value);
     if (fetchedWarehouse) {
       form.value = { ...fetchedWarehouse };
     } else {
@@ -114,7 +114,6 @@ const handleSubmit = async () => {
     });
 
     emit('submit-success');
-    $toast.success('Warehouse updated successfully!');
   } catch (error) {
     console.error('Error Updating Warehouse:', error);
     $toast.error(error.message || 'Error Updating Warehouse');

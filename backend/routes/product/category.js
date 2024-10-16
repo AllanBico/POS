@@ -13,24 +13,21 @@ const validateCategoryInput = (name) => {
     if (!name || typeof name !== 'string' || name.trim() === '') {
         const error = new Error('Valid name is required');
         error.status = 400;
-        throw error;
+        return error;
     }
 };
 
 // Check for duplicate category name
+// Check for duplicate category name
 const checkDuplicateName = async (name, id = null) => {
     const whereClause = {
-        name: { [Op.iLike]: name }
+        name: { [Op.iLike]: name.toLowerCase() } // Use toLowerCase() for clarity
     };
     if (id) {
         whereClause.id = { [Op.ne]: id };
     }
     const existingCategory = await Category.findOne({ where: whereClause });
-    if (existingCategory) {
-        const error = new Error('Category with this name already exists');
-        error.status = 400;
-        throw error;
-    }
+    return !!existingCategory; // Return true if a duplicate exists, false otherwise
 };
 
 // Emit socket event to all clients except the sender
@@ -45,19 +42,30 @@ const emitToOthers = (req, event, data) => {
     }
 };
 
+// Middleware for handling 400 and 500 errors
+const handleError = (err, req, res, next) => {
+    console.error(err);
+    res.status(err.status || 500).json({
+        error: err.message || 'Internal server error',
+        status: err.status || 500
+    });
+};
+
 // Create a category
 router.post('/', authenticateToken, asyncHandler(async (req, res) => {
     try {
         const { name, description } = req.body;
         validateCategoryInput(name);
-        await checkDuplicateName(name);
-
+        const isDuplicate = await checkDuplicateName(name); // Check for duplicate
+        if (isDuplicate) {
+            return res.status(400).json({ message: 'Category with this name already exists' });
+        }
         const category = await Category.create({ name, description });
-        res.status(201).json({ data: category, message: 'Category created successfully' });
+        res.status(201).json({ data: { value: category }, message: 'Category created successfully' }); // Added message field
         emitToOthers(req, 'newCategory', category);
     } catch (error) {
-        if (error instanceof ValidationError || error.status === 400) {
-            res.status(400).json({ error: error.message });
+        if (error.status === 400) {
+            res.status(400).json({ message: error.message });
         } else {
             throw error;
         }
@@ -68,10 +76,11 @@ router.post('/', authenticateToken, asyncHandler(async (req, res) => {
 router.get('/', authenticateToken, asyncHandler(async (req, res) => {
     try {
         const categories = await Category.findAll();
-        res.status(200).json({ data: categories, message: 'Categories fetched successfully' });
+        res.status(200).json({ data: { value: categories }, message: 'Categories fetched successfully' }); // Changed response structure
+        
     } catch (error) {
         console.error('Error fetching categories:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ message: 'Internal server error' });
     }
 }));
 
@@ -85,12 +94,12 @@ router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
 
         const category = await Category.findByPk(id);
         if (!category) {
-            return res.status(404).json({ error: 'Category not found' });
+            return res.status(404).json({ message: 'Category not found' });
         }
-        res.status(200).json({ data: category, message: 'Category fetched successfully' });
+        res.status(200).json({ data: { value: category }, message: 'Category fetched successfully' }); // Changed response structure
     } catch (error) {
         console.error('Error fetching category:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ message: 'Internal server error' });
     }
 }));
 
@@ -104,7 +113,12 @@ router.put('/:id', authenticateToken, asyncHandler(async (req, res) => {
         }
 
         validateCategoryInput(name);
-        await checkDuplicateName(name, id);
+        const isDuplicate = await checkDuplicateName(name); // Check for duplicate
+        if (isDuplicate) {
+            return res.status(400).json({ message: 'Category with this name already exists' });
+        }
+
+        console.log('Updating category:', { id, name, description }); // Log for debugging
 
         const [updatedRowsCount, [updatedCategory]] = await Category.update(
             { name, description },
@@ -115,14 +129,14 @@ router.put('/:id', authenticateToken, asyncHandler(async (req, res) => {
             return res.status(404).json({ error: 'Category not found' });
         }
 
-        res.status(200).json({ data: updatedCategory, message: 'Category updated successfully' });
+        res.status(200).json({ data: { value: updatedCategory }, message: 'Category updated successfully' }); // Added message field
         emitToOthers(req, 'updateCategory', updatedCategory);
     } catch (error) {
-        if (error instanceof ValidationError || error.status === 400) {
-            res.status(400).json({ error: error.message });
+        if (error.status === 400) {
+            res.status(400).json({ message: error.message });
         } else {
             console.error('Error updating category:', error);
-            res.status(500).json({ error: 'Internal server error' });
+            res.status(500).json({ message: 'Internal server error' });
         }
     }
 }));
@@ -132,29 +146,23 @@ router.delete('/:id', authenticateToken, asyncHandler(async (req, res) => {
     try {
         const id = parseInt(req.params.id, 10);
         if (isNaN(id)) {
-            return res.status(400).json({ error: 'Invalid category ID' });
+            return res.status(400).json({ message: 'Invalid category ID' });
         }
 
         const deletedRowsCount = await Category.destroy({ where: { id } });
         if (deletedRowsCount === 0) {
-            return res.status(404).json({ error: 'Category not found' });
+            return res.status(404).json({ message: 'Category not found' });
         }
 
         res.status(200).json({ message: 'Category deleted successfully' });
         emitToOthers(req, 'deleteCategory', id);
     } catch (error) {
         console.error('Error deleting category:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ message: 'Internal server error' });
     }
 }));
 
 // Error handling middleware
-router.use((err, req, res, next) => {
-    console.error(err);
-    res.status(err.status || 500).json({
-        error: err.message || 'Internal server error',
-        status: err.status || 500
-    });
-});
+router.use(handleError);
 
 module.exports = router;

@@ -3,7 +3,6 @@
     <!-- Modals -->
     <a-modal
       v-model:open="open"
-      title="Add Expense Category"
       :footer="null"
       :maskClosable="false"
     >
@@ -12,7 +11,6 @@
 
     <a-modal
       v-model:open="edit_open"
-      title="Edit Expense Category"
       :footer="null"
       :maskClosable="false"
     >
@@ -26,6 +24,7 @@
     <a-card class="header-card" :bordered="false">
       <a-page-header
         class="header"
+        style="padding: 0%;"
         title="Expense Categories"
         sub-title="Manage and organize your expense categories"
       >
@@ -62,11 +61,6 @@
       <a-table
         :dataSource="categoryStore.expenseCategories"
         :columns="columns"
-        :pagination="{
-          pageSize: 10,
-          showSizeChanger: true,
-          showQuickJumper: true,
-        }"
         :rowKey="(record) => record.id"
         :loading="categoryStore.loading"
         size="middle"

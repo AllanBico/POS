@@ -1,6 +1,6 @@
 <template>
-
-    <a-steps :current="currentStep" class="steps-nav">
+  <div class="product-form-container" :key="currentStep">
+    <a-steps :current="currentStep" class="steps-nav" :key="currentStep">
       <a-step title="Basic Info" />
       <a-step title="Categorization" />
       <a-step title="Inventory & Pricing" />
@@ -102,23 +102,23 @@
       </div>
     </a-form>
 
-
-  <a-modal v-model:open="open_unit" title="Add Unit" @ok="handleOk" @cancel="handleCancel" ok-text="Submit" cancel-text="Cancel">
-    <UnitsAddModal @submit-success="handleSubmitSuccess"></UnitsAddModal>
-    <template #footer> </template>
-  </a-modal>
-  <a-modal v-model:open="open_subcategory" title="Add SubCategory" @ok="handleOk" @cancel="handleCancel" ok-text="Submit" cancel-text="Cancel">
-    <sub-category-add-modal @submit-success="handleSubmitSuccess"></sub-category-add-modal>
-    <template #footer> </template>
-  </a-modal>
-  <a-modal v-model:open="open_category" title="Add Category" @ok="handleOk" @cancel="handleCancel" ok-text="Submit" cancel-text="Cancel">
-    <category-add-modal @submit-success="handleSubmitSuccess"></category-add-modal>
-    <template #footer> </template>
-  </a-modal>
-  <a-modal v-model:open="open_brand" title="Add Brand" @ok="handleOk" @cancel="handleCancel" ok-text="Submit" cancel-text="Cancel">
-    <brand-add-modal @submit-success="handleSubmitSuccess"></brand-add-modal>
-    <template #footer> </template>
-  </a-modal>
+    <a-modal v-model:open="open_unit" title="Add Unit" @ok="handleOk" @cancel="handleCancel" ok-text="Submit" cancel-text="Cancel">
+      <UnitsAddModal @submit-success="handleSubmitSuccess"></UnitsAddModal>
+      <template #footer> </template>
+    </a-modal>
+    <a-modal v-model:open="open_subcategory" title="Add SubCategory" @ok="handleOk" @cancel="handleCancel" ok-text="Submit" cancel-text="Cancel">
+      <sub-category-add-modal @submit-success="handleSubmitSuccess"></sub-category-add-modal>
+      <template #footer> </template>
+    </a-modal>
+    <a-modal v-model:open="open_category" title="Add Category" @ok="handleOk" @cancel="handleCancel" ok-text="Submit" cancel-text="Cancel">
+      <category-add-modal @submit-success="handleSubmitSuccess"></category-add-modal>
+      <template #footer> </template>
+    </a-modal>
+    <a-modal v-model:open="open_brand" title="Add Brand" @ok="handleOk" @cancel="handleCancel" ok-text="Submit" cancel-text="Cancel">
+      <brand-add-modal @submit-success="handleSubmitSuccess"></brand-add-modal>
+      <template #footer> </template>
+    </a-modal>
+  </div>
 </template>
 
 <script setup>
@@ -257,18 +257,14 @@ const filterOption = (input, option) => {
 </script>
 
 <style scoped>
-
+.product-form-container {
+  margin: 0 auto;
+  padding: 20px;
+}
 
 .steps-nav {
   margin-bottom: 40px;
   margin-top: 30px;
-}
-
-.form-container {
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  padding: 30px;
 }
 
 .step-content {
@@ -279,6 +275,7 @@ const filterOption = (input, option) => {
   font-size: 24px;
   margin-bottom: 20px;
   font-weight: 600;
+  color: #333;
 }
 
 .form-row {
@@ -298,21 +295,25 @@ const filterOption = (input, option) => {
 
 :deep(.ant-form-item-label) {
   font-weight: 500;
+  color: #555;
 }
 
 :deep(.ant-input),
 :deep(.ant-select-selector),
 :deep(.ant-input-number) {
   border-radius: 4px;
+  border: 1px solid #d9d9d9;
 }
 
 :deep(.ant-btn) {
   height: 40px;
   font-size: 16px;
+  border-radius: 4px;
 }
 
 .add-new-btn {
   margin-top: 8px;
+  color: #1890ff;
 }
 
 @media (max-width: 767px) {

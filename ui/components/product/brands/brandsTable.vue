@@ -24,6 +24,7 @@
     <a-card class="header-card" :bordered="false">
       <a-page-header
           class="header"
+          style="padding: 0%;"
           title="Brands"
           sub-title="Manage and organize your product brands"
       >
@@ -69,6 +70,7 @@
           :loading="brandStore.loading"
           size="middle"
           @change="handleTableChange"
+          bordered
       >
         <!-- Custom filter dropdown template -->
         <template
@@ -140,25 +142,7 @@
                     <template #icon><DeleteOutlined /></template>
                   </a-button>
                 </a-tooltip>
-              </a-popconfirm>
-              <a-dropdown>
-                <template #overlay>
-                  <a-menu>
-                    <a-menu-item key="view">
-                      <EyeOutlined /> View Details
-                    </a-menu-item>
-                    <a-menu-item key="duplicate">
-                      <CopyOutlined /> Duplicate
-                    </a-menu-item>
-                    <a-menu-item key="archive">
-                      <InboxOutlined /> Archive
-                    </a-menu-item>
-                  </a-menu>
-                </template>
-                <a-button type="link">
-                  <MoreOutlined style="font-size: 16px;" />
-                </a-button>
-              </a-dropdown>
+              </a-popconfirm>              
             </div>
           </template>
           <template v-else-if="column.dataIndex === 'index'">
@@ -194,7 +178,7 @@ import 'jspdf-autotable';
 
 // Initialize brand store and fetch brands
 const brandStore = useBrandStore();
-brandStore.fetchBrands();
+
 
 // Reactive variables
 const isAddModalOpen = ref(false);
@@ -204,14 +188,7 @@ const searchInput = ref(null);
 
 // Table columns configuration
 const columns = [
-  {
-    title: "#",
-    dataIndex: "index",
-    width: "5%",
-    sorter: (a, b) => a.index.localeCompare(b.index),
-    onFilter: (value, record) =>
-        record.index.toLowerCase().includes(value.toLowerCase()),
-  },
+
   {
     title: "Name",
     dataIndex: "name",
